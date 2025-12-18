@@ -216,9 +216,21 @@ class BaseAgent(ABC):
             return ""
 
         try:
-            # TODO: Implement actual LLM call once client is available
-            # For now, return empty string
-            return ""
+            # Build system prompt with context
+            system_prompt = f"You are {self.agent_name}, an AI agent for a solarpunk commune."
+            if context:
+                system_prompt += f"\n\nContext: {context}"
+
+            # Call LLM
+            response = await self.llm_client.generate(
+                prompt=prompt,
+                system_prompt=system_prompt,
+                temperature=0.7,
+                max_tokens=512,
+            )
+
+            return response.content
+
         except Exception as e:
             logger.error(f"LLM call failed: {e}", exc_info=True)
             return ""
