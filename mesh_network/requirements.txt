@@ -1,0 +1,23 @@
+# Multi-AP Mesh Network Requirements
+# Bridge node services and API
+
+# Core framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+
+# HTTP client for DTN sync
+httpx>=0.25.0
+
+# Async support
+asyncio>=3.4.3
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# Development
+black>=23.10.0
+flake8>=6.1.0
+mypy>=1.6.0

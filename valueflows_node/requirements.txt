@@ -1,0 +1,21 @@
+# ValueFlows Node - Python Dependencies
+
+# Web Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.0
+
+# Database
+# SQLite is built into Python, no external dependency needed
+
+# Cryptography (for Ed25519 signing)
+cryptography==42.0.0
+
+# Utilities
+python-multipart==0.0.6  # For form data
+python-jose[cryptography]==3.3.0  # JWT tokens (optional)
+
+# Development
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.26.0  # For testing FastAPI endpoints

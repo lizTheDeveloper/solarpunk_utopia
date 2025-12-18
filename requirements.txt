@@ -1,0 +1,9 @@
+fastapi==0.115.6
+uvicorn==0.34.0
+pydantic==2.10.5
+cryptography==44.0.0
+aiosqlite==0.20.0
+python-multipart==0.0.20
+
+# Agent system dependencies
+anthropic==0.18.0  # Claude API for LLM-powered reasoning (optional)

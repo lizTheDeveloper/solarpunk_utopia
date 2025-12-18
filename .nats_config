@@ -1,0 +1,12 @@
+# NATS Server Configuration
+# Server: nats-jetstream VM in GCP (europe-west3-a)
+# See NATS_INTEGRATION.md for details
+
+export NATS_URL=nats://34.185.163.86:4222
+export NATS_USER=orchestrator
+export NATS_PASSWORD=f3LJamuke3FMecv0JYNBhf8z
+export NATS_CONTEXT=gcp-orchestrator
+
+# Project Namespace (prefix for all streams and subjects)
+export NATS_NAMESPACE=solarpunk_utopia
+export PROJECT_NAME=solarpunk_utopia

@@ -1,0 +1,57 @@
+{
+  "ap_name": "SolarpunkGarden",
+  "location": "garden",
+  "ssid": "SolarpunkGarden",
+  "network": {
+    "subnet": "10.44.1.0/24",
+    "gateway": "10.44.1.1",
+    "dhcp_range_start": "10.44.1.10",
+    "dhcp_range_end": "10.44.1.250",
+    "dns_servers": ["10.44.1.1"]
+  },
+  "hostapd": {
+    "interface": "wlan0",
+    "driver": "nl80211",
+    "channel": 6,
+    "hw_mode": "g",
+    "ieee80211n": 1,
+    "wmm_enabled": 1,
+    "ht_capab": "[HT40][SHORT-GI-20][DSSS_CCK-40]",
+    "country_code": "US",
+    "auth_algs": 1,
+    "wpa": 0,
+    "ignore_broadcast_ssid": 0
+  },
+  "dnsmasq": {
+    "interface": "wlan0",
+    "bind_interfaces": true,
+    "dhcp_authoritative": true,
+    "lease_time": "12h",
+    "log_queries": true
+  },
+  "services": {
+    "dtn_node": {
+      "enabled": true,
+      "port": 8000,
+      "bind_address": "10.44.1.1"
+    },
+    "vf_node": {
+      "enabled": true,
+      "port": 8001,
+      "bind_address": "10.44.1.1"
+    }
+  },
+  "deployment": {
+    "hardware": "raspberry_pi_4",
+    "power": "solar_battery",
+    "coverage_area": "outdoor_garden",
+    "expected_users": 5
+  },
+  "metadata": {
+    "island_id": "garden",
+    "island_type": "outdoor",
+    "priority_categories": ["gardening", "outdoor_events", "harvests"],
+    "created": "2025-12-17T00:00:00Z",
+    "schema_version": "1.0"
+  }
+}

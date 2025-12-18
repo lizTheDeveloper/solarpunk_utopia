@@ -1,0 +1,231 @@
+version: '3.8'
+
+services:
+  # TIER 0: DTN Bundle System (Foundation)
+  dtn-bundle-system:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dtn
+    container_name: solarpunk-dtn
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app
+      - dtn-data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DTN_PORT=8000
+      - DTN_HOST=0.0.0.0
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - solarpunk-network
+    restart: unless-stopped
+
+  # TIER 0: ValueFlows Node (Gift Economy)
+  valueflows-node:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.valueflows
+    container_name: solarpunk-valueflows
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./valueflows_node:/app/valueflows_node
+      - valueflows-data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - VF_PORT=8001
+      - VF_HOST=0.0.0.0
+      - DTN_API_URL=http://dtn-bundle-system:8000
+      - LOG_LEVEL=INFO
+    depends_on:
+      dtn-bundle-system:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - solarpunk-network
+    restart: unless-stopped
+
+  # TIER 1: Discovery & Search System
+  discovery-search:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.discovery
+    container_name: solarpunk-discovery
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./discovery_search:/app/discovery_search
+      - discovery-data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DISCOVERY_PORT=8003
+      - DISCOVERY_HOST=0.0.0.0
+      - DTN_API_URL=http://dtn-bundle-system:8000
+      - VF_API_URL=http://valueflows-node:8001
+      - LOG_LEVEL=INFO
+    depends_on:
+      dtn-bundle-system:
+        condition: service_healthy
+      valueflows-node:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - solarpunk-network
+    restart: unless-stopped
+
+  # TIER 1: File Chunking System
+  file-chunking:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.chunking
+    container_name: solarpunk-chunking
+    ports:
+      - "8004:8004"
+    volumes:
+      - ./file_chunking:/app/file_chunking
+      - chunking-data:/app/data
+      - chunking-storage:/app/storage
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CHUNKING_PORT=8004
+      - CHUNKING_HOST=0.0.0.0
+      - DTN_API_URL=http://dtn-bundle-system:8000
+      - STORAGE_PATH=/app/storage
+      - LOG_LEVEL=INFO
+    depends_on:
+      dtn-bundle-system:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - solarpunk-network
+    restart: unless-stopped
+
+  # TIER 1: Bridge Management System
+  bridge-management:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.bridge
+    container_name: solarpunk-bridge
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./mesh_network:/app/mesh_network
+      - bridge-data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - BRIDGE_PORT=8002
+      - BRIDGE_HOST=0.0.0.0
+      - DTN_API_URL=http://dtn-bundle-system:8000
+      - LOG_LEVEL=INFO
+    depends_on:
+      dtn-bundle-system:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/bridge/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - solarpunk-network
+    restart: unless-stopped
+
+  # Frontend: Unified Web Interface
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: solarpunk-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_DTN_API=http://localhost:8000
+      - VITE_VF_API=http://localhost:8001
+      - VITE_BRIDGE_API=http://localhost:8002
+      - VITE_DISCOVERY_API=http://localhost:8003
+      - VITE_CHUNKING_API=http://localhost:8004
+    depends_on:
+      - dtn-bundle-system
+      - valueflows-node
+      - discovery-search
+      - file-chunking
+      - bridge-management
+    networks:
+      - solarpunk-network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy (Production)
+  nginx:
+    image: nginx:alpine
+    container_name: solarpunk-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - nginx-cache:/var/cache/nginx
+    depends_on:
+      - dtn-bundle-system
+      - valueflows-node
+      - discovery-search
+      - file-chunking
+      - bridge-management
+      - frontend
+    networks:
+      - solarpunk-network
+    restart: unless-stopped
+
+networks:
+  solarpunk-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  dtn-data:
+    driver: local
+  valueflows-data:
+    driver: local
+  discovery-data:
+    driver: local
+  chunking-data:
+    driver: local
+  chunking-storage:
+    driver: local
+  bridge-data:
+    driver: local
+  nginx-cache:
+    driver: local
