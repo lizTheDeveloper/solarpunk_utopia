@@ -35,7 +35,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import init_db, close_db
-from .api import bundles_router, sync_router
+from .api import bundles_router, sync_router, agents_router
 from .services import TTLService, CryptoService, CacheService
 
 # Configure logging
@@ -121,6 +121,7 @@ app.add_middleware(
 # Register routers
 app.include_router(bundles_router)
 app.include_router(sync_router)
+app.include_router(agents_router)
 
 
 @app.get("/")
@@ -134,6 +135,7 @@ async def root():
         "endpoints": {
             "bundles": "/bundles",
             "sync": "/sync",
+            "agents": "/agents",
             "health": "/health"
         }
     }

@@ -22,7 +22,7 @@ from ...services.vf_bundle_publisher import VFBundlePublisher
 router = APIRouter(prefix="/vf/listings", tags=["listings"])
 
 
-@router.post("/", response_model=dict)
+@router.post("", response_model=dict)
 async def create_listing(listing_data: dict):
     """
     Create a new listing (offer or need).
@@ -41,12 +41,18 @@ async def create_listing(listing_data: dict):
         # Set timestamps
         listing_data["created_at"] = datetime.now().isoformat()
 
+        # Handle field name mapping: "provider_agent_id" in request -> "agent_id" in model
+        if "provider_agent_id" in listing_data:
+            listing_data["agent_id"] = listing_data.pop("provider_agent_id")
+
         # Create Listing object
         listing = Listing.from_dict(listing_data)
 
         # Sign the listing
         # In production, get private key from authenticated user context
-        signer = SigningService()
+        # For now, generate a mock keypair
+        keypair = SigningService.generate_keypair()
+        signer = SigningService(keypair['private_key'])
         signer.sign_and_update(listing, listing.agent_id)
 
         # Save to database
@@ -61,17 +67,14 @@ async def create_listing(listing_data: dict):
 
         db.close()
 
-        return {
-            "status": "created",
-            "listing": created_listing.to_dict(),
-            "bundle_id": bundle["bundleId"]
-        }
+        # Return the listing object directly for compatibility with tests
+        return created_listing.to_dict()
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/", response_model=dict)
+@router.get("", response_model=dict)
 async def browse_listings(
     listing_type: Optional[str] = Query(None, description="Filter by type: offer or need"),
     category: Optional[str] = Query(None, description="Filter by resource category"),
@@ -179,11 +182,8 @@ async def update_listing(listing_id: str, updates: dict):
 
         db.close()
 
-        return {
-            "status": "updated",
-            "listing": updated_listing.to_dict(),
-            "bundle_id": bundle["bundleId"]
-        }
+        # Return the listing object directly for compatibility with tests
+        return updated_listing.to_dict()
 
     except HTTPException:
         raise

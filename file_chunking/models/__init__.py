@@ -11,8 +11,8 @@ Defines the core data structures for content-addressed file chunking:
 
 from .chunk import ChunkMetadata, ChunkStatus
 from .manifest import FileManifest, MerkleNode
-from .request import ChunkRequest, ChunkResponse, FileRequest
-from .download import FileDownloadStatus, DownloadProgress
+from .request import ChunkRequest, ChunkResponse, FileRequest, ManifestRequest
+from .download import FileDownloadStatus, DownloadStatus, DownloadProgress
 
 __all__ = [
     "ChunkMetadata",
@@ -22,6 +22,8 @@ __all__ = [
     "ChunkRequest",
     "ChunkResponse",
     "FileRequest",
+    "ManifestRequest",
     "FileDownloadStatus",
+    "DownloadStatus",
     "DownloadProgress",
 ]

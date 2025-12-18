@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from .database import initialize_database
-from .api.vf import listings, matches, exchanges, events
+from .api.vf import listings, matches, exchanges, events, agents, resource_specs
 
 
 @asynccontextmanager
@@ -48,6 +48,8 @@ app.include_router(listings.router)
 app.include_router(matches.router)
 app.include_router(exchanges.router)
 app.include_router(events.router)
+app.include_router(agents.router)
+app.include_router(resource_specs.router)
 
 
 @app.get("/")
@@ -92,4 +94,4 @@ async def get_stats():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("valueflows_node.app.main:app", host="0.0.0.0", port=8001, reload=True)

@@ -97,7 +97,7 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(
-        "main:app",
+        "mesh_network.bridge_node.main:app",
         host="0.0.0.0",
         port=8002,  # Different port from DTN (8000) and VF (8001)
         reload=True

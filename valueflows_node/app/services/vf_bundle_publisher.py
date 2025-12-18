@@ -5,7 +5,7 @@ Converts VF objects to/from DTN bundles for mesh network sync.
 """
 
 from typing import Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 import hashlib
 import base64
@@ -176,7 +176,9 @@ class VFBundlePublisher:
         if object_type == "Listing":
             if hasattr(vf_object, 'available_until'):
                 if vf_object.available_until:
-                    hours_left = (vf_object.available_until - datetime.now()).total_seconds() / 3600
+                    # Handle both timezone-aware and timezone-naive datetimes
+                    now = datetime.now(timezone.utc) if vf_object.available_until.tzinfo else datetime.now()
+                    hours_left = (vf_object.available_until - now).total_seconds() / 3600
                     if hours_left < 24:
                         return "perishable"
 

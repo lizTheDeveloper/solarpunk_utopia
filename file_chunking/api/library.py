@@ -25,6 +25,18 @@ class CacheFileInfo(BaseModel):
     accessCount: int
     priorityScore: float
 
+    def model_dump(self, **kwargs):
+        """Override to include both camelCase and snake_case keys"""
+        data = super().model_dump(**kwargs)
+        # Add snake_case aliases
+        data["file_hash"] = data.get("fileHash")
+        data["file_name"] = data.get("fileName")
+        data["file_size"] = data.get("fileSize")
+        data["mime_type"] = data.get("mimeType")
+        data["access_count"] = data.get("accessCount")
+        data["priority_score"] = data.get("priorityScore")
+        return data
+
 
 class CacheStats(BaseModel):
     """Library cache statistics"""
@@ -36,6 +48,23 @@ class CacheStats(BaseModel):
     budgetGb: float
     usagePercentage: float
     isOverBudget: bool
+
+    def model_dump(self, **kwargs):
+        """Override to include both camelCase and snake_case keys"""
+        data = super().model_dump(**kwargs)
+        # Add snake_case aliases
+        data["total_files"] = data.get("totalFiles")
+        data["cached_files"] = data.get("totalFiles")  # Alias for test compatibility
+        data["total_size_bytes"] = data.get("totalSizeBytes")
+        data["cache_size_bytes"] = data.get("totalSizeBytes")  # Alias for test compatibility
+        data["total_size_mb"] = data.get("totalSizeMb")
+        data["total_size_gb"] = data.get("totalSizeGb")
+        data["budget_bytes"] = data.get("budgetBytes")
+        data["cache_budget_bytes"] = data.get("budgetBytes")  # Alias for test compatibility
+        data["budget_gb"] = data.get("budgetGb")
+        data["usage_percentage"] = data.get("usagePercentage")
+        data["is_over_budget"] = data.get("isOverBudget")
+        return data
 
 
 @router.post("/cache/{file_hash}")

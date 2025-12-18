@@ -38,7 +38,7 @@ from .models import (
     ChunkMetadata, ChunkStatus,
     FileManifest, MerkleNode,
     ChunkRequest, ChunkResponse, FileRequest,
-    FileDownloadStatus, DownloadStatus, DownloadProgress
+    FileDownloadStatus, DownloadProgress
 )
 
 from .services import (

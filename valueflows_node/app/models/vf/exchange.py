@@ -30,8 +30,6 @@ class Exchange:
     """
 
     id: str
-    match_id: Optional[str] = None  # References Match (if created from match)
-
     # Parties
     provider_id: str  # Agent providing resource
     receiver_id: str  # Agent receiving resource
@@ -40,6 +38,8 @@ class Exchange:
     resource_spec_id: str  # References ResourceSpec
     quantity: float
     unit: str
+
+    match_id: Optional[str] = None  # References Match (if created from match)
 
     # Where and when
     location_id: Optional[str] = None  # Where handoff happens

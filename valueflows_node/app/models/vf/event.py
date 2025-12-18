@@ -49,6 +49,8 @@ class Event:
 
     id: str
     action: EventAction
+    agent_id: str  # Who performed the action
+    occurred_at: datetime
 
     # What happened
     resource_spec_id: Optional[str] = None  # References ResourceSpec
@@ -56,14 +58,12 @@ class Event:
     quantity: Optional[float] = None
     unit: Optional[str] = None
 
-    # Who
-    agent_id: str  # Who performed the action
+    # Who (other parties)
     to_agent_id: Optional[str] = None  # Recipient (for transfers)
     from_agent_id: Optional[str] = None  # Source (for receives)
 
-    # Where and when
+    # Where
     location_id: Optional[str] = None
-    occurred_at: datetime
 
     # Context
     process_id: Optional[str] = None  # References Process (if part of production)

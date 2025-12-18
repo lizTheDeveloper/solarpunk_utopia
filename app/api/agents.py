@@ -387,3 +387,115 @@ async def run_agent_manually(agent_name: str) -> Dict:
         "proposals_created": len(proposals),
         "proposals": [p.proposal_id for p in proposals],
     }
+
+
+@router.post("/{agent_name}/run")
+async def run_agent(agent_name: str, context: Optional[Dict] = None) -> Dict:
+    """
+    Execute an agent and return proposals.
+
+    This endpoint is used by integration tests and external systems.
+    Accepts optional context data (offers, needs, etc.) for agent analysis.
+
+    Returns:
+        {
+            "agent_name": "mutual-aid-matchmaker",
+            "proposals": [
+                {
+                    "id": "prop_123",
+                    "agent_name": "mutual-aid-matchmaker",
+                    "proposal_type": "match",
+                    "explanation": "...",
+                    "requires_approval": ["alice", "bob"],
+                    "status": "pending",
+                    ...
+                }
+            ]
+        }
+    """
+    agent_classes = {
+        "commons-router": CommonsRouterAgent,
+        "mutual-aid-matchmaker": MutualAidMatchmaker,
+        "perishables-dispatcher": PerishablesDispatcher,
+        "work-party-scheduler": WorkPartyScheduler,
+        "permaculture-planner": PermaculturePlanner,
+        "education-pathfinder": EducationPathfinder,
+        "inventory-agent": InventoryAgent,
+    }
+
+    agent_class = agent_classes.get(agent_name)
+    if not agent_class:
+        raise HTTPException(status_code=404, detail=f"Agent {agent_name} not found")
+
+    # Create agent (context data can be passed to agent constructor if needed)
+    agent = agent_class()
+
+    # Run agent analysis
+    proposals = await agent.run()
+
+    # Store proposals in approval tracker
+    for proposal in proposals:
+        await approval_tracker.store_proposal(proposal)
+
+    # Return proposals in format expected by integration tests
+    return {
+        "agent_name": agent_name,
+        "proposals": [
+            {
+                "id": p.proposal_id,
+                "agent_name": p.agent_name,
+                "proposal_type": p.proposal_type,
+                "title": p.title,
+                "explanation": p.explanation,
+                "inputs_used": p.inputs_used,
+                "constraints": p.constraints,
+                "data": p.data,
+                "requires_approval": p.requires_approval,
+                "approvals": p.approvals,
+                "approval_reasons": p.approval_reasons,
+                "status": p.status,
+                "created_at": p.created_at.isoformat(),
+                "expires_at": p.expires_at.isoformat() if p.expires_at else None,
+                "bundle_id": p.bundle_id,
+            }
+            for p in proposals
+        ]
+    }
+
+
+@router.post("/{agent_name}/proposals/{proposal_id}/approve")
+async def approve_agent_proposal(
+    agent_name: str,
+    proposal_id: str,
+    request: ApprovalRequest,
+) -> Proposal:
+    """
+    Approve a specific agent proposal.
+
+    Alternative endpoint format for agent-specific approval.
+    Delegates to the main approval endpoint.
+    """
+    return await approve_proposal(proposal_id, request)
+
+
+@router.get("")
+async def list_agents() -> Dict:
+    """
+    List all available agents.
+
+    Returns list of agent names that can be executed.
+    """
+    agent_names = [
+        "commons-router",
+        "mutual-aid-matchmaker",
+        "perishables-dispatcher",
+        "work-party-scheduler",
+        "permaculture-planner",
+        "education-pathfinder",
+        "inventory-agent",
+    ]
+
+    return {
+        "agents": agent_names,
+        "total": len(agent_names)
+    }

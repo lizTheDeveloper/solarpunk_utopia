@@ -24,6 +24,14 @@ class DownloadRequest(BaseModel):
     outputPath: str
     priority: int = 5
 
+    def model_dump(self, **kwargs):
+        """Override to include both camelCase and snake_case keys"""
+        data = super().model_dump(**kwargs)
+        # Add snake_case aliases
+        data["file_hash"] = data.get("fileHash")
+        data["output_path"] = data.get("outputPath")
+        return data
+
 
 class DownloadStatusResponse(BaseModel):
     """Download status response"""
@@ -35,6 +43,20 @@ class DownloadStatusResponse(BaseModel):
     receivedChunks: int
     percentComplete: float
     errorMessage: Optional[str] = None
+
+    def model_dump(self, **kwargs):
+        """Override to include both camelCase and snake_case keys"""
+        data = super().model_dump(**kwargs)
+        # Add snake_case aliases
+        data["request_id"] = data.get("requestId")
+        data["file_hash"] = data.get("fileHash")
+        data["file_name"] = data.get("fileName")
+        data["total_chunks"] = data.get("totalChunks")
+        data["received_chunks"] = data.get("receivedChunks")
+        data["chunks_downloaded"] = data.get("receivedChunks")  # Alias for test compatibility
+        data["percent_complete"] = data.get("percentComplete")
+        data["error_message"] = data.get("errorMessage")
+        return data
 
 
 @router.post("/request", response_model=DownloadStatusResponse)
@@ -212,7 +234,9 @@ async def reassemble_download(request_id: str):
 
         return {
             "message": "File reassembled successfully",
-            "outputPath": download_status.outputPath
+            "outputPath": download_status.outputPath,
+            "output_path": download_status.outputPath,  # snake_case alias
+            "verified": True  # File was successfully verified during reassembly
         }
 
     except HTTPException:
