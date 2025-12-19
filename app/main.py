@@ -38,6 +38,7 @@ from .database import init_db, close_db
 from .api import bundles_router, sync_router, agents_router
 from .api.auth import router as auth_router
 from .api.vouch import router as vouch_router
+from .api.event_onboarding import router as onboarding_router
 from .services import TTLService, CryptoService, CacheService
 from .middleware import CSRFMiddleware
 
@@ -142,6 +143,7 @@ app.include_router(sync_router)
 app.include_router(agents_router)
 app.include_router(auth_router)
 app.include_router(vouch_router)
+app.include_router(onboarding_router)
 
 
 @app.get("/")
