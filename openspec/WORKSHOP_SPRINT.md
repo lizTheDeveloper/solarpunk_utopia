@@ -59,7 +59,7 @@ A mesh network that enables:
 | [Knowledge Osmosis](changes/knowledge-osmosis/proposal.md) | Study circles output artifacts | ✅ IMPLEMENTED - Full stack: circles, artifacts, Common Heap, osmosis tracking |
 | [Algorithmic Transparency](changes/algorithmic-transparency/proposal.md) | Why did the AI match this? | ✅ IMPLEMENTED - Full transparency: explanations, adjustable weights, bias detection, audit trail (13 tests passing) |
 | [Temporal Justice](changes/temporal-justice/proposal.md) | Don't exclude caregivers/workers | ✅ IMPLEMENTED - Async participation: slow exchanges, time banks, chunk offers, flexible voting |
-| [Accessibility First](changes/accessibility-first/proposal.md) | Works for non-tech-savvy | 📝 DOCUMENTED - Proposal written, implementation pending |
+| [Accessibility First](changes/accessibility-first/proposal.md) | Works for non-tech-savvy | ✅ IMPLEMENTED - Backend tracking: preferences, feature usage, feedback, metrics (>10% success goal) |
 | [Language Justice](changes/language-justice/proposal.md) | Not just English | 📝 DOCUMENTED - Proposal written, implementation pending |
 
 ---

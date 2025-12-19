@@ -1,6 +1,6 @@
 # Proposal: Accessibility First
 
-**Status:** DRAFT  
+**Status:** IMPLEMENTED  
 **Philosopher:** Mia Mingus (Disability Justice)
 
 ## Problem
