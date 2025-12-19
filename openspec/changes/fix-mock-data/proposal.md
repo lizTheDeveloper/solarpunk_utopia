@@ -2,8 +2,9 @@
 
 **Submitted By:** Gap Analysis Agent
 **Date:** 2025-12-19
-**Status:** HIGH
-**Gaps Addressed:** GAP-66, GAP-67, GAP-68, GAP-70, GAP-73-98, GAP-100-102, GAP-111, GAP-115, GAP-121-123
+**Status:** PARTIALLY IMPLEMENTED (60% complete)
+**Implemented:** 2025-12-19 (Agent stats, settings, VF integration)
+**Gaps Addressed:** GAP-66 ✅, GAP-67 ✅, GAP-68 ✅, GAP-70 ✅, GAP-73-98, GAP-100-102, GAP-111, GAP-115, GAP-121-123
 **Priority:** P1 - First Week
 
 ## Problem Statement
@@ -298,9 +299,39 @@ def test_metrics_reflect_reality():
 
 ## Success Criteria
 
-- [ ] Agent stats show actual run times and counts
-- [ ] Agent settings persist across restarts
-- [ ] Base agent queries return real VF data
-- [ ] Resilience metrics computed from actual data
-- [ ] No `return []` error handling patterns
-- [ ] All TODOs in affected files resolved
+- [x] Agent stats show actual run times and counts ✅
+- [x] Agent settings persist across restarts ✅
+- [x] Base agent queries return real VF data ✅
+- [ ] Resilience metrics computed from actual data (REMAINING)
+- [ ] No `return []` error handling patterns (REMAINING)
+- [ ] All TODOs in affected files resolved (60% done)
+
+## Implementation Status
+
+### Completed (2025-12-19)
+1. ✅ **Agent Stats Tracking** - Created `AgentStatsRepository` with real database tracking
+   - Migration: `018_add_agent_stats_settings.sql`
+   - Repository: `app/database/agent_stats_repository.py`
+   - Updated: `app/api/agents.py` endpoints to use real stats
+
+2. ✅ **Agent Settings Persistence** - Created `AgentSettingsRepository` for database persistence
+   - Repository: `app/database/agent_settings_repository.py`
+   - Updated: `app/api/agents.py` GET/PUT endpoints to persist settings
+
+3. ✅ **BaseAgent VFClient Integration** - Integrated real ValueFlows queries
+   - Updated: `app/agents/framework/base_agent.py` `query_vf_data()` method
+   - Now uses `VFClient` for offers, needs, matches, exchanges, commitments
+
+### Remaining Work
+1. **Resilience Metrics** - Still uses hardcoded values on lines 461, 464
+   - Files: `app/services/resilience_metrics_service.py`
+   - Needs: Query actual VF match data, compute real median times
+
+2. **Silent Failure Patterns** - Multiple `return []` patterns across codebase
+   - `app/agents/perishables_dispatcher.py:100`
+   - `app/agents/mutual_aid_matchmaker.py:86-107`
+   - `app/services/ttl_service.py:59`
+   - And 15+ more files
+
+3. **LLM Mock Backend** - Agent LLM calls still use mock responses
+   - Files: Various agent analyze() methods
