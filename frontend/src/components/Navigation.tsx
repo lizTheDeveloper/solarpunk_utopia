@@ -9,7 +9,9 @@ import {
   BookOpen,
   Radio,
   Bot,
-  Plus
+  Plus,
+  Users,
+  MessageCircle
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -18,6 +20,8 @@ const navItems = [
   { path: '/offers', label: 'Offers', icon: Gift },
   { path: '/needs', label: 'Needs', icon: Heart },
   { path: '/exchanges', label: 'Exchanges', icon: ArrowLeftRight },
+  { path: '/cells', label: 'Cells', icon: Users },
+  { path: '/messages', label: 'Messages', icon: MessageCircle },
   { path: '/discovery', label: 'Search', icon: Search },
   { path: '/knowledge', label: 'Knowledge', icon: BookOpen },
   { path: '/network', label: 'Network', icon: Radio },

@@ -28,8 +28,8 @@ A mesh network that enables:
 | [Web of Trust](changes/web-of-trust/proposal.md) | Vouching system - keep infiltrators out | ✅ IMPLEMENTED |
 | [Mass Onboarding](changes/mass-onboarding/proposal.md) | Get 200 people in during workshop | ✅ IMPLEMENTED - Event QR ready |
 | [Offline-First](changes/offline-first/proposal.md) | Works without internet | ✅ IMPLEMENTED - Local storage + mesh sync working |
-| [Local Cells](changes/local-cells/proposal.md) | Organize into local groups (molecules) | ⚠️ PARTIAL - Backend API done, UI pending |
-| [Mesh Messaging](changes/mesh-messaging/proposal.md) | E2E encrypted over DTN | ⚠️ PARTIAL - Backend API done, crypto simplified |
+| [Local Cells](changes/local-cells/proposal.md) | Organize into local groups (molecules) | ✅ IMPLEMENTED - Full stack: API + UI complete |
+| [Mesh Messaging](changes/mesh-messaging/proposal.md) | E2E encrypted over DTN | ✅ IMPLEMENTED - Full stack: API + UI complete |
 
 ### Tier 2: SHOULD HAVE (First Week Post-Workshop)
 
