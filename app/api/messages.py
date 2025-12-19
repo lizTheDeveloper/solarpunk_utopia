@@ -12,12 +12,20 @@ from datetime import datetime, timedelta
 import json
 import uuid
 import base64
+import sqlite3
 
 from ..database import get_db
 from .cells import get_current_user
 from ..crypto import encrypt_message
 
 router = APIRouter(prefix="/messages", tags=["messages"])
+
+
+def get_block_repo():
+    """Get block repository for checking blocked users"""
+    from app.database.block_repository import BlockRepository
+    conn = sqlite3.connect("data/solarpunk.db", check_same_thread=False)
+    return BlockRepository(conn)
 
 
 class Message(BaseModel):
@@ -74,6 +82,12 @@ async def send_message(
 
     Message is encrypted and wrapped in a DTN bundle for mesh delivery.
     """
+    # GAP-107: Check if either user has blocked the other
+    block_repo = get_block_repo()
+    if block_repo.is_blocked(user_id, request.recipient_id):
+        # Silently fail - don't reveal that block exists
+        raise HTTPException(status_code=404, detail="Recipient not found")
+
     db = await get_db()
 
     # Get recipient's public key

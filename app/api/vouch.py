@@ -134,14 +134,21 @@ async def revoke_vouch(
     """
     Revoke a vouch you previously gave.
 
+    GAP-105: Implements 48-hour cooloff grace period:
+    - Within 48 hours: revoke without consequence, reason optional
+    - After 48 hours: requires reason, causes trust cascade
+
     This will:
     1. Mark the vouch as revoked
     2. Recompute trust for the vouchee (trust drops)
-    3. Cascade recomputation for anyone they vouched
+    3. Cascade recomputation for anyone they vouched (if past cooloff)
 
     Requires:
     - You must be the voucher (can't revoke someone else's vouch)
     """
+    from datetime import datetime, timedelta
+    from app.models.vouch import VOUCH_COOLOFF_HOURS
+
     vouch = repo.get_vouch(request.vouch_id)
 
     if not vouch:
@@ -157,12 +164,43 @@ async def revoke_vouch(
     if vouch.revoked:
         raise HTTPException(status_code=400, detail="Vouch already revoked")
 
+    # GAP-105: Check cooloff period
+    hours_since_vouch = (datetime.utcnow() - vouch.created_at).total_seconds() / 3600
+
+    if hours_since_vouch <= VOUCH_COOLOFF_HOURS:
+        # Within cooloff - revoke without cascade, no reason required
+        success = repo.revoke_vouch(
+            request.vouch_id,
+            request.reason or "Revoked within cooloff period"
+        )
+
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to revoke vouch")
+
+        # Just recompute the vouchee's trust, no cascade
+        trust_service.compute_trust_score(vouch.vouchee_id, force_recompute=True)
+
+        return {
+            "success": True,
+            "vouch_id": request.vouch_id,
+            "cooloff": True,
+            "message": "Vouch revoked (within cooloff period - no consequences)"
+        }
+
+    # After cooloff - require reason and cascade
+    if not request.reason:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Reason required for revocation after {VOUCH_COOLOFF_HOURS}h cooloff period"
+        )
+
     # Revoke with cascade
     result = trust_service.revoke_vouch_with_cascade(request.vouch_id, request.reason)
 
     return {
         "success": True,
         "vouch_id": request.vouch_id,
+        "cooloff": False,
         "affected_users": result["affected_users"],
         "message": f"Vouch revoked, {len(result['affected_users'])} users' trust recomputed"
     }

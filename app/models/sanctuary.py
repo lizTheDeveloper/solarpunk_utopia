@@ -336,3 +336,76 @@ SANCTUARY_MEDIUM_TRUST = 0.6  # Medium trust for MEDIUM sensitivity
 SANCTUARY_MATCH_PURGE_HOURS = 24  # Purge matches 24 hours after completion
 SANCTUARY_REQUEST_PURGE_HOURS = 24  # Purge completed requests after 24 hours
 RAPID_ALERT_PURGE_DAYS = 7  # Purge alerts after 7 days
+
+
+# GAP-109: Sanctuary Verification Requirements
+MIN_SANCTUARY_VERIFICATIONS = 2  # Minimum steward verifications required
+VERIFICATION_VALIDITY_DAYS = 90  # Verification expires after 90 days
+
+
+class SanctuaryVerification(BaseModel):
+    """
+    Multi-steward verification for sanctuary spaces (GAP-109).
+
+    Ensures safety by requiring:
+    - 2+ steward verifications
+    - Verified escape routes
+    - Buddy protocol in place
+    - Track record of successful uses
+    """
+
+    space_id: str = Field(description="ID of sanctuary space being verified")
+    verified_by: List[str] = Field(
+        description="List of steward IDs who verified",
+        default_factory=list
+    )
+    verified_at: datetime = Field(
+        default_factory=datetime.utcnow,
+        description="When verification was completed"
+    )
+    last_check: datetime = Field(
+        default_factory=datetime.utcnow,
+        description="Last physical check of space"
+    )
+    escape_routes: List[str] = Field(
+        description="List of escape route descriptions",
+        default_factory=list
+    )
+    has_buddy_protocol: bool = Field(
+        default=False,
+        description="Whether buddy system is in place"
+    )
+    successful_uses: int = Field(
+        default=0,
+        description="Number of successful sanctuary uses"
+    )
+
+    @property
+    def is_valid(self) -> bool:
+        """Check if verification is still valid."""
+        # Must have minimum verifications
+        if len(self.verified_by) < MIN_SANCTUARY_VERIFICATIONS:
+            return False
+
+        # Must not be expired
+        age_days = (datetime.utcnow() - self.verified_at).days
+        if age_days > VERIFICATION_VALIDITY_DAYS:
+            return False
+
+        return True
+
+    @property
+    def is_high_trust(self) -> bool:
+        """Check if this space has proven track record for critical needs."""
+        # For critical needs, require 3+ successful prior uses
+        return self.successful_uses >= 3 and self.is_valid
+
+    def add_verification(self, steward_id: str):
+        """Add a steward verification."""
+        if steward_id not in self.verified_by:
+            self.verified_by.append(steward_id)
+            self.verified_at = datetime.utcnow()
+
+    def record_successful_use(self):
+        """Record a successful sanctuary use."""
+        self.successful_uses += 1

@@ -3,6 +3,7 @@
 from fastapi import APIRouter, HTTPException
 from datetime import datetime
 import uuid
+import sqlite3
 
 from ...models.vf.match import Match
 from ...database import get_database
@@ -10,6 +11,14 @@ from ...repositories.vf.match_repo import MatchRepository
 from ...services.vf_bundle_publisher import VFBundlePublisher
 
 router = APIRouter(prefix="/vf/matches", tags=["matches"])
+
+
+def get_block_repo():
+    """Get block repository - import here to avoid circular dependencies"""
+    from app.database.block_repository import BlockRepository
+    # Use existing solarpunk.db connection
+    conn = sqlite3.connect("data/solarpunk.db", check_same_thread=False)
+    return BlockRepository(conn)
 
 
 @router.get("/", response_model=dict)
@@ -47,6 +56,12 @@ async def create_match(match_data: dict):
         match_data["created_at"] = datetime.now().isoformat()
 
         match = Match.from_dict(match_data)
+
+        # GAP-107: Check if either user has blocked the other
+        block_repo = get_block_repo()
+        if block_repo.is_blocked(match.provider_id, match.receiver_id):
+            # Silently fail - don't reveal that block exists
+            raise HTTPException(status_code=404, detail="Match not possible")
 
         db = get_database()
         db.connect()

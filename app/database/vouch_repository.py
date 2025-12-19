@@ -157,6 +157,30 @@ class VouchRepository:
 
         return [self._row_to_vouch(row) for row in rows]
 
+    def get_vouches_since(self, user_id: str, since: datetime) -> List[Vouch]:
+        """Get all vouches created by a user since a specific datetime.
+
+        Args:
+            user_id: The voucher's user ID
+            since: Only return vouches created after this datetime
+
+        Returns:
+            List of Vouch objects created since the given datetime
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT id, voucher_id, vouchee_id, context, created_at, revoked, revoked_at, revoked_reason
+            FROM vouches
+            WHERE voucher_id = ? AND created_at >= ?
+        """, (user_id, since.isoformat()))
+
+        rows = cursor.fetchall()
+        conn.close()
+
+        return [self._row_to_vouch(row) for row in rows]
+
     def revoke_vouch(self, vouch_id: str, reason: str) -> bool:
         """Revoke a vouch."""
         conn = sqlite3.connect(self.db_path)

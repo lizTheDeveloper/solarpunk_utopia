@@ -97,6 +97,11 @@ TRUST_ATTENUATION = 0.8
 # Maximum vouch chain distance to consider (prevents long weak chains)
 MAX_VOUCH_DISTANCE = 10
 
+# Fraud/Abuse Prevention Constants (GAP-103, GAP-104, GAP-105)
+MAX_VOUCHES_PER_MONTH = 5  # GAP-103: Monthly vouch limit
+MIN_KNOWN_HOURS = 24  # GAP-104: Must know person for 24 hours before vouching
+VOUCH_COOLOFF_HOURS = 48  # GAP-105: 48h grace period for no-consequence revocation
+
 # Genesis node IDs (bootstrapped on initial deployment)
 GENESIS_NODES = [
     # These will be configured via environment or initial setup
