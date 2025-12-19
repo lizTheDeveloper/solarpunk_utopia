@@ -5,7 +5,7 @@ Manages caching of popular files for library nodes.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional, Tuple
 
 from ..database import ManifestRepository, ChunkRepository
@@ -92,7 +92,7 @@ class LibraryCacheService:
                 manifest.fileSize,
                 manifest.mimeType,
                 1,  # Initial access count
-                datetime.utcnow().isoformat(),
+                datetime.now(timezone.utc).isoformat(),
                 ",".join(tags) if tags else ",".join(manifest.tags),
                 self._calculate_priority_score(manifest.fileSize, 1, manifest.tags)
             ))
@@ -252,7 +252,7 @@ class LibraryCacheService:
                 UPDATE library_cache
                 SET access_count = ?, last_accessed = ?, priority_score = ?
                 WHERE file_hash = ?
-            """, (access_count, datetime.utcnow().isoformat(), priority_score, file_hash))
+            """, (access_count, datetime.now(timezone.utc).isoformat(), priority_score, file_hash))
 
             await db.commit()
 

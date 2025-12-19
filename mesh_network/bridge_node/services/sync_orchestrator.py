@@ -9,7 +9,7 @@ import asyncio
 import logging
 import httpx
 from typing import Optional, Dict, Any, List
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -111,14 +111,14 @@ class SyncOrchestrator:
             SyncOperation record
         """
         self.sync_counter += 1
-        sync_id = f"sync_{new_network.island_id}_{self.sync_counter}_{int(datetime.utcnow().timestamp())}"
+        sync_id = f"sync_{new_network.island_id}_{self.sync_counter}_{int(datetime.now(timezone.utc).timestamp())}"
 
         sync_op = SyncOperation(
             sync_id=sync_id,
             island_id=new_network.island_id or "unknown",
             network_info=new_network,
             status=SyncStatus.PENDING,
-            started_at=datetime.utcnow()
+            started_at=datetime.now(timezone.utc)
         )
 
         self.current_sync = sync_op
@@ -142,7 +142,7 @@ class SyncOrchestrator:
 
             # Mark complete
             sync_op.status = SyncStatus.COMPLETED
-            sync_op.completed_at = datetime.utcnow()
+            sync_op.completed_at = datetime.now(timezone.utc)
             sync_op.duration_seconds = (
                 sync_op.completed_at - sync_op.started_at
             ).total_seconds()
@@ -156,13 +156,13 @@ class SyncOrchestrator:
         except asyncio.TimeoutError:
             sync_op.status = SyncStatus.TIMEOUT
             sync_op.error_message = f"Sync timed out after {self.sync_timeout}s"
-            sync_op.completed_at = datetime.utcnow()
+            sync_op.completed_at = datetime.now(timezone.utc)
             logger.error(f"Sync {sync_id} timed out")
 
         except Exception as e:
             sync_op.status = SyncStatus.FAILED
             sync_op.error_message = str(e)
-            sync_op.completed_at = datetime.utcnow()
+            sync_op.completed_at = datetime.now(timezone.utc)
             logger.error(f"Sync {sync_id} failed: {e}")
 
         finally:
@@ -383,7 +383,7 @@ class SyncOrchestrator:
             subnet=None,
             island_id="manual",
             status=network.status,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
 
         return await self.sync_on_ap_transition(old_network, network)

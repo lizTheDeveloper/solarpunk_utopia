@@ -50,15 +50,15 @@ export function CreateOfferPage() {
 
     try {
       await createOffer.mutateAsync({
-        type: 'offer',
+        listing_type: 'offer',
         agent_id: 'current-user', // Would come from auth context
-        resource_specification_id: resourceName,
+        resource_spec_id: resourceName,
         quantity: parseFloat(quantity),
         unit,
-        location: location || undefined,
+        location_id: location || undefined,
         available_from: availableFrom || undefined,
         available_until: availableUntil || undefined,
-        note: note || undefined,
+        description: note || undefined,
       });
 
       navigate('/offers');

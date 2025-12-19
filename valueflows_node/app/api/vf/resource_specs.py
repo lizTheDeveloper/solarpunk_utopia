@@ -48,10 +48,8 @@ async def create_resource_spec(spec_data: dict):
         spec = ResourceSpec.from_dict(spec_data)
 
         # Sign the resource spec
-        # In production, get private key from authenticated user context
-        # For now, generate a mock keypair
-        keypair = SigningService.generate_keypair()
-        signer = SigningService(keypair['private_key'])
+        # Use the node's signing service
+        signer = SigningService()
         signer.sign_and_update(spec, spec.id)
 
         # Save to database

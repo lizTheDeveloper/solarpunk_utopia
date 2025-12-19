@@ -4,7 +4,7 @@ Download Status Models
 Tracks file download progress and reassembly status.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Dict, List, Optional
 from pydantic import BaseModel, Field, field_validator
@@ -137,14 +137,14 @@ class FileDownloadStatus(BaseModel):
     def mark_completed(self, output_path: str) -> None:
         """Mark download as completed"""
         self.status = DownloadStatus.COMPLETED
-        self.completedAt = datetime.utcnow()
+        self.completedAt = datetime.now(timezone.utc)
         self.outputPath = output_path
 
     def mark_failed(self, error_message: str) -> None:
         """Mark download as failed"""
         self.status = DownloadStatus.FAILED
         self.errorMessage = error_message
-        self.completedAt = datetime.utcnow()
+        self.completedAt = datetime.now(timezone.utc)
 
     def get_missing_chunk_indices(self) -> List[int]:
         """Get list of missing chunk indices"""

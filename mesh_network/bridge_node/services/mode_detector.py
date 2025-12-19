@@ -13,7 +13,7 @@ import asyncio
 import logging
 import subprocess
 from typing import Optional, Callable
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from enum import Enum
 
@@ -150,7 +150,7 @@ class ModeDetector:
                 return ModeStatus(
                     mode=MeshMode.MODE_A,
                     available=False,
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(timezone.utc),
                     details="batman-adv kernel module not loaded"
                 )
 
@@ -160,7 +160,7 @@ class ModeDetector:
                 return ModeStatus(
                     mode=MeshMode.MODE_A,
                     available=False,
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(timezone.utc),
                     details="batman-adv interface (bat0) not found"
                 )
 
@@ -170,7 +170,7 @@ class ModeDetector:
                 return ModeStatus(
                     mode=MeshMode.MODE_A,
                     available=False,
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(timezone.utc),
                     details=f"batman-adv interface {interface} is down",
                     batman_interface=interface
                 )
@@ -183,7 +183,7 @@ class ModeDetector:
             return ModeStatus(
                 mode=MeshMode.MODE_A,
                 available=True,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 details="Mode A (BATMAN-adv) operational",
                 batman_interface=interface,
                 batman_version=version,
@@ -195,7 +195,7 @@ class ModeDetector:
             return ModeStatus(
                 mode=MeshMode.MODE_A,
                 available=False,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 details=f"Error checking Mode A: {str(e)}"
             )
 

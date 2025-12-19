@@ -6,7 +6,7 @@ Tests network detection and AP transition detection.
 
 import pytest
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import Mock, AsyncMock, patch
 
 from ..services.network_monitor import (
@@ -34,7 +34,7 @@ def garden_network():
         subnet="/24",
         island_id="garden",
         status=NetworkStatus.CONNECTED,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone.utc)
     )
 
 
@@ -49,7 +49,7 @@ def kitchen_network():
         subnet="/24",
         island_id="kitchen",
         status=NetworkStatus.CONNECTED,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone.utc)
     )
 
 
@@ -69,7 +69,7 @@ class TestNetworkInfo:
             subnet=None,
             island_id=None,
             status=NetworkStatus.CONNECTED,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
         assert other_network.is_solarpunk_network() is False
 
@@ -87,7 +87,7 @@ class TestNetworkInfo:
             subnet=None,
             island_id=None,
             status=NetworkStatus.CONNECTED,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
         assert other_network.extract_island_id() is None
 
@@ -128,7 +128,7 @@ class TestNetworkMonitor:
             subnet=None,
             island_id=None,
             status=NetworkStatus.DISCONNECTED,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
 
         await network_monitor._handle_network_change(garden_network)
@@ -159,7 +159,7 @@ class TestNetworkMonitor:
             subnet=None,
             island_id=None,
             status=NetworkStatus.DISCONNECTED,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
 
         await network_monitor._handle_network_change(disconnected_network)
@@ -223,7 +223,7 @@ class TestNetworkMonitor:
             subnet="/24",
             island_id=None,
             status=NetworkStatus.CONNECTED,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
         network_monitor.current_network = other_network
         assert network_monitor.is_on_solarpunk_network() is False

@@ -4,10 +4,10 @@ Proposal data model for agent-generated suggestions.
 All agents emit proposals (not allocations) that require human approval.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 import uuid
 
 
@@ -81,7 +81,7 @@ class Proposal(BaseModel):
 
     # Metadata
     status: ProposalStatus = ProposalStatus.PENDING
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     expires_at: Optional[datetime] = None
     executed_at: Optional[datetime] = None
 
@@ -124,7 +124,7 @@ class Proposal(BaseModel):
         if self.status != ProposalStatus.APPROVED:
             raise ValueError("Can only execute approved proposals")
         self.status = ProposalStatus.EXECUTED
-        self.executed_at = datetime.utcnow()
+        self.executed_at = datetime.now(timezone.utc)
 
     def to_bundle_payload(self) -> Dict[str, Any]:
         """Convert proposal to DTN bundle payload"""
@@ -133,10 +133,7 @@ class Proposal(BaseModel):
             "proposal": self.model_dump(mode="json")
         }
 
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+    model_config = ConfigDict()
 
 
 class ProposalFilter(BaseModel):

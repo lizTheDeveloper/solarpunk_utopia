@@ -6,7 +6,7 @@ All agents inherit from this base class and implement specific reasoning logic.
 
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from .proposal import Proposal, ProposalType, ProposalStatus
@@ -91,7 +91,7 @@ class BaseAgent(ABC):
             return []
 
         logger.info(f"Running agent: {self.agent_name}")
-        self._last_run = datetime.utcnow()
+        self._last_run = datetime.now(timezone.utc)
 
         try:
             proposals = await self.analyze()
@@ -100,7 +100,7 @@ class BaseAgent(ABC):
             for proposal in proposals:
                 if not proposal.expires_at:
                     ttl_hours = self.config.get("proposal_ttl_hours", 72)
-                    proposal.expires_at = datetime.utcnow() + timedelta(hours=ttl_hours)
+                    proposal.expires_at = datetime.now(timezone.utc) + timedelta(hours=ttl_hours)
 
                 # Auto-approve if configured (opt-in for trusted automation)
                 if self.config.get("auto_approve", False):

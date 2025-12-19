@@ -6,7 +6,7 @@ Uses permaculture knowledge (guilds, companion planting, seasonal cycles).
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from .framework import BaseAgent, AgentConfig, Proposal, ProposalType
@@ -393,7 +393,7 @@ class PermaculturePlanner(BaseAgent):
 
     def _create_generic_plan(self, goal: Dict[str, Any]) -> Dict[str, Any]:
         """Create generic plan for unknown goal types"""
-        start_date = datetime.utcnow() + timedelta(days=7)
+        start_date = datetime.now(timezone.utc) + timedelta(days=7)
 
         return {
             "goal_id": goal["id"],

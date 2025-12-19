@@ -6,7 +6,7 @@ Tests the complete query/response flow.
 
 import pytest
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from ..models import (
     IndexType,
@@ -52,8 +52,8 @@ class MockBundleService:
 
         bundle = Bundle(
             bundleId=f"b:sha256:test-{len(self.created_bundles)}",
-            createdAt=datetime.utcnow(),
-            expiresAt=bundle_create.expiresAt or datetime.utcnow() + timedelta(days=1),
+            createdAt=datetime.now(timezone.utc),
+            expiresAt=bundle_create.expiresAt or datetime.now(timezone.utc) + timedelta(days=1),
             priority=bundle_create.priority,
             audience=bundle_create.audience,
             topic=bundle_create.topic,
@@ -80,7 +80,7 @@ class TestCacheManager:
         cache_manager = SpeculativeCacheManager(max_cache_mb=10)
 
         # Create test index
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expires = now + timedelta(days=3)
 
         entry = InventoryIndexEntry(
@@ -128,7 +128,7 @@ class TestCacheManager:
         cache_manager = SpeculativeCacheManager(max_cache_mb=10)
 
         # Create old index
-        old_time = datetime.utcnow() - timedelta(days=2)
+        old_time = datetime.now(timezone.utc) - timedelta(days=2)
         old_expires = old_time + timedelta(hours=1)  # Expired
 
         entry = InventoryIndexEntry(
@@ -167,7 +167,7 @@ class TestCacheManager:
         cache_manager = SpeculativeCacheManager(max_cache_mb=10)
 
         # Create and cache test index
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expires = now + timedelta(days=3)
 
         entry = InventoryIndexEntry(
@@ -222,8 +222,8 @@ class TestQueryResponse:
             query_string="nonexistent",
             requester_node_id=node_info["node_id"],
             max_results=50,
-            response_deadline=datetime.utcnow() + timedelta(hours=1),
-            created_at=datetime.utcnow(),
+            response_deadline=datetime.now(timezone.utc) + timedelta(hours=1),
+            created_at=datetime.now(timezone.utc),
         )
 
         # Process query (should find no results since DB is empty)
@@ -240,7 +240,7 @@ class TestQueryResponse:
         )
 
         # Cache a test index
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expires = now + timedelta(days=3)
 
         entry = InventoryIndexEntry(
@@ -277,8 +277,8 @@ class TestQueryResponse:
             query_string="tomatoes",
             requester_node_id=node_info["node_id"],
             max_results=50,
-            response_deadline=datetime.utcnow() + timedelta(hours=1),
-            created_at=datetime.utcnow(),
+            response_deadline=datetime.now(timezone.utc) + timedelta(hours=1),
+            created_at=datetime.now(timezone.utc),
         )
 
         # Process query
@@ -304,8 +304,8 @@ class TestQueryResponse:
             query_string="tomatoes",
             requester_node_id="requester-node",
             max_results=50,
-            response_deadline=datetime.utcnow() + timedelta(hours=1),
-            created_at=datetime.utcnow(),
+            response_deadline=datetime.now(timezone.utc) + timedelta(hours=1),
+            created_at=datetime.now(timezone.utc),
         )
 
         # Create mock results
@@ -355,7 +355,7 @@ class TestEndToEnd:
         )
 
         # Step 1: Cache an index from peer
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expires = now + timedelta(days=3)
 
         entry = InventoryIndexEntry(
@@ -393,8 +393,8 @@ class TestEndToEnd:
             query_string="tomatoes",
             requester_node_id="kitchen-node",
             max_results=50,
-            response_deadline=datetime.utcnow() + timedelta(hours=1),
-            created_at=datetime.utcnow(),
+            response_deadline=datetime.now(timezone.utc) + timedelta(hours=1),
+            created_at=datetime.now(timezone.utc),
         )
 
         # Step 3: Process query (should find cached result)

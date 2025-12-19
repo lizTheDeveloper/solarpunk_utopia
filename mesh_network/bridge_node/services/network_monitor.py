@@ -10,7 +10,7 @@ import logging
 import subprocess
 import re
 from typing import Optional, Callable, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from enum import Enum
 
@@ -154,7 +154,7 @@ class NetworkMonitor:
                 subnet=ip_info.get("subnet"),
                 island_id=None,  # Will be set below
                 status=status,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 signal_strength=ip_info.get("signal_strength")
             )
 
@@ -173,7 +173,7 @@ class NetworkMonitor:
                 subnet=None,
                 island_id=None,
                 status=NetworkStatus.UNKNOWN,
-                timestamp=datetime.utcnow()
+                timestamp=datetime.now(timezone.utc)
             )
 
     async def _get_ssid(self) -> Optional[str]:

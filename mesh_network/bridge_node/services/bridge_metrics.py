@@ -10,7 +10,7 @@ Tracks bridge node performance and effectiveness:
 
 import logging
 from typing import Dict, Any, List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass, field
 from collections import defaultdict
 import json
@@ -51,7 +51,7 @@ class BridgeSession:
     def duration_hours(self) -> float:
         """Get session duration in hours"""
         if not self.ended_at:
-            duration = datetime.utcnow() - self.started_at
+            duration = datetime.now(timezone.utc) - self.started_at
         else:
             duration = self.ended_at - self.started_at
         return duration.total_seconds() / 3600.0
@@ -89,7 +89,7 @@ class BridgeMetrics:
             node_id: Unique identifier for this bridge node
         """
         self.node_id = node_id
-        self.started_at = datetime.utcnow()
+        self.started_at = datetime.now(timezone.utc)
 
         # Visit tracking
         self.island_visits: List[IslandVisit] = []
@@ -120,11 +120,11 @@ class BridgeMetrics:
             Session ID
         """
         if not session_id:
-            session_id = f"session_{self.node_id}_{int(datetime.utcnow().timestamp())}"
+            session_id = f"session_{self.node_id}_{int(datetime.now(timezone.utc).timestamp())}"
 
         self.current_session = BridgeSession(
             session_id=session_id,
-            started_at=datetime.utcnow()
+            started_at=datetime.now(timezone.utc)
         )
         self.sessions.append(self.current_session)
 
@@ -134,7 +134,7 @@ class BridgeMetrics:
     def end_session(self):
         """End current bridge session"""
         if self.current_session:
-            self.current_session.ended_at = datetime.utcnow()
+            self.current_session.ended_at = datetime.now(timezone.utc)
             logger.info(
                 f"Bridge session ended: {self.current_session.session_id} "
                 f"(duration: {self.current_session.duration_hours():.1f}h, "
@@ -149,7 +149,7 @@ class BridgeMetrics:
         Args:
             island_id: ID of island (e.g., 'garden', 'kitchen')
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # End previous visit if any
         if self.current_island:
@@ -178,7 +178,7 @@ class BridgeMetrics:
         if not self.current_island or not self.current_visit_start:
             return
 
-        duration = (datetime.utcnow() - self.current_visit_start).total_seconds()
+        duration = (datetime.now(timezone.utc) - self.current_visit_start).total_seconds()
 
         visit = IslandVisit(
             island_id=self.current_island,
@@ -253,7 +253,7 @@ class BridgeMetrics:
 
         # Factor 3: Sync frequency (0-20 points)
         # 1+ sync per hour = full points
-        hours_active = (datetime.utcnow() - self.started_at).total_seconds() / 3600.0
+        hours_active = (datetime.now(timezone.utc) - self.started_at).total_seconds() / 3600.0
         if hours_active > 0:
             syncs_per_hour = self.total_syncs / hours_active
             frequency_score = min(syncs_per_hour, 1.0) * 20
@@ -315,7 +315,7 @@ class BridgeMetrics:
         Returns:
             Dictionary with all metrics
         """
-        uptime_hours = (datetime.utcnow() - self.started_at).total_seconds() / 3600.0
+        uptime_hours = (datetime.now(timezone.utc) - self.started_at).total_seconds() / 3600.0
 
         return {
             "node_id": self.node_id,
@@ -344,7 +344,7 @@ class BridgeMetrics:
             filepath: Path to output file
         """
         data = {
-            "exported_at": datetime.utcnow().isoformat(),
+            "exported_at": datetime.now(timezone.utc).isoformat(),
             "summary": self.get_summary(),
             "all_visits": [v.to_dict() for v in self.island_visits],
             "all_sessions": [s.to_dict() for s in self.sessions]

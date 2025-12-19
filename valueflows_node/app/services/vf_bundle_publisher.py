@@ -9,8 +9,12 @@ from datetime import datetime, timedelta, timezone
 import json
 import hashlib
 import base64
+import os
+import logging
 
 from ..models.vf.resource_spec import ResourceCategory
+
+logger = logging.getLogger(__name__)
 
 
 class VFBundlePublisher:
@@ -47,8 +51,10 @@ class VFBundlePublisher:
         Initialize bundle publisher.
 
         Args:
-            dtn_outbox_path: Path to DTN outbox directory
+            dtn_outbox_path: Path to DTN outbox directory. If not provided, reads from DTN_OUTBOX_PATH env var.
         """
+        if dtn_outbox_path is None:
+            dtn_outbox_path = os.getenv('DTN_OUTBOX_PATH')
         self.dtn_outbox_path = dtn_outbox_path
 
     def vf_object_to_bundle(self, vf_object, object_type: str) -> dict:
@@ -131,17 +137,28 @@ class VFBundlePublisher:
             True if published successfully
         """
         if not self.dtn_outbox_path:
-            print(f"[VF Bundle] Would publish: {bundle['bundleId']} (no outbox configured)")
+            logger.debug(f"[VF Bundle] Would publish: {bundle['bundleId']} (no outbox configured)")
             return False
 
-        # In production: write bundle to outbox directory
-        # filename = f"{bundle['bundleId']}.json"
-        # filepath = os.path.join(self.dtn_outbox_path, filename)
-        # with open(filepath, 'w') as f:
-        #     json.dump(bundle, f)
+        try:
+            # Ensure outbox directory exists
+            os.makedirs(self.dtn_outbox_path, exist_ok=True)
 
-        print(f"[VF Bundle] Published: {bundle['bundleId']} type={bundle['payloadType']}")
-        return True
+            # Generate filename from bundle ID (remove problematic characters)
+            bundle_id_safe = bundle['bundleId'].replace(':', '_').replace('/', '_')
+            filename = f"{bundle_id_safe}.json"
+            filepath = os.path.join(self.dtn_outbox_path, filename)
+
+            # Write bundle to outbox directory
+            with open(filepath, 'w') as f:
+                json.dump(bundle, f, indent=2)
+
+            logger.info(f"[VF Bundle] Published: {bundle['bundleId']} type={bundle['payloadType']} -> {filepath}")
+            return True
+
+        except Exception as e:
+            logger.error(f"[VF Bundle] Failed to publish {bundle['bundleId']}: {e}")
+            return False
 
     def publish_vf_object(self, vf_object, object_type: str) -> dict:
         """

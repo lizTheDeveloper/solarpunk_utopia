@@ -6,7 +6,7 @@ Tests mesh mode detection and fallback behavior.
 
 import pytest
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import Mock, AsyncMock, patch
 
 from ..services.mode_detector import (
@@ -90,7 +90,7 @@ class TestModeDetector:
         mode_status = ModeStatus(
             mode=MeshMode.MODE_A,
             available=True,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             details="Mode A operational",
             batman_interface="bat0"
         )
@@ -118,7 +118,7 @@ class TestModeDetector:
         mode_status = ModeStatus(
             mode=MeshMode.MODE_A,
             available=False,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             details="Module not loaded"
         )
 

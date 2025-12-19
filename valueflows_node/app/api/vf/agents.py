@@ -48,10 +48,8 @@ async def create_agent(agent_data: dict):
         agent = Agent.from_dict(agent_data)
 
         # Sign the agent
-        # In production, get private key from authenticated user context
-        # For now, generate a mock keypair
-        keypair = SigningService.generate_keypair()
-        signer = SigningService(keypair['private_key'])
+        # Use the node's signing service
+        signer = SigningService()
         signer.sign_and_update(agent, agent.id)
 
         # Save to database

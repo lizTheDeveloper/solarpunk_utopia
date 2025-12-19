@@ -9,7 +9,7 @@ import logging
 import json
 import uuid
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 
 # Add app to path
@@ -75,7 +75,7 @@ class ResponseBuilder:
                 total_results=len(results),
                 responder_node_id=self.node_id,
                 responder_public_key=self.node_public_key,
-                created_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
                 includes_cached_results=(cached_results > 0),
                 local_results=local_results,
                 cached_results=cached_results,
@@ -131,7 +131,7 @@ class ResponseBuilder:
                 response.responder_node_id,
                 json.dumps(response.to_payload()),
                 response.created_at.isoformat(),
-                datetime.utcnow().isoformat(),
+                datetime.now(timezone.utc).isoformat(),
                 response.total_results,
                 response.local_results,
                 response.cached_results,

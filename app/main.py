@@ -36,7 +36,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .database import init_db, close_db
 from .api import bundles_router, sync_router, agents_router
+from .api.auth import router as auth_router
+from .api.vouch import router as vouch_router
 from .services import TTLService, CryptoService, CacheService
+from .middleware import CSRFMiddleware
 
 # Configure logging
 logging.basicConfig(
@@ -118,10 +121,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# CSRF Protection middleware (GAP-56)
+app.add_middleware(
+    CSRFMiddleware,
+    exempt_paths={
+        "/",
+        "/docs",
+        "/openapi.json",
+        "/health",
+        "/node/info",
+        "/auth/csrf-token",  # CSRF token endpoint must be exempt
+        "/auth/register",  # Registration should be exempt
+        "/auth/login",  # Login should be exempt
+    }
+)
+
 # Register routers
 app.include_router(bundles_router)
 app.include_router(sync_router)
 app.include_router(agents_router)
+app.include_router(auth_router)
+app.include_router(vouch_router)
 
 
 @app.get("/")

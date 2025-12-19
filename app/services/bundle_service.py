@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from ..models import Bundle, BundleCreate, QueueName
@@ -34,7 +34,7 @@ class BundleService:
         Returns:
             Signed bundle ready for forwarding
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Calculate TTL if not provided
         expires_at = bundle_create.expiresAt
@@ -124,15 +124,19 @@ class BundleService:
 
         Steps:
         1. Validate bundle
-        2. Check for duplicates
+        2. Check for duplicates in inbox/quarantine
         3. Move to inbox or quarantine
         4. Return result
 
         Returns:
             (success, message)
         """
-        # Check if we already have this bundle
-        if await QueueManager.exists(bundle.bundleId):
+        # Check if we already have this bundle in inbox or quarantine
+        # (bundles in outbox/pending can still be received from peers)
+        if await QueueManager.exists_in_queues(
+            bundle.bundleId,
+            [QueueName.INBOX, QueueName.QUARANTINE]
+        ):
             return False, "Bundle already exists"
 
         # Validate bundle

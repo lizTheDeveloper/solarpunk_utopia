@@ -198,3 +198,18 @@ class ListingRepository(BaseRepository[Listing]):
 
         rows = self._fetch_all(query, (threshold.isoformat(),))
         return [Listing.from_dict(row) for row in rows]
+
+    def delete(self, listing_id: str) -> bool:
+        """
+        Delete a listing by ID.
+
+        Args:
+            listing_id: ID of listing to delete
+
+        Returns:
+            True if listing was deleted, False if not found
+        """
+        query = "DELETE FROM listings WHERE id = ?"
+        cursor = self._execute(query, (listing_id,))
+        self.conn.commit()
+        return cursor.rowcount > 0

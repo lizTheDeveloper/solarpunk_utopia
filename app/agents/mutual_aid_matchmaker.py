@@ -76,40 +76,17 @@ class MutualAidMatchmaker(BaseAgent):
         Returns:
             List of offer records
         """
-        # TODO: Query actual VF database
-        # For now, return mock data
-        return [
-            {
-                "id": "offer:alice-tomatoes",
-                "user_id": "alice",
-                "user_name": "Alice",
-                "resource": "tomatoes",
-                "category": "food:produce",
-                "quantity": 5.0,
-                "unit": "lbs",
-                "location": "Community Garden",
-                "location_coords": (37.7749, -122.4194),  # SF
-                "available_from": datetime(2025, 12, 18, 9, 0),
-                "available_until": datetime(2025, 12, 20, 18, 0),
-                "preferences": ["morning handoff preferred"],
-                "bundle_id": "bundle:offer-alice-tomatoes",
-            },
-            {
-                "id": "offer:carol-seeds",
-                "user_id": "carol",
-                "user_name": "Carol",
-                "resource": "tomato seeds",
-                "category": "seeds:vegetables",
-                "quantity": 10,
-                "unit": "packets",
-                "location": "Seed Library",
-                "location_coords": (37.7750, -122.4195),
-                "available_from": datetime(2025, 12, 17, 10, 0),
-                "available_until": datetime(2025, 12, 30, 17, 0),
-                "preferences": ["heirloom varieties"],
-                "bundle_id": "bundle:offer-carol-seeds",
-            },
-        ]
+        if self.db_client is None:
+            # Import here to avoid circular dependencies
+            from ..clients.vf_client import VFClient
+            self.db_client = VFClient()
+
+        try:
+            offers = await self.db_client.get_active_offers()
+            return offers
+        except Exception as e:
+            logger.warning(f"Failed to query VF database, using empty list: {e}")
+            return []
 
     async def _get_active_needs(self) -> List[Dict[str, Any]]:
         """
@@ -118,39 +95,16 @@ class MutualAidMatchmaker(BaseAgent):
         Returns:
             List of need records
         """
-        # TODO: Query actual VF database
-        return [
-            {
-                "id": "need:bob-tomatoes",
-                "user_id": "bob",
-                "user_name": "Bob",
-                "resource": "tomatoes",
-                "category": "food:produce",
-                "quantity": 3.0,
-                "unit": "lbs",
-                "location": "Community Kitchen",
-                "location_coords": (37.7748, -122.4193),
-                "needed_by": datetime(2025, 12, 19, 12, 0),
-                "purpose": "sauce making",
-                "constraints": ["will provide container"],
-                "bundle_id": "bundle:need-bob-tomatoes",
-            },
-            {
-                "id": "need:dave-seeds",
-                "user_id": "dave",
-                "user_name": "Dave",
-                "resource": "vegetable seeds",
-                "category": "seeds:vegetables",
-                "quantity": 5,
-                "unit": "packets",
-                "location": "Home Garden",
-                "location_coords": (37.7751, -122.4196),
-                "needed_by": datetime(2025, 12, 25, 0, 0),
-                "purpose": "spring planting",
-                "constraints": ["organic preferred"],
-                "bundle_id": "bundle:need-dave-seeds",
-            },
-        ]
+        if self.db_client is None:
+            from ..clients.vf_client import VFClient
+            self.db_client = VFClient()
+
+        try:
+            needs = await self.db_client.get_active_needs()
+            return needs
+        except Exception as e:
+            logger.warning(f"Failed to query VF database, using empty list: {e}")
+            return []
 
     async def _find_matches(
         self,

@@ -449,5 +449,44 @@ pytest tests/integration/test_end_to_end_gift_economy.py -v
 
 ---
 
+---
+
+## Session 2 Gaps (2025-12-19)
+
+Additional gaps discovered during autonomous analysis session:
+
+### GAP-99: VFClient Connection Not Closed in Agents
+**Location**: `app/agents/mutual_aid_matchmaker.py:81-89, 99-107`
+**Severity**: MEDIUM
+**Evidence**: Creates VFClient but never closes connection; may leak DB connections
+**Fix**: Use context manager or explicit close() in agent cleanup
+
+### GAP-100: Frontend getAgents Returns Empty Array Intentionally
+**Location**: `frontend/src/api/agents.ts:17-22`
+**Severity**: MEDIUM
+**Evidence**:
+```typescript
+getAgents: async (): Promise<Agent[]> => {
+    // For now, return empty array - proper implementation needs agent list endpoint
+    return [];
+}
+```
+**Fix**: Implement transformation from backend `{agents: string[]}` to `Agent[]`
+
+### GAP-101: WorkPartyScheduler Falls Back to Mock on ANY Exception
+**Location**: `app/agents/work_party_scheduler.py:91-141`
+**Severity**: HIGH
+**Evidence**: Even database connection errors silently use mock work session data
+**Fix**: Distinguish between "no data" vs "DB unavailable" errors
+
+### GAP-102: PermaculturePlanner ALWAYS Uses Mock Goals
+**Location**: `app/agents/permaculture_planner.py:67-93`
+**Severity**: HIGH
+**Evidence**: `_get_unplanned_goals()` has no VFClient integration attempt, always returns hardcoded data
+**Fix**: Implement VFClient.get_goals() query
+
+---
+
 **Document Status**: Living document. Update as gaps are fixed.
+**Last Updated**: 2025-12-19 (Session 2 autonomous analysis)
 **Next Review**: After Workshop Sprint items complete.

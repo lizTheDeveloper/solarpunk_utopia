@@ -6,7 +6,7 @@ Database access layer for file manifests.
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from ..models import FileManifest
@@ -86,7 +86,7 @@ class ManifestRepository:
             UPDATE file_manifests
             SET last_accessed = ?
             WHERE file_hash = ?
-        """, (datetime.utcnow().isoformat(), file_hash))
+        """, (datetime.now(timezone.utc).isoformat(), file_hash))
         await db.commit()
 
         return ManifestRepository._row_to_manifest(row)

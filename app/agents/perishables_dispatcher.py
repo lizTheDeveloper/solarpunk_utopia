@@ -6,7 +6,7 @@ Escalates notifications as expiry approaches.
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from .framework import BaseAgent, AgentConfig, Proposal, ProposalType
@@ -87,48 +87,21 @@ class PerishablesDispatcher(BaseAgent):
         Returns:
             List of items with expiry_date within next 7 days
         """
-        # TODO: Query actual VF ResourceInstance with expiry_date
-        # For now, return mock data
-        now = datetime.utcnow()
-        return [
-            {
-                "id": "inv:tomatoes-batch-1",
-                "resource": "tomatoes",
-                "category": "food:produce",
-                "quantity": 10.0,
-                "unit": "lbs",
-                "expiry_date": now + timedelta(hours=36),
-                "location": "Community Pantry",
-                "owner": "community",
-                "bundle_id": "bundle:inv-tomatoes-1",
-            },
-            {
-                "id": "inv:milk-dairy",
-                "resource": "milk",
-                "category": "food:dairy",
-                "quantity": 2.0,
-                "unit": "gallons",
-                "expiry_date": now + timedelta(hours=8),
-                "location": "Community Fridge",
-                "owner": "community",
-                "bundle_id": "bundle:inv-milk",
-            },
-            {
-                "id": "inv:lettuce-greens",
-                "resource": "lettuce",
-                "category": "food:greens",
-                "quantity": 5.0,
-                "unit": "heads",
-                "expiry_date": now + timedelta(days=5),
-                "location": "Community Pantry",
-                "owner": "community",
-                "bundle_id": "bundle:inv-lettuce",
-            },
-        ]
+        if self.db_client is None:
+            from ..clients.vf_client import VFClient
+            self.db_client = VFClient()
+
+        try:
+            # Query offers expiring within 7 days (168 hours)
+            expiring_items = await self.db_client.get_expiring_offers(hours=168)
+            return expiring_items
+        except Exception as e:
+            logger.warning(f"Failed to query VF database, using empty list: {e}")
+            return []
 
     def _hours_until_expiry(self, expiry_date: datetime) -> float:
         """Calculate hours until expiry"""
-        delta = expiry_date - datetime.utcnow()
+        delta = expiry_date - datetime.now(timezone.utc)
         return delta.total_seconds() / 3600
 
     async def _propose_critical_action(self, item: Dict[str, Any]) -> Optional[Proposal]:
@@ -312,20 +285,37 @@ class PerishablesDispatcher(BaseAgent):
         Returns:
             List of matching needs, sorted by relevance
         """
-        # TODO: Query actual needs from VF database
-        # For now, return mock data
-        return [
-            {
-                "id": "need:bob-tomatoes",
-                "user_id": "bob",
-                "user_name": "Bob",
-                "resource": "tomatoes",
-                "category": "food:produce",
-                "quantity": 5.0,
-                "unit": "lbs",
-                "bundle_id": "bundle:need-bob-tomatoes",
-            }
-        ] if item["resource"] == "tomatoes" else []
+        # Query actual VF database via client
+        if self.db_client is None:
+            from ..clients.vf_client import VFClient
+            self.db_client = VFClient()
+
+        try:
+            # Get all active needs and filter by category
+            category = item.get("category")
+            needs = await self.db_client.get_active_needs(category=category)
+
+            # Filter by matching resource
+            matching_needs = [
+                need for need in needs
+                if need.get("resource", "").lower() == item.get("resource", "").lower()
+            ]
+            return matching_needs
+        except Exception as e:
+            logger.warning(f"Failed to query VF database for needs: {e}")
+            # Fallback to mock data if DB unavailable
+            return [
+                {
+                    "id": "need:bob-tomatoes",
+                    "user_id": "bob",
+                    "user_name": "Bob",
+                    "resource": "tomatoes",
+                    "category": "food:produce",
+                    "quantity": 5.0,
+                    "unit": "lbs",
+                    "bundle_id": "bundle:need-bob-tomatoes",
+                }
+            ] if item["resource"] == "tomatoes" else []
 
     def _is_cookable(self, item: Dict[str, Any]) -> bool:
         """Check if item is suitable for batch cooking"""

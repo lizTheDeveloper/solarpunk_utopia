@@ -6,7 +6,7 @@ Bridge nodes cache indexes from visited nodes and use them to answer queries.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 
 from ..models import IndexType, InventoryIndex, ServiceIndex, KnowledgeIndex
@@ -71,7 +71,7 @@ class SpeculativeCacheManager:
                 return False
 
             # Check if index is expired
-            if datetime.utcnow() > index.expires_at:
+            if datetime.now(timezone.utc) > index.expires_at:
                 logger.info(f"Not caching expired index from {index.node_id}")
                 return False
 
@@ -228,7 +228,7 @@ class SpeculativeCacheManager:
         expires_at_str = bundle_payload.get("expires_at")
         if expires_at_str:
             expires_at = datetime.fromisoformat(expires_at_str)
-            if datetime.utcnow() > expires_at:
+            if datetime.now(timezone.utc) > expires_at:
                 return False
 
         return True

@@ -7,7 +7,7 @@ Queries VF database for listings, agents, resources, protocols, and lessons.
 
 import sys
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
 # Add ValueFlows node to path
@@ -64,7 +64,7 @@ class IndexBuilder:
         from valueflows_node.app.repositories.vf.agent_repo import AgentRepository
         from valueflows_node.app.repositories.vf.location_repo import LocationRepository
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expires_at = now + timedelta(days=ttl_days)
 
         entries: List[InventoryIndexEntry] = []
@@ -165,7 +165,7 @@ class IndexBuilder:
         from valueflows_node.app.repositories.vf.location_repo import LocationRepository
         from valueflows_node.app.models.vf.resource_spec import ResourceCategory
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expires_at = now + timedelta(days=ttl_days)
 
         entries: List[ServiceIndexEntry] = []
@@ -260,7 +260,7 @@ class IndexBuilder:
         from valueflows_node.app.repositories.vf.protocol_repo import ProtocolRepository
         from valueflows_node.app.repositories.vf.lesson_repo import LessonRepository
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expires_at = now + timedelta(days=ttl_days)
 
         entries: List[KnowledgeIndexEntry] = []

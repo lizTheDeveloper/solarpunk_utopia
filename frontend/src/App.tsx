@@ -1,5 +1,9 @@
 import { Routes, Route } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { AuthProvider } from './contexts/AuthContext'
 import { Layout } from './components/Layout'
+import ProtectedRoute from './components/ProtectedRoute'
+import LoginPage from './pages/LoginPage'
 import { HomePage } from './pages/HomePage'
 import { OffersPage } from './pages/OffersPage'
 import { NeedsPage } from './pages/NeedsPage'
@@ -12,22 +16,75 @@ import { NetworkPage } from './pages/NetworkPage'
 import { AgentsPage} from './pages/AgentsPage'
 import './App.css'
 
+// Import API interceptors to add auth token to requests
+import './api/interceptors'
+
+// Import local storage initialization
+// TODO: Re-enable after fixing type errors
+// import { initializeStorage } from './api/adaptive-valueflows'
+
 function App() {
+  // TODO: Re-enable storage initialization after fixing type errors
+  // const [storageReady, setStorageReady] = useState(false);
+
+  // useEffect(() => {
+  //   // Initialize local SQLite database for offline-first operation
+  //   initializeStorage()
+  //     .then(() => {
+  //       setStorageReady(true);
+  //       console.log('App storage initialized');
+  //     })
+  //     .catch(error => {
+  //       console.error('Failed to initialize storage:', error);
+  //       // Continue anyway - app can still work with remote API
+  //       setStorageReady(true);
+  //     });
+  // }, []);
+
+  // if (!storageReady) {
+  //   return (
+  //     <div style={{
+  //       display: 'flex',
+  //       justifyContent: 'center',
+  //       alignments: 'center',
+  //       height: '100vh',
+  //       fontSize: '1.2rem'
+  //     }}>
+  //       Initializing local storage...
+  //     </div>
+  //   );
+  // }
+
   return (
-    <Layout>
+    <AuthProvider>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/offers" element={<OffersPage />} />
-        <Route path="/offers/create" element={<CreateOfferPage />} />
-        <Route path="/needs" element={<NeedsPage />} />
-        <Route path="/needs/create" element={<CreateNeedPage />} />
-        <Route path="/exchanges" element={<ExchangesPage />} />
-        <Route path="/discovery" element={<DiscoveryPage />} />
-        <Route path="/knowledge" element={<KnowledgePage />} />
-        <Route path="/network" element={<NetworkPage />} />
-        <Route path="/agents" element={<AgentsPage />} />
+        {/* Public route - no auth needed */}
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* Protected routes - require auth */}
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/offers" element={<OffersPage />} />
+                  <Route path="/offers/create" element={<CreateOfferPage />} />
+                  <Route path="/needs" element={<NeedsPage />} />
+                  <Route path="/needs/create" element={<CreateNeedPage />} />
+                  <Route path="/exchanges" element={<ExchangesPage />} />
+                  <Route path="/discovery" element={<DiscoveryPage />} />
+                  <Route path="/knowledge" element={<KnowledgePage />} />
+                  <Route path="/network" element={<NetworkPage />} />
+                  <Route path="/agents" element={<AgentsPage />} />
+                </Routes>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-    </Layout>
+    </AuthProvider>
   )
 }
 

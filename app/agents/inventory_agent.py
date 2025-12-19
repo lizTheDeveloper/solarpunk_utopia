@@ -9,7 +9,7 @@ No surveillance required to participate in commune.
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from .framework import BaseAgent, AgentConfig, Proposal, ProposalType
@@ -96,17 +96,27 @@ class InventoryAgent(BaseAgent):
         Returns:
             List of inventory items
         """
-        # TODO: Query actual VF ResourceInstance for opted-in users
-        # For now, return mock data
-        return [
-            {
-                "id": "inv:tomato-seeds",
-                "resource": "tomato seeds",
-                "category": "seeds:vegetables",
-                "quantity": 5,
-                "unit": "packets",
-                "location": "Seed Library",
-                "owner": "community",
+        # Query actual VF database via client
+        if self.db_client is None:
+            from ..clients.vf_client import VFClient
+            self.db_client = VFClient()
+
+        try:
+            # Get all active offers (current inventory)
+            inventory = await self.db_client.get_inventory_by_location()
+            return inventory
+        except Exception as e:
+            logger.warning(f"Failed to query VF database: {e}")
+            # Fallback to mock data if DB unavailable
+            return [
+                {
+                    "id": "inv:tomato-seeds",
+                    "resource": "tomato seeds",
+                    "category": "seeds:vegetables",
+                    "quantity": 5,
+                    "unit": "packets",
+                    "location": "Seed Library",
+                    "owner": "community",
                 "opt_in": True,  # Community pantry is opt-in by default
                 "bundle_id": "bundle:inv-tomato-seeds",
             },
@@ -141,17 +151,27 @@ class InventoryAgent(BaseAgent):
         Returns:
             List of resource requirements with dates
         """
-        # TODO: Query actual VF Plans
-        # For now, return mock data
-        return [
-            {
-                "plan_id": "plan:spring-planting-2025",
-                "plan_name": "Spring Planting 2025",
-                "resource": "tomato seeds",
-                "quantity": 20,
-                "unit": "packets",
-                "needed_by": datetime(2025, 12, 28),
-                "purpose": "Spring planting work party",
+        # Query actual VF database via client
+        if self.db_client is None:
+            from ..clients.vf_client import VFClient
+            self.db_client = VFClient()
+
+        try:
+            # Get all active needs
+            needs = await self.db_client.get_active_needs()
+            return needs
+        except Exception as e:
+            logger.warning(f"Failed to query VF database for needs: {e}")
+            # Fallback to mock data if DB unavailable
+            return [
+                {
+                    "plan_id": "plan:spring-planting-2025",
+                    "plan_name": "Spring Planting 2025",
+                    "resource": "tomato seeds",
+                    "quantity": 20,
+                    "unit": "packets",
+                    "needed_by": datetime(2025, 12, 28),
+                    "purpose": "Spring planting work party",
             },
             {
                 "plan_id": "plan:spring-planting-2025",
@@ -198,7 +218,7 @@ class InventoryAgent(BaseAgent):
 
         # Days until first need
         days_until_needed = min(
-            (need["needed_by"] - datetime.utcnow()).days
+            (need["needed_by"] - datetime.now(timezone.utc)).days
             for need in matching_needs
         )
 

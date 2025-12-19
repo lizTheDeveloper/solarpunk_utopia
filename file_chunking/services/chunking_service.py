@@ -5,7 +5,7 @@ Splits files into chunks and generates manifests.
 """
 
 import mimetypes
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -113,7 +113,7 @@ class ChunkingService:
                 chunkSize=chunk_size,
                 fileHash=file_hash,
                 status=ChunkStatus.PENDING,
-                createdAt=datetime.utcnow()
+                createdAt=datetime.now(timezone.utc)
             )
 
             chunks_data.append((chunk_metadata, chunk_data))
@@ -136,7 +136,7 @@ class ChunkingService:
             chunkCount=len(chunks_data),
             chunkHashes=chunk_hashes,
             merkleRoot=merkle_root,
-            createdAt=datetime.utcnow(),
+            createdAt=datetime.now(timezone.utc),
             createdBy=created_by,
             tags=tags or [],
             description=description
@@ -199,7 +199,7 @@ class ChunkingService:
                 chunkSize=chunk_size,
                 fileHash=file_hash,
                 status=ChunkStatus.PENDING,
-                createdAt=datetime.utcnow()
+                createdAt=datetime.now(timezone.utc)
             )
 
             chunks_data.append((chunk_metadata, chunk_data))
@@ -222,7 +222,7 @@ class ChunkingService:
             chunkCount=len(chunks_data),
             chunkHashes=chunk_hashes,
             merkleRoot=merkle_root,
-            createdAt=datetime.utcnow(),
+            createdAt=datetime.now(timezone.utc),
             createdBy=created_by,
             tags=tags or [],
             description=description

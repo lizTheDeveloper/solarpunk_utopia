@@ -74,6 +74,127 @@ async def init_db() -> None:
         )
     """)
 
+    # Create proposals table for agent proposal persistence
+    await _db_connection.execute("""
+        CREATE TABLE IF NOT EXISTS proposals (
+            proposal_id TEXT PRIMARY KEY,
+            agent_name TEXT NOT NULL,
+            proposal_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            explanation TEXT NOT NULL,
+            inputs_used TEXT NOT NULL,
+            constraints TEXT NOT NULL,
+            data TEXT NOT NULL,
+            requires_approval TEXT NOT NULL,
+            approvals TEXT NOT NULL,
+            approval_reasons TEXT NOT NULL,
+            status TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            expires_at TEXT,
+            executed_at TEXT,
+            bundle_id TEXT
+        )
+    """)
+
+    # Create indexes for proposals
+    await _db_connection.execute("""
+        CREATE INDEX IF NOT EXISTS idx_proposal_status ON proposals(status)
+    """)
+
+    await _db_connection.execute("""
+        CREATE INDEX IF NOT EXISTS idx_proposal_agent ON proposals(agent_name)
+    """)
+
+    await _db_connection.execute("""
+        CREATE INDEX IF NOT EXISTS idx_proposal_type ON proposals(proposal_type)
+    """)
+
+    # Add community_id to proposals table (migration - will fail silently if column exists)
+    try:
+        await _db_connection.execute("""
+            ALTER TABLE proposals ADD COLUMN community_id TEXT
+        """)
+    except:
+        pass  # Column already exists
+
+    await _db_connection.execute("""
+        CREATE INDEX IF NOT EXISTS idx_proposal_community ON proposals(community_id)
+    """)
+
+    # Create users table for authentication
+    await _db_connection.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE,
+            created_at TEXT NOT NULL,
+            last_login TEXT,
+            settings TEXT DEFAULT '{}'
+        )
+    """)
+
+    await _db_connection.execute("""
+        CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)
+    """)
+
+    # Create sessions table for authentication
+    await _db_connection.execute("""
+        CREATE TABLE IF NOT EXISTS sessions (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            token TEXT UNIQUE NOT NULL,
+            expires_at TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    """)
+
+    await _db_connection.execute("""
+        CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token)
+    """)
+
+    await _db_connection.execute("""
+        CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)
+    """)
+
+    # Create communities table
+    await _db_connection.execute("""
+        CREATE TABLE IF NOT EXISTS communities (
+            id TEXT PRIMARY KEY,
+            name TEXT UNIQUE NOT NULL,
+            description TEXT,
+            created_at TEXT NOT NULL,
+            settings TEXT DEFAULT '{}',
+            is_public INTEGER DEFAULT 1
+        )
+    """)
+
+    await _db_connection.execute("""
+        CREATE INDEX IF NOT EXISTS idx_communities_name ON communities(name)
+    """)
+
+    # Create community memberships table
+    await _db_connection.execute("""
+        CREATE TABLE IF NOT EXISTS community_memberships (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            community_id TEXT NOT NULL,
+            role TEXT DEFAULT 'member',
+            joined_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (community_id) REFERENCES communities(id) ON DELETE CASCADE,
+            UNIQUE(user_id, community_id)
+        )
+    """)
+
+    await _db_connection.execute("""
+        CREATE INDEX IF NOT EXISTS idx_memberships_user ON community_memberships(user_id)
+    """)
+
+    await _db_connection.execute("""
+        CREATE INDEX IF NOT EXISTS idx_memberships_community ON community_memberships(community_id)
+    """)
+
     await _db_connection.commit()
 
 

@@ -32,23 +32,30 @@ export interface EconomicResource {
   created_at: string;
 }
 
-export interface Intent {
+export interface Listing {
   id: string;
-  type: 'offer' | 'need';
+  listing_type: 'offer' | 'need';
   agent_id: string;
   agent?: Agent;
-  resource_specification_id: string;
+  resource_spec_id: string;
   resource_specification?: ResourceSpecification;
   quantity: number;
   unit: string;
-  location?: string;
+  location_id?: string;
+  location?: string; // Legacy field, maps to location_id
   available_from?: string;
   available_until?: string;
-  note?: string;
+  title?: string;
+  description?: string;
+  note?: string; // Legacy field, maps to description
+  image_url?: string;
   status: 'active' | 'matched' | 'fulfilled' | 'cancelled';
   created_at: string;
   updated_at: string;
 }
+
+// Legacy alias for backward compatibility
+export type Intent = Listing;
 
 export interface Commitment {
   id: string;
@@ -140,17 +147,22 @@ export interface Exchange {
 }
 
 // Request/Response types
-export interface CreateIntentRequest {
-  type: 'offer' | 'need';
+export interface CreateListingRequest {
+  listing_type: 'offer' | 'need';
   agent_id: string;
-  resource_specification_id: string;
+  resource_spec_id: string;
   quantity: number;
   unit: string;
-  location?: string;
+  location_id?: string;
   available_from?: string;
   available_until?: string;
-  note?: string;
+  title?: string;
+  description?: string;
+  image_url?: string;
 }
+
+// Legacy alias for backward compatibility
+export type CreateIntentRequest = CreateListingRequest;
 
 export interface CreateEventRequest {
   action: 'transfer' | 'produce' | 'consume' | 'use' | 'accept' | 'modify';

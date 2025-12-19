@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Optional, List
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 import json
 import hashlib
 
@@ -10,7 +10,8 @@ from .priority import Priority, Audience, ReceiptPolicy, Topic
 class BundleCreate(BaseModel):
     """Input model for creating a new bundle"""
     payload: dict[str, Any]
-    payloadType: str
+    payloadType: Optional[str] = None  # Also accepts payload_type
+    payload_type: Optional[str] = None  # Snake_case alternative
     priority: Priority = Priority.NORMAL
     audience: Audience = Audience.PUBLIC
     topic: Topic
@@ -18,6 +19,20 @@ class BundleCreate(BaseModel):
     hopLimit: int = 20
     receiptPolicy: ReceiptPolicy = ReceiptPolicy.NONE
     expiresAt: Optional[datetime] = None  # Will be auto-calculated if not provided
+    ttl_hours: Optional[int] = None  # Alternative to expiresAt (converts to expiresAt)
+
+    def model_post_init(self, __context):
+        """Normalize field names and handle TTL conversion"""
+        # Handle payload_type -> payloadType
+        if self.payload_type and not self.payloadType:
+            self.payloadType = self.payload_type
+        if not self.payloadType:
+            raise ValueError("payloadType or payload_type is required")
+
+        # Handle ttl_hours -> expiresAt
+        if self.ttl_hours and not self.expiresAt:
+            from datetime import datetime, timedelta, timezone
+            self.expiresAt = datetime.now(timezone.utc) + timedelta(hours=self.ttl_hours)
 
 
 class Bundle(BaseModel):
@@ -42,10 +57,51 @@ class Bundle(BaseModel):
     signature: str  # Ed25519 signature
     authorPublicKey: str  # Ed25519 public key of creator
 
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+    model_config = ConfigDict(
+        # Allow both camelCase and snake_case in JSON
+        populate_by_name=True
+    )
+
+    # Add snake_case aliases for compatibility
+    @property
+    def bundle_id(self) -> str:
+        """Alias for bundleId (snake_case compatibility)"""
+        return self.bundleId
+
+    @property
+    def created_at(self) -> datetime:
+        """Alias for createdAt (snake_case compatibility)"""
+        return self.createdAt
+
+    @property
+    def expires_at(self) -> datetime:
+        """Alias for expiresAt (snake_case compatibility)"""
+        return self.expiresAt
+
+    @property
+    def payload_type(self) -> str:
+        """Alias for payloadType (snake_case compatibility)"""
+        return self.payloadType
+
+    @property
+    def hop_limit(self) -> int:
+        """Alias for hopLimit (snake_case compatibility)"""
+        return self.hopLimit
+
+    @property
+    def hop_count(self) -> int:
+        """Alias for hopCount (snake_case compatibility)"""
+        return self.hopCount
+
+    @property
+    def receipt_policy(self) -> ReceiptPolicy:
+        """Alias for receiptPolicy (snake_case compatibility)"""
+        return self.receiptPolicy
+
+    @property
+    def author_public_key(self) -> str:
+        """Alias for authorPublicKey (snake_case compatibility)"""
+        return self.authorPublicKey
 
     @field_validator('bundleId')
     @classmethod
@@ -74,7 +130,7 @@ class Bundle(BaseModel):
 
     def is_expired(self) -> bool:
         """Check if bundle has expired based on TTL"""
-        return datetime.utcnow() > self.expiresAt
+        return datetime.now(timezone.utc) > self.expiresAt
 
     def is_hop_limit_exceeded(self) -> bool:
         """Check if bundle has exceeded hop limit"""

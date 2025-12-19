@@ -121,6 +121,7 @@ CREATE TABLE IF NOT EXISTS listings (
     image_url TEXT,
     status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'fulfilled', 'expired', 'cancelled')),
     resource_instance_id TEXT,
+    community_id TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT,
     author TEXT,
@@ -138,6 +139,7 @@ CREATE INDEX IF NOT EXISTS idx_listings_agent ON listings(agent_id);
 CREATE INDEX IF NOT EXISTS idx_listings_location ON listings(location_id);
 CREATE INDEX IF NOT EXISTS idx_listings_created ON listings(created_at);
 CREATE INDEX IF NOT EXISTS idx_listings_available_until ON listings(available_until) WHERE available_until IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_listings_community ON listings(community_id);
 
 -- Composite index for common queries
 CREATE INDEX IF NOT EXISTS idx_listings_type_status ON listings(listing_type, status);
@@ -161,6 +163,7 @@ CREATE TABLE IF NOT EXISTS matches (
     match_reason TEXT,
     proposed_quantity REAL,
     proposed_unit TEXT,
+    community_id TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT,
     author TEXT,
@@ -176,6 +179,7 @@ CREATE INDEX IF NOT EXISTS idx_matches_need ON matches(need_id);
 CREATE INDEX IF NOT EXISTS idx_matches_provider ON matches(provider_id);
 CREATE INDEX IF NOT EXISTS idx_matches_receiver ON matches(receiver_id);
 CREATE INDEX IF NOT EXISTS idx_matches_status ON matches(status);
+CREATE INDEX IF NOT EXISTS idx_matches_community ON matches(community_id);
 
 -- =============================================================================
 -- EXCHANGES
@@ -201,6 +205,7 @@ CREATE TABLE IF NOT EXISTS exchanges (
     receiver_event_id TEXT,
     provider_commitment_id TEXT,
     receiver_commitment_id TEXT,
+    community_id TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT,
     author TEXT,
@@ -220,6 +225,7 @@ CREATE INDEX IF NOT EXISTS idx_exchanges_provider ON exchanges(provider_id);
 CREATE INDEX IF NOT EXISTS idx_exchanges_receiver ON exchanges(receiver_id);
 CREATE INDEX IF NOT EXISTS idx_exchanges_status ON exchanges(status);
 CREATE INDEX IF NOT EXISTS idx_exchanges_scheduled ON exchanges(scheduled_start) WHERE scheduled_start IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_exchanges_community ON exchanges(community_id);
 
 -- =============================================================================
 -- EVENTS

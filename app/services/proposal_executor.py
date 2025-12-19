@@ -89,19 +89,20 @@ class ProposalExecutor:
 
         Flow:
         1. Create Match entity linking offer and need
-        2. Create Exchange entity for the actual transfer
-        3. Mark listings as matched
+        2. Fetch listing details to get provider/receiver/resource data
+        3. Create Exchange entity for the actual transfer
+        4. Rollback Match if Exchange creation fails
         """
         data = proposal.data
         offer_id = data.get("offer_id")
         need_id = data.get("need_id")
-        matched_quantity = data.get("matched_quantity")
+        matched_quantity = data.get("quantity") or data.get("matched_quantity")
         unit = data.get("unit")
 
         if not all([offer_id, need_id, matched_quantity, unit]):
             raise ValueError(f"Missing required match data: {data}")
 
-        # Create Match
+        # Step 1: Create Match
         match_response = await self.client.post(
             f"{self.vf_api_base}/vf/matches",
             json={
@@ -115,16 +116,73 @@ class ProposalExecutor:
         )
         match_response.raise_for_status()
         match_data = match_response.json()
+        match_id = match_data["id"]
 
-        logger.info(f"Created Match {match_data['id']} for offer {offer_id} → need {need_id}")
+        logger.info(f"Created Match {match_id} for offer {offer_id} → need {need_id}")
 
-        return {
-            "match_id": match_data["id"],
-            "offer_id": offer_id,
-            "need_id": need_id,
-            "quantity": matched_quantity,
-            "unit": unit,
-        }
+        try:
+            # Step 2: Fetch listing details to get provider_id, receiver_id, resource_spec_id
+            offer_response = await self.client.get(f"{self.vf_api_base}/vf/listings/{offer_id}")
+            offer_response.raise_for_status()
+            offer = offer_response.json()
+
+            need_response = await self.client.get(f"{self.vf_api_base}/vf/listings/{need_id}")
+            need_response.raise_for_status()
+            need = need_response.json()
+
+            # Extract required fields
+            provider_id = offer.get("agent_id")
+            receiver_id = need.get("agent_id")
+            resource_spec_id = offer.get("resource_spec_id")
+
+            if not all([provider_id, receiver_id, resource_spec_id]):
+                raise ValueError(
+                    f"Missing required listing data: provider_id={provider_id}, "
+                    f"receiver_id={receiver_id}, resource_spec_id={resource_spec_id}"
+                )
+
+            # Step 3: Create Exchange
+            exchange_response = await self.client.post(
+                f"{self.vf_api_base}/vf/exchanges",
+                json={
+                    "match_id": match_id,
+                    "provider_id": provider_id,
+                    "receiver_id": receiver_id,
+                    "resource_spec_id": resource_spec_id,
+                    "quantity": matched_quantity,
+                    "unit": unit,
+                    "status": "planned",
+                    "notes": f"Exchange from approved match: {proposal.explanation}",
+                    "scheduled_start": data.get("suggested_time"),
+                    "location_id": data.get("suggested_location"),
+                }
+            )
+            exchange_response.raise_for_status()
+            exchange_data = exchange_response.json()
+
+            logger.info(f"Created Exchange {exchange_data.get('exchange', {}).get('id')} for Match {match_id}")
+
+            return {
+                "match_id": match_id,
+                "exchange_id": exchange_data.get("exchange", {}).get("id"),
+                "offer_id": offer_id,
+                "need_id": need_id,
+                "quantity": matched_quantity,
+                "unit": unit,
+            }
+
+        except Exception as e:
+            # Step 4: Rollback - delete the Match if Exchange creation failed
+            logger.error(f"Failed to create Exchange for Match {match_id}, rolling back: {e}")
+            try:
+                delete_response = await self.client.delete(f"{self.vf_api_base}/vf/matches/{match_id}")
+                delete_response.raise_for_status()
+                logger.info(f"Rolled back Match {match_id}")
+            except Exception as rollback_error:
+                logger.error(f"Failed to rollback Match {match_id}: {rollback_error}")
+
+            # Re-raise the original error
+            raise ValueError(f"Failed to execute match proposal: {e}") from e
 
     async def _execute_urgent_exchange(self, proposal: Proposal) -> Dict[str, Any]:
         """

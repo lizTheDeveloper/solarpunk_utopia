@@ -5,7 +5,7 @@ Handles storing proposals, tracking approvals, and executing approved proposals.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 from .proposal import Proposal, ProposalStatus, ProposalFilter
 
@@ -17,11 +17,19 @@ class ApprovalTracker:
     """
     Tracks and manages proposal approvals.
 
-    In-memory implementation; production would use database.
+    Uses SQLite database for persistence via ProposalRepository.
     """
 
     def __init__(self):
-        self._proposals: Dict[str, Proposal] = {}
+        # Repository is imported lazily to avoid circular imports
+        self._repo = None
+
+    def _get_repo(self):
+        """Lazy load repository to avoid circular imports"""
+        if self._repo is None:
+            from app.database.proposal_repo import ProposalRepository
+            self._repo = ProposalRepository
+        return self._repo
 
     async def store_proposal(self, proposal: Proposal) -> str:
         """
@@ -33,7 +41,8 @@ class ApprovalTracker:
         Returns:
             Proposal ID
         """
-        self._proposals[proposal.proposal_id] = proposal
+        repo = self._get_repo()
+        await repo.save(proposal)
         logger.info(f"Stored proposal {proposal.proposal_id} from {proposal.agent_name}")
         return proposal.proposal_id
 
@@ -47,7 +56,8 @@ class ApprovalTracker:
         Returns:
             Proposal or None if not found
         """
-        return self._proposals.get(proposal_id)
+        repo = self._get_repo()
+        return await repo.get_by_id(proposal_id)
 
     async def list_proposals(self, filter: Optional[ProposalFilter] = None) -> List[Proposal]:
         """
@@ -59,34 +69,8 @@ class ApprovalTracker:
         Returns:
             List of matching proposals
         """
-        proposals = list(self._proposals.values())
-
-        if not filter:
-            return proposals
-
-        # Apply filters
-        if filter.agent_name:
-            proposals = [p for p in proposals if p.agent_name == filter.agent_name]
-
-        if filter.proposal_type:
-            proposals = [p for p in proposals if p.proposal_type == filter.proposal_type]
-
-        if filter.status:
-            proposals = [p for p in proposals if p.status == filter.status]
-
-        if filter.user_id:
-            proposals = [
-                p for p in proposals
-                if filter.user_id in p.requires_approval
-            ]
-
-        if filter.created_after:
-            proposals = [p for p in proposals if p.created_at >= filter.created_after]
-
-        if filter.created_before:
-            proposals = [p for p in proposals if p.created_at <= filter.created_before]
-
-        return proposals
+        repo = self._get_repo()
+        return await repo.list_all(filter)
 
     async def approve_proposal(
         self,
@@ -110,7 +94,8 @@ class ApprovalTracker:
         Raises:
             ValueError: If proposal not found or user not required approver
         """
-        proposal = self._proposals.get(proposal_id)
+        repo = self._get_repo()
+        proposal = await repo.get_by_id(proposal_id)
         if not proposal:
             raise ValueError(f"Proposal {proposal_id} not found")
 
@@ -123,6 +108,9 @@ class ApprovalTracker:
             f"proposal {proposal_id}"
         )
 
+        # Save updated proposal to database
+        await repo.save(proposal)
+
         return proposal
 
     async def expire_old_proposals(self) -> int:
@@ -132,16 +120,17 @@ class ApprovalTracker:
         Returns:
             Number of proposals expired
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expired_count = 0
 
-        for proposal in self._proposals.values():
-            if (
-                proposal.status == ProposalStatus.PENDING
-                and proposal.expires_at
-                and proposal.expires_at < now
-            ):
+        repo = self._get_repo()
+        filter = ProposalFilter(status=ProposalStatus.PENDING)
+        proposals = await repo.list_all(filter)
+
+        for proposal in proposals:
+            if proposal.expires_at and proposal.expires_at < now:
                 proposal.status = ProposalStatus.EXPIRED
+                await repo.save(proposal)
                 expired_count += 1
                 logger.info(f"Expired proposal {proposal.proposal_id}")
 
@@ -157,13 +146,14 @@ class ApprovalTracker:
         Returns:
             List of proposals awaiting this user's approval
         """
+        repo = self._get_repo()
+        filter = ProposalFilter(status=ProposalStatus.PENDING, user_id=user_id)
+        proposals = await repo.list_all(filter)
+
+        # Filter to only those where user hasn't approved yet
         return [
-            proposal for proposal in self._proposals.values()
-            if (
-                proposal.status == ProposalStatus.PENDING
-                and user_id in proposal.requires_approval
-                and user_id not in proposal.approvals
-            )
+            proposal for proposal in proposals
+            if user_id not in proposal.approvals
         ]
 
     async def get_approved_proposals(
@@ -181,13 +171,12 @@ class ApprovalTracker:
         Returns:
             List of approved proposals
         """
-        proposals = [
-            proposal for proposal in self._proposals.values()
-            if proposal.status == ProposalStatus.APPROVED
-        ]
-
-        if agent_name:
-            proposals = [p for p in proposals if p.agent_name == agent_name]
+        repo = self._get_repo()
+        filter = ProposalFilter(
+            status=ProposalStatus.APPROVED,
+            agent_name=agent_name
+        )
+        proposals = await repo.list_all(filter)
 
         if unexecuted_only:
             proposals = [p for p in proposals if not p.executed_at]
@@ -207,18 +196,21 @@ class ApprovalTracker:
         Raises:
             ValueError: If proposal not found or not approved
         """
-        proposal = self._proposals.get(proposal_id)
+        repo = self._get_repo()
+        proposal = await repo.get_by_id(proposal_id)
         if not proposal:
             raise ValueError(f"Proposal {proposal_id} not found")
 
         proposal.mark_executed()
+        await repo.save(proposal)
         logger.info(f"Marked proposal {proposal_id} as executed")
 
         return proposal
 
-    def get_stats(self) -> Dict[str, int]:
+    async def get_stats(self) -> Dict[str, int]:
         """Get approval statistics"""
-        proposals = list(self._proposals.values())
+        repo = self._get_repo()
+        proposals = await repo.list_all()
         return {
             "total": len(proposals),
             "pending": len([p for p in proposals if p.status == ProposalStatus.PENDING]),

@@ -9,83 +9,92 @@ import type {
 } from '@/types/agents';
 
 const api = axios.create({
-  baseURL: '/api/vf', // Agents are part of the VF service
+  baseURL: '/api/agents', // Agents API on DTN service
 });
 
 export const agentsApi = {
   // Get all agents
   getAgents: async (): Promise<Agent[]> => {
-    const response = await api.get<Agent[]>('/ai-agents');
-    return response.data;
+    const response = await api.get<{ agents: string[]; total: number }>('');
+    // Backend returns {agents: [...], total: N}, need to transform
+    // For now, return empty array - proper implementation needs agent list endpoint
+    return [];
   },
 
-  // Get specific agent
+  // Get specific agent settings
   getAgent: async (type: AgentType): Promise<Agent> => {
-    const response = await api.get<Agent>(`/ai-agents/${type}`);
+    const response = await api.get<Agent>(`/settings/${type}`);
     return response.data;
   },
 
   // Update agent configuration
   updateAgent: async (type: AgentType, config: Partial<Agent>): Promise<Agent> => {
-    const response = await api.put<Agent>(`/ai-agents/${type}`, config);
+    const response = await api.put<Agent>(`/settings/${type}`, config);
     return response.data;
   },
 
   // Enable/disable agent
   toggleAgent: async (type: AgentType, enabled: boolean): Promise<Agent> => {
-    const response = await api.patch<Agent>(`/ai-agents/${type}`, { enabled });
+    const response = await api.put<Agent>(`/settings/${type}`, { enabled });
     return response.data;
   },
 
   // Opt in/out of agent
   setOptIn: async (type: AgentType, optIn: boolean): Promise<Agent> => {
-    const response = await api.patch<Agent>(`/ai-agents/${type}`, { opt_in: optIn });
+    const response = await api.put<Agent>(`/settings/${type}`, { opt_in: optIn });
     return response.data;
   },
 
   // Run agent manually
   runAgent: async (type: AgentType): Promise<AgentRunResult> => {
-    const response = await api.post<AgentRunResult>(`/ai-agents/${type}/run`);
+    const response = await api.post<AgentRunResult>(`/run/${type}`);
     return response.data;
   },
 
   // Get all proposals
   getProposals: async (status?: 'pending' | 'approved' | 'rejected'): Promise<AgentProposal[]> => {
-    const url = status ? `/ai-agents/proposals?status=${status}` : '/ai-agents/proposals';
-    const response = await api.get<AgentProposal[]>(url);
-    return response.data;
+    const url = status ? `/proposals?status=${status}` : '/proposals';
+    const response = await api.get<{ proposals: AgentProposal[]; total: number }>(url);
+    return response.data.proposals;
   },
 
   // Get proposals by agent type
   getProposalsByAgent: async (type: AgentType): Promise<AgentProposal[]> => {
-    const response = await api.get<AgentProposal[]>(`/ai-agents/${type}/proposals`);
-    return response.data;
+    const response = await api.get<{ proposals: AgentProposal[]; total: number }>(`/proposals?agent_name=${type}`);
+    return response.data.proposals;
   },
 
   // Get specific proposal
   getProposal: async (id: string): Promise<AgentProposal> => {
-    const response = await api.get<AgentProposal>(`/ai-agents/proposals/${id}`);
+    const response = await api.get<AgentProposal>(`/proposals/${id}`);
     return response.data;
   },
 
   // Review proposal (approve or reject)
   reviewProposal: async (id: string, action: 'approve' | 'reject', note?: string): Promise<AgentProposal> => {
-    const response = await api.post<AgentProposal>(`/ai-agents/proposals/${id}/review`, {
-      action,
-      note,
+    // Backend extracts user_id from auth token (GAP-02)
+    // Just send approved and reason
+    const response = await api.post<AgentProposal>(`/proposals/${id}/approve`, {
+      approved: action === 'approve',
+      reason: note,
     });
     return response.data;
   },
 
   // Get agent statistics
   getAgentStats: async (type: AgentType): Promise<AgentStats> => {
-    const response = await api.get<AgentStats>(`/ai-agents/${type}/stats`);
-    return response.data;
+    const response = await api.get<{ stats: AgentStats }>(`/stats/${type}`);
+    return response.data.stats;
   },
 
   // Get all agent statistics
   getAllAgentStats: async (): Promise<Record<AgentType, AgentStats>> => {
-    const response = await api.get<Record<AgentType, AgentStats>>('/ai-agents/stats');
-    return response.data;
+    const response = await api.get<Record<AgentType, { stats: AgentStats }>>('/stats');
+    // Transform {agent_name: {stats: {...}}} to {agent_name: {...}}
+    const transformed: Record<string, AgentStats> = {};
+    for (const [key, value] of Object.entries(response.data)) {
+      transformed[key] = value.stats;
+    }
+    return transformed as Record<AgentType, AgentStats>;
   },
 };

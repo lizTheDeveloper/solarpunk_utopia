@@ -4,31 +4,90 @@ Cryptographic Signing Service
 Signs and verifies VF objects using Ed25519.
 """
 
-from typing import Optional
-import hashlib
+from cryptography.hazmat.primitives.asymmetric.ed25519 import (
+    Ed25519PrivateKey,
+    Ed25519PublicKey,
+)
+from cryptography.hazmat.primitives import serialization
+from cryptography.exceptions import InvalidSignature
+from typing import Optional, Tuple
+from pathlib import Path
 import base64
-
-# Placeholder for cryptography library
-# In production, use: from cryptography.hazmat.primitives.asymmetric import ed25519
-# For now, we'll create a simple interface
 
 
 class SigningService:
     """
     Service for signing and verifying VF objects.
 
-    Uses Ed25519 for signatures.
+    Uses Ed25519 for cryptographic signatures to ensure:
+    - Authenticity (object created by claimed author)
+    - Integrity (object hasn't been tampered with)
     """
 
-    def __init__(self, private_key: Optional[str] = None):
+    def __init__(self, keys_dir: Optional[Path] = None):
         """
-        Initialize signing service.
+        Initialize signing service with key storage directory.
 
         Args:
-            private_key: Ed25519 private key (base64 encoded)
+            keys_dir: Directory to store keypair (defaults to app/data/keys)
         """
-        self.private_key = private_key
-        # In production: self.private_key_obj = ed25519.Ed25519PrivateKey.from_private_bytes(...)
+        if keys_dir is None:
+            keys_dir = Path(__file__).parent.parent / "data" / "keys"
+
+        self.keys_dir = keys_dir
+        self.keys_dir.mkdir(parents=True, exist_ok=True)
+
+        self.private_key_path = self.keys_dir / "vf_node_private.pem"
+        self.public_key_path = self.keys_dir / "vf_node_public.pem"
+
+        # Load or generate keypair
+        self.private_key, self.public_key = self._load_or_generate_keypair()
+
+    def _load_or_generate_keypair(self) -> Tuple[Ed25519PrivateKey, Ed25519PublicKey]:
+        """Load existing keypair or generate new one"""
+        if self.private_key_path.exists() and self.public_key_path.exists():
+            return self._load_keypair()
+        else:
+            return self._generate_keypair()
+
+    def _generate_keypair(self) -> Tuple[Ed25519PrivateKey, Ed25519PublicKey]:
+        """Generate new Ed25519 keypair and save to disk"""
+        private_key = Ed25519PrivateKey.generate()
+        public_key = private_key.public_key()
+
+        # Save private key
+        private_pem = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+        self.private_key_path.write_bytes(private_pem)
+
+        # Save public key
+        public_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        self.public_key_path.write_bytes(public_pem)
+
+        # Set restrictive permissions (owner-only for private key)
+        self.private_key_path.chmod(0o600)
+        self.public_key_path.chmod(0o644)
+
+        return private_key, public_key
+
+    def _load_keypair(self) -> Tuple[Ed25519PrivateKey, Ed25519PublicKey]:
+        """Load keypair from disk"""
+        private_pem = self.private_key_path.read_bytes()
+        private_key = serialization.load_pem_private_key(
+            private_pem,
+            password=None
+        )
+
+        public_pem = self.public_key_path.read_bytes()
+        public_key = serialization.load_pem_public_key(public_pem)
+
+        return private_key, public_key
 
     def sign_object(self, vf_object) -> str:
         """
@@ -40,29 +99,21 @@ class SigningService:
         Returns:
             Base64-encoded signature
         """
-        if not self.private_key:
-            raise ValueError("Private key not set")
-
         # Get canonical JSON (excludes signature field)
         canonical_json = vf_object.canonical_json()
 
-        # In production:
-        # message_bytes = canonical_json.encode('utf-8')
-        # signature_bytes = self.private_key_obj.sign(message_bytes)
-        # return base64.b64encode(signature_bytes).decode('utf-8')
-
-        # For now, return a deterministic hash (NOT secure, placeholder only)
-        hash_obj = hashlib.sha256(canonical_json.encode('utf-8'))
-        return f"sig:{base64.b64encode(hash_obj.digest()).decode('utf-8')}"
+        # Sign with Ed25519
+        signature_bytes = self.private_key.sign(canonical_json.encode('utf-8'))
+        return base64.b64encode(signature_bytes).decode('utf-8')
 
     @staticmethod
-    def verify_signature(vf_object, public_key: str) -> bool:
+    def verify_signature(vf_object, public_key_pem: str) -> bool:
         """
         Verify signature on a VF object.
 
         Args:
             vf_object: VF object with signature
-            public_key: Ed25519 public key (base64 encoded)
+            public_key_pem: Ed25519 public key (PEM format)
 
         Returns:
             True if signature is valid
@@ -70,62 +121,81 @@ class SigningService:
         if not vf_object.signature:
             return False
 
-        # In production:
-        # public_key_obj = ed25519.Ed25519PublicKey.from_public_bytes(base64.b64decode(public_key))
-        # canonical_json = vf_object.canonical_json()
-        # message_bytes = canonical_json.encode('utf-8')
-        # signature_bytes = base64.b64decode(vf_object.signature)
-        # try:
-        #     public_key_obj.verify(signature_bytes, message_bytes)
-        #     return True
-        # except:
-        #     return False
+        try:
+            # Load public key from PEM
+            public_key = serialization.load_pem_public_key(
+                public_key_pem.encode('utf-8')
+            )
 
-        # For now, just check signature format
-        return vf_object.signature.startswith("sig:")
+            # Get canonical JSON
+            canonical_json = vf_object.canonical_json()
 
-    def sign_and_update(self, vf_object, author_id: str):
+            # Decode signature
+            signature_bytes = base64.b64decode(vf_object.signature)
+
+            # Verify signature
+            public_key.verify(signature_bytes, canonical_json.encode('utf-8'))
+            return True
+
+        except (InvalidSignature, Exception):
+            return False
+
+    def sign_and_update(self, vf_object, author_id: Optional[str] = None):
         """
         Sign object and update author/signature fields.
 
         Args:
             vf_object: VF object to sign
-            author_id: Public key of author
+            author_id: Public key fingerprint of author (defaults to this node's fingerprint)
 
         Returns:
             Updated object
         """
+        if author_id is None:
+            author_id = self.get_public_key_fingerprint()
+
         vf_object.author = author_id
         vf_object.signature = self.sign_object(vf_object)
         return vf_object
 
+    def get_public_key_pem(self) -> str:
+        """Get node's public key as PEM string"""
+        public_pem = self.public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        return public_pem.decode('utf-8')
+
+    def get_public_key_fingerprint(self) -> str:
+        """Get a short fingerprint of the public key for display"""
+        pem = self.get_public_key_pem()
+        import hashlib
+        fingerprint = hashlib.sha256(pem.encode('utf-8')).hexdigest()[:16]
+        return fingerprint
+
     @staticmethod
     def generate_keypair() -> dict:
         """
-        Generate a new Ed25519 keypair.
+        Generate a new Ed25519 keypair (for testing or external use).
 
         Returns:
-            Dict with 'private_key' and 'public_key' (base64 encoded)
+            Dict with 'private_key' and 'public_key' (PEM encoded)
         """
-        # In production:
-        # private_key = ed25519.Ed25519PrivateKey.generate()
-        # public_key = private_key.public_key()
-        # return {
-        #     'private_key': base64.b64encode(private_key.private_bytes(...)).decode('utf-8'),
-        #     'public_key': base64.b64encode(public_key.public_bytes(...)).decode('utf-8')
-        # }
+        private_key = Ed25519PrivateKey.generate()
+        public_key = private_key.public_key()
 
-        # Placeholder
-        import secrets
-        private_bytes = secrets.token_bytes(32)
-        public_bytes = hashlib.sha256(private_bytes).digest()
+        private_pem = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+
+        public_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
 
         return {
-            'private_key': base64.b64encode(private_bytes).decode('utf-8'),
-            'public_key': base64.b64encode(public_bytes).decode('utf-8')
+            'private_key': private_pem.decode('utf-8'),
+            'public_key': public_pem.decode('utf-8')
         }
-
-
-# Note: To enable real Ed25519 signing, install cryptography:
-# pip install cryptography
-# Then uncomment the imports and production code above

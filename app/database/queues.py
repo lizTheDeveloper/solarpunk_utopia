@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 import aiosqlite
 
@@ -40,7 +40,7 @@ class QueueManager:
             'signature': bundle.signature,
             'authorPublicKey': bundle.authorPublicKey,
             'sizeBytes': len(json.dumps(bundle.payload)),
-            'addedToQueueAt': datetime.utcnow().isoformat()
+            'addedToQueueAt': datetime.now(timezone.utc).isoformat()
         }
 
     @staticmethod
@@ -136,7 +136,7 @@ class QueueManager:
             UPDATE bundles
             SET queue = ?, addedToQueueAt = ?
             WHERE bundleId = ? AND queue = ?
-        """, (to_queue.value, datetime.utcnow().isoformat(), bundle_id, from_queue.value))
+        """, (to_queue.value, datetime.now(timezone.utc).isoformat(), bundle_id, from_queue.value))
 
         await db.commit()
         return cursor.rowcount > 0
@@ -200,7 +200,7 @@ class QueueManager:
     async def get_expired_bundles() -> List[Bundle]:
         """Get all expired bundles (across all queues except expired/quarantine)"""
         db = await get_db()
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         cursor = await db.execute("""
             SELECT * FROM bundles
             WHERE expiresAt < ?
@@ -241,5 +241,19 @@ class QueueManager:
         cursor = await db.execute("""
             SELECT 1 FROM bundles WHERE bundleId = ? LIMIT 1
         """, (bundle_id,))
+        row = await cursor.fetchone()
+        return row is not None
+
+    @staticmethod
+    async def exists_in_queues(bundle_id: str, queues: List[QueueName]) -> bool:
+        """Check if bundle exists in specific queues"""
+        db = await get_db()
+        queue_values = [q.value for q in queues]
+        placeholders = ','.join('?' * len(queue_values))
+        cursor = await db.execute(f"""
+            SELECT 1 FROM bundles
+            WHERE bundleId = ? AND queue IN ({placeholders})
+            LIMIT 1
+        """, (bundle_id, *queue_values))
         row = await cursor.fetchone()
         return row is not None

@@ -9,7 +9,7 @@ import asyncio
 import sys
 import logging
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 # Add app to path for DTN integration
@@ -201,7 +201,7 @@ class IndexPublisher:
         """Update publish schedule in database"""
         try:
             db = await get_discovery_db()
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
 
             # Get interval for this type
             if index_type == IndexType.INVENTORY:

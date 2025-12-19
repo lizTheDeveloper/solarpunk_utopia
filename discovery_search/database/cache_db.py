@@ -5,7 +5,7 @@ Handles storage and retrieval of cached indexes from peer nodes.
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
 import aiosqlite
 
@@ -43,7 +43,7 @@ class IndexCacheDB:
         """
         db = await get_discovery_db()
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         await db.execute("""
             INSERT OR REPLACE INTO cached_indexes (
@@ -92,7 +92,7 @@ class IndexCacheDB:
 
         # Check if expired
         expires_at = datetime.fromisoformat(row["expires_at"])
-        if datetime.utcnow() > expires_at:
+        if datetime.now(timezone.utc) > expires_at:
             # Delete expired index
             await db.execute("""
                 DELETE FROM cached_indexes
@@ -132,7 +132,7 @@ class IndexCacheDB:
 
         if exclude_expired:
             query += " AND expires_at > ?"
-            params.append(datetime.utcnow().isoformat())
+            params.append(datetime.now(timezone.utc).isoformat())
 
         cursor = await db.execute(query, tuple(params))
         rows = await cursor.fetchall()
@@ -158,7 +158,7 @@ class IndexCacheDB:
         db = await get_discovery_db()
 
         from datetime import timedelta
-        threshold = datetime.utcnow() - timedelta(hours=max_age_hours)
+        threshold = datetime.now(timezone.utc) - timedelta(hours=max_age_hours)
 
         cursor = await db.execute("""
             DELETE FROM cached_indexes
@@ -186,7 +186,7 @@ class IndexCacheDB:
             FROM cached_indexes
             WHERE expires_at > ?
             GROUP BY index_type
-        """, (datetime.utcnow().isoformat(),))
+        """, (datetime.now(timezone.utc).isoformat(),))
 
         rows = await cursor.fetchall()
 
@@ -213,7 +213,7 @@ class IndexCacheDB:
             SELECT COUNT(DISTINCT node_id) as unique_nodes
             FROM cached_indexes
             WHERE expires_at > ?
-        """, (datetime.utcnow().isoformat(),))
+        """, (datetime.now(timezone.utc).isoformat(),))
 
         row = await cursor.fetchone()
         stats["unique_nodes"] = row["unique_nodes"]

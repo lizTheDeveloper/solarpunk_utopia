@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 
 from .database import initialize_database
 from .api.vf import listings, matches, exchanges, events, agents, resource_specs
+from .api import communities
 
 
 @asynccontextmanager
@@ -44,6 +45,7 @@ app.add_middleware(
 )
 
 # Include API routers
+app.include_router(communities.router)
 app.include_router(listings.router)
 app.include_router(matches.router)
 app.include_router(exchanges.router)

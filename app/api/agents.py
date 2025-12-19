@@ -8,11 +8,17 @@ Provides:
 - Configure agent settings
 """
 
+import logging
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from pydantic import BaseModel, Field
+
+from app.auth.middleware import require_auth, get_current_user
+from app.auth.models import User
+
+logger = logging.getLogger(__name__)
 
 from app.agents import (
     approval_tracker,
@@ -38,7 +44,6 @@ router = APIRouter(prefix="/agents", tags=["agents"])
 
 class ApprovalRequest(BaseModel):
     """Request to approve or reject a proposal"""
-    user_id: str = Field(description="User making the decision")
     approved: bool = Field(description="True to approve, False to reject")
     reason: Optional[str] = Field(None, description="Optional reason for decision")
 
@@ -146,6 +151,7 @@ async def get_proposal(proposal_id: str) -> Proposal:
 async def approve_proposal(
     proposal_id: str,
     request: ApprovalRequest,
+    current_user: User = Depends(require_auth),
 ) -> Proposal:
     """
     Approve or reject a proposal.
@@ -153,11 +159,13 @@ async def approve_proposal(
     Records the user's decision (approve/reject) and updates proposal status.
     If all required approvals are granted, proposal status becomes APPROVED
     and the proposal is automatically executed to create VF entities.
+
+    Requires authentication.
     """
     try:
         proposal = await approval_tracker.approve_proposal(
             proposal_id=proposal_id,
-            user_id=request.user_id,
+            user_id=current_user.id,
             approved=request.approved,
             reason=request.reason,
         )
@@ -346,7 +354,7 @@ async def get_all_agent_stats() -> Dict[str, AgentStatsResponse]:
 
     # Add approval tracker stats
     stats["approval_tracker"] = AgentStatsResponse(
-        stats=approval_tracker.get_stats()
+        stats=await approval_tracker.get_stats()
     )
 
     return stats

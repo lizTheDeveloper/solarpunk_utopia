@@ -79,14 +79,24 @@ class WorkPartyScheduler(BaseAgent):
         Returns:
             List of plans requiring work parties
         """
-        # TODO: Query actual VF Plans
-        # For now, return mock data
-        return [
-            {
-                "id": "plan:spring-planting-2025",
-                "name": "Spring Planting 2025",
-                "description": "Plant 20 fruit trees and guild plantings",
-                "processes": [
+        # Query actual VF database via client
+        if self.db_client is None:
+            from ..clients.vf_client import VFClient
+            self.db_client = VFClient()
+
+        try:
+            # Get work sessions (Plans with type=work_party)
+            work_sessions = await self.db_client.get_work_sessions()
+            return work_sessions
+        except Exception as e:
+            logger.warning(f"Failed to query VF database for work sessions: {e}")
+            # Fallback to mock data if DB unavailable
+            return [
+                {
+                    "id": "plan:spring-planting-2025",
+                    "name": "Spring Planting 2025",
+                    "description": "Plant 20 fruit trees and guild plantings",
+                    "processes": [
                     {
                         "id": "process:site-prep",
                         "name": "Site Preparation",

@@ -5,7 +5,7 @@ Defines individual chunk metadata and status tracking.
 Each chunk is content-addressed with SHA-256.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, Field, field_validator
@@ -81,7 +81,7 @@ class ChunkMetadata(BaseModel):
     def mark_verified(self) -> None:
         """Mark chunk as verified"""
         self.status = ChunkStatus.VERIFIED
-        self.verifiedAt = datetime.utcnow()
+        self.verifiedAt = datetime.now(timezone.utc)
 
     def mark_requested(self) -> None:
         """Mark chunk as requested"""

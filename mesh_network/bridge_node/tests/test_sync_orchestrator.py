@@ -6,7 +6,7 @@ Tests sync triggering and coordination with DTN system.
 
 import pytest
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import Mock, AsyncMock, patch
 import httpx
 
@@ -39,7 +39,7 @@ def garden_network():
         subnet="/24",
         island_id="garden",
         status=NetworkStatus.CONNECTED,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone.utc)
     )
 
 
@@ -54,7 +54,7 @@ def kitchen_network():
         subnet="/24",
         island_id="kitchen",
         status=NetworkStatus.CONNECTED,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone.utc)
     )
 
 

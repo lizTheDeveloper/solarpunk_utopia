@@ -7,13 +7,14 @@ GET /vf/listings/{id} - Get listing details
 PATCH /vf/listings/{id} - Update listing
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional, List
 from datetime import datetime
 import uuid
 
 from ...models.vf.listing import Listing, ListingType
 from ...models.vf.resource_spec import ResourceCategory
+from ...models.requests.listings import ListingCreate, ListingUpdate, ListingQuery
 from ...database import get_database
 from ...repositories.vf.listing_repo import ListingRepository
 from ...services.signing_service import SigningService
@@ -23,36 +24,35 @@ router = APIRouter(prefix="/vf/listings", tags=["listings"])
 
 
 @router.post("", response_model=dict)
-async def create_listing(listing_data: dict):
+async def create_listing(listing_data: ListingCreate):
     """
     Create a new listing (offer or need).
 
-    Request body should contain:
-    - listing_type: "offer" or "need"
-    - resource_spec_id: ID of resource spec
-    - agent_id: ID of agent creating listing
-    - quantity, unit, location_id, etc.
+    GAP-43: Now uses validated Pydantic model instead of raw dict.
+
+    Request body validated for:
+    - Required fields present
+    - Correct types and formats
+    - String length limits
+    - Numeric ranges
+    - Enum values
     """
     try:
-        # Generate ID if not provided
-        if "id" not in listing_data:
-            listing_data["id"] = f"listing:{uuid.uuid4()}"
+        # Convert validated Pydantic model to dict
+        data = listing_data.model_dump()
+
+        # Generate ID
+        data["id"] = f"listing:{uuid.uuid4()}"
 
         # Set timestamps
-        listing_data["created_at"] = datetime.now().isoformat()
-
-        # Handle field name mapping: "provider_agent_id" in request -> "agent_id" in model
-        if "provider_agent_id" in listing_data:
-            listing_data["agent_id"] = listing_data.pop("provider_agent_id")
+        data["created_at"] = datetime.now().isoformat()
 
         # Create Listing object
-        listing = Listing.from_dict(listing_data)
+        listing = Listing.from_dict(data)
 
         # Sign the listing
-        # In production, get private key from authenticated user context
-        # For now, generate a mock keypair
-        keypair = SigningService.generate_keypair()
-        signer = SigningService(keypair['private_key'])
+        # Use the node's signing service
+        signer = SigningService()
         signer.sign_and_update(listing, listing.agent_id)
 
         # Save to database
@@ -154,8 +154,12 @@ async def get_listing(listing_id: str):
 
 
 @router.patch("/{listing_id}", response_model=dict)
-async def update_listing(listing_id: str, updates: dict):
-    """Update listing (e.g., mark as fulfilled)"""
+async def update_listing(listing_id: str, updates: ListingUpdate):
+    """
+    Update listing (e.g., mark as fulfilled).
+
+    GAP-43: Now uses validated Pydantic model instead of raw dict.
+    """
     try:
         db = get_database()
         db.connect()
@@ -165,13 +169,28 @@ async def update_listing(listing_id: str, updates: dict):
         if not listing:
             raise HTTPException(status_code=404, detail="Listing not found")
 
+        # Convert validated model to dict, excluding unset fields
+        update_data = updates.model_dump(exclude_unset=True)
+
         # Apply updates
-        if "status" in updates:
-            listing.status = updates["status"]
-        if "quantity" in updates:
-            listing.quantity = updates["quantity"]
-        if "description" in updates:
-            listing.description = updates["description"]
+        if "status" in update_data:
+            listing.status = update_data["status"]
+        if "quantity" in update_data:
+            listing.quantity = update_data["quantity"]
+        if "description" in update_data:
+            listing.description = update_data["description"]
+        if "title" in update_data:
+            listing.title = update_data["title"]
+        if "unit" in update_data:
+            listing.unit = update_data["unit"]
+        if "location_id" in update_data:
+            listing.location_id = update_data["location_id"]
+        if "available_from" in update_data:
+            listing.available_from = update_data["available_from"]
+        if "available_until" in update_data:
+            listing.available_until = update_data["available_until"]
+        if "image_url" in update_data:
+            listing.image_url = update_data["image_url"]
 
         # Update in database
         updated_listing = listing_repo.update(listing)
@@ -184,6 +203,45 @@ async def update_listing(listing_id: str, updates: dict):
 
         # Return the listing object directly for compatibility with tests
         return updated_listing.to_dict()
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/{listing_id}", status_code=204)
+async def delete_listing(listing_id: str):
+    """
+    Delete a listing.
+
+    NOTE: Ownership verification requires GAP-02 (User Identity System).
+    Currently allows deletion without auth checks.
+    """
+    try:
+        db = get_database()
+        db.connect()
+        listing_repo = ListingRepository(db.conn)
+
+        # Check if listing exists
+        listing = listing_repo.find_by_id(listing_id)
+        if not listing:
+            raise HTTPException(status_code=404, detail="Listing not found")
+
+        # TODO (GAP-02): Add ownership verification when auth is implemented
+        # if listing.agent_id != request.state.user.id:
+        #     raise HTTPException(status_code=403, detail="Not authorized to delete this listing")
+
+        # Delete listing
+        deleted = listing_repo.delete(listing_id)
+
+        db.close()
+
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Listing not found")
+
+        # 204 No Content - FastAPI handles this automatically with status_code=204
+        return None
 
     except HTTPException:
         raise

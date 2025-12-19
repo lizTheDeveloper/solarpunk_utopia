@@ -21,7 +21,7 @@ export function useCreateNeed() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateIntentRequest) => valueflowsApi.createIntent({ ...data, type: 'need' }),
+    mutationFn: (data: CreateIntentRequest) => valueflowsApi.createIntent(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['needs'] });
       queryClient.invalidateQueries({ queryKey: ['intents'] });

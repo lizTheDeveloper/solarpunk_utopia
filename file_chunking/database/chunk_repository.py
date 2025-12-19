@@ -6,7 +6,7 @@ Database access layer for chunk metadata.
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from ..models import ChunkMetadata, ChunkStatus
@@ -168,7 +168,7 @@ class ChunkRepository:
             UPDATE chunks
             SET status = ?, verified_at = ?
             WHERE chunk_hash = ?
-        """, (ChunkStatus.VERIFIED.value, datetime.utcnow().isoformat(), chunk_hash))
+        """, (ChunkStatus.VERIFIED.value, datetime.now(timezone.utc).isoformat(), chunk_hash))
 
         await db.commit()
         logger.debug(f"Marked chunk {chunk_hash} as verified")

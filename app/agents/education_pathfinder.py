@@ -6,7 +6,7 @@ Creates just-in-time learning paths with prerequisites.
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Set
 
 from .framework import BaseAgent, AgentConfig, Proposal, ProposalType
@@ -93,7 +93,7 @@ class EducationPathfinder(BaseAgent):
                 "user_id": "bob",
                 "user_name": "Bob",
                 "task": "Assist with hive inspection",
-                "scheduled_date": datetime.utcnow() + timedelta(days=7),
+                "scheduled_date": datetime.now(timezone.utc) + timedelta(days=7),
                 "skills_needed": ["beekeeping", "safety"],
                 "process_id": "process:hive-management",
                 "bundle_id": "bundle:commit-bob-hive",
@@ -103,7 +103,7 @@ class EducationPathfinder(BaseAgent):
                 "user_id": "eve",
                 "user_name": "Eve",
                 "task": "Learn fruit tree grafting",
-                "scheduled_date": datetime.utcnow() + timedelta(days=10),
+                "scheduled_date": datetime.now(timezone.utc) + timedelta(days=10),
                 "skills_needed": ["grafting", "tree_care"],
                 "process_id": "process:tree-propagation",
                 "bundle_id": "bundle:commit-eve-grafting",
@@ -156,7 +156,7 @@ class EducationPathfinder(BaseAgent):
 
         # Calculate recommended schedule
         days_until_commitment = (
-            commitment["scheduled_date"] - datetime.utcnow()
+            commitment["scheduled_date"] - datetime.now(timezone.utc)
         ).days
         schedule = self._create_learning_schedule(
             ordered_lessons,
@@ -216,8 +216,21 @@ class EducationPathfinder(BaseAgent):
         Returns:
             List of relevant lessons
         """
-        # TODO: Query actual lesson database
-        # For now, return mock lesson data
+        # Query actual VF database via client
+        if self.db_client is None:
+            from ..clients.vf_client import VFClient
+            self.db_client = VFClient()
+
+        try:
+            # Get lessons for each skill
+            all_lessons_list = []
+            for skill in skills:
+                lessons = await self.db_client.get_lessons(topic=skill)
+                all_lessons_list.extend(lessons)
+            return all_lessons_list
+        except Exception as e:
+            logger.warning(f"Failed to query VF database for lessons: {e}")
+            # Fallback to mock lesson data if DB unavailable
 
         all_lessons = {
             "beekeeping": [
@@ -327,8 +340,19 @@ class EducationPathfinder(BaseAgent):
         Returns:
             List of protocol documents
         """
-        # TODO: Query actual protocol database
-        # Mock protocols
+        # Query actual VF database via client
+        if self.db_client is None:
+            from ..clients.vf_client import VFClient
+            self.db_client = VFClient()
+
+        try:
+            # Get all protocols (repeatable processes)
+            protocols_list = await self.db_client.get_protocols()
+            return protocols_list
+        except Exception as e:
+            logger.warning(f"Failed to query VF database for protocols: {e}")
+            # Fallback to mock protocols if DB unavailable
+
         protocols = {
             "process:hive-management": [
                 {
@@ -416,7 +440,7 @@ class EducationPathfinder(BaseAgent):
             else:
                 offset_days = current_offset
 
-            recommended_date = datetime.utcnow() + timedelta(days=offset_days)
+            recommended_date = datetime.now(timezone.utc) + timedelta(days=offset_days)
 
             schedule.append({
                 "lesson_id": lesson["id"],

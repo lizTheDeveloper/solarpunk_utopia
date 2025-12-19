@@ -3,7 +3,7 @@ Unit tests for discovery models
 """
 
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from ..models import (
     IndexType,
@@ -25,7 +25,7 @@ class TestInventoryIndex:
 
     def test_create_inventory_index(self):
         """Test creating an inventory index"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expires = now + timedelta(days=3)
 
         entry = InventoryIndexEntry(
@@ -57,7 +57,7 @@ class TestInventoryIndex:
 
     def test_inventory_index_serialization(self):
         """Test serializing and deserializing inventory index"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expires = now + timedelta(days=3)
 
         entry = InventoryIndexEntry(
@@ -102,7 +102,7 @@ class TestServiceIndex:
 
     def test_create_service_index(self):
         """Test creating a service index"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expires = now + timedelta(days=7)
 
         entry = ServiceIndexEntry(
@@ -133,7 +133,7 @@ class TestKnowledgeIndex:
 
     def test_create_knowledge_index(self):
         """Test creating a knowledge index"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expires = now + timedelta(days=30)
 
         entry = KnowledgeIndexEntry(
@@ -164,7 +164,7 @@ class TestSearchQuery:
 
     def test_create_search_query(self):
         """Test creating a search query"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         deadline = now + timedelta(hours=1)
 
         query = SearchQuery(
@@ -182,7 +182,7 @@ class TestSearchQuery:
 
     def test_search_query_with_filters(self):
         """Test search query with filters"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         deadline = now + timedelta(hours=1)
 
         filters = QueryFilter(
@@ -207,7 +207,7 @@ class TestSearchQuery:
 
     def test_search_query_serialization(self):
         """Test serializing and deserializing search query"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         deadline = now + timedelta(hours=1)
 
         query = SearchQuery(
@@ -237,7 +237,7 @@ class TestSearchResponse:
 
     def test_create_search_response(self):
         """Test creating a search response"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         result = QueryResult(
             result_id="listing-1",
@@ -268,7 +268,7 @@ class TestSearchResponse:
 
     def test_search_response_serialization(self):
         """Test serializing and deserializing search response"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         result = QueryResult(
             result_id="listing-1",

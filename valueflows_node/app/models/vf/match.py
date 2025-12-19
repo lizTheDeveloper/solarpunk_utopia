@@ -53,6 +53,9 @@ class Match:
     proposed_quantity: Optional[float] = None
     proposed_unit: Optional[str] = None
 
+    # Community scoping (GAP-03)
+    community_id: Optional[str] = None  # Which community this match belongs to
+
     # Metadata
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -78,6 +81,7 @@ class Match:
             "match_reason": self.match_reason,
             "proposed_quantity": self.proposed_quantity,
             "proposed_unit": self.proposed_unit,
+            "community_id": self.community_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "author": self.author,
@@ -102,6 +106,7 @@ class Match:
             match_reason=data.get("match_reason"),
             proposed_quantity=data.get("proposed_quantity"),
             proposed_unit=data.get("proposed_unit"),
+            community_id=data.get("community_id"),
             created_at=datetime.fromisoformat(data["created_at"]) if data.get("created_at") else None,
             updated_at=datetime.fromisoformat(data["updated_at"]) if data.get("updated_at") else None,
             author=data.get("author"),

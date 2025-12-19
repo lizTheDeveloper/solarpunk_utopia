@@ -11,15 +11,21 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@capacitor-community/sqlite": "^7.0.2",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@tanstack/react-query": "^5.14.0",
+    "@types/uuid": "^10.0.0",
+    "axios": "^1.6.2",
+    "clsx": "^2.0.0",
+    "date-fns": "^3.0.0",
+    "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0",
-    "@tanstack/react-query": "^5.14.0",
-    "axios": "^1.6.2",
-    "zustand": "^4.4.7",
-    "date-fns": "^3.0.0",
-    "lucide-react": "^0.294.0",
-    "clsx": "^2.0.0"
+    "uuid": "^13.0.0",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

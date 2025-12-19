@@ -13,7 +13,7 @@ import uuid
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pydantic import BaseModel
 
 # Add app to path
@@ -127,8 +127,8 @@ async def create_search(request: SearchRequest):
             filters=request.filters,
             requester_node_id=query_handler.node_id,
             max_results=request.max_results,
-            response_deadline=datetime.utcnow() + timedelta(minutes=request.timeout_minutes),
-            created_at=datetime.utcnow(),
+            response_deadline=datetime.now(timezone.utc) + timedelta(minutes=request.timeout_minutes),
+            created_at=datetime.now(timezone.utc),
         )
 
         # Process query locally
