@@ -55,7 +55,7 @@ A mesh network that enables:
 |----------|-------------|--------|
 | [Saturnalia Protocol](changes/saturnalia-protocol/proposal.md) | Prevent role crystallization | ✅ IMPLEMENTED - Backend complete: migration, models, repo, service, API |
 | [Ancestor Voting](changes/ancestor-voting/proposal.md) | Dead reputation boosts margins | ✅ IMPLEMENTED - Full stack: migration, models, repo, service, API |
-| [Mycelial Strike](changes/mycelial-strike/proposal.md) | Automated solidarity | 📝 DOCUMENTED - Full proposal written, implementation pending |
+| [Mycelial Strike](changes/mycelial-strike/proposal.md) | Automated solidarity defense | ✅ IMPLEMENTED - Complete system: alerts, strikes, throttling, de-escalation, steward oversight |
 | [Knowledge Osmosis](changes/knowledge-osmosis/proposal.md) | Study circles output artifacts | 📝 DOCUMENTED - Proposal written, implementation pending |
 | [Algorithmic Transparency](changes/algorithmic-transparency/proposal.md) | Why did the AI match this? | 📝 DOCUMENTED - Proposal written, implementation pending |
 | [Temporal Justice](changes/temporal-justice/proposal.md) | Don't exclude caregivers/workers | 📝 DOCUMENTED - Proposal written, implementation pending |
