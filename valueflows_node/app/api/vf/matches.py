@@ -23,7 +23,10 @@ async def get_matches(status: str = None, agent_id: str = None):
         if agent_id:
             matches = match_repo.find_by_agent(agent_id)
         else:
-            matches = match_repo.find_all(status=status)
+            matches = match_repo.find_all()
+            # Filter by status if provided
+            if status:
+                matches = [m for m in matches if m.status.value == status]
 
         db.close()
 

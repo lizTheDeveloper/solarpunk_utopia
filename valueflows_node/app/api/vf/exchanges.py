@@ -21,9 +21,12 @@ async def get_exchanges(status: str = None, agent_id: str = None):
         exchange_repo = ExchangeRepository(db.conn)
 
         if agent_id:
-            exchanges = exchange_repo.find_by_agent(agent_id)
+            exchanges = exchange_repo.find_by_agent(agent_id) if hasattr(exchange_repo, 'find_by_agent') else []
         else:
-            exchanges = exchange_repo.find_all(status=status)
+            exchanges = exchange_repo.find_all()
+            # Filter by status if provided
+            if status:
+                exchanges = [e for e in exchanges if e.status.value == status]
 
         db.close()
 
