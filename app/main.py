@@ -44,6 +44,7 @@ from .api.cells import router as cells_router
 from .api.messages import router as messages_router
 from .api.steward_dashboard import router as steward_router
 from .api.panic import router as panic_router
+from .api.sanctuary import router as sanctuary_router
 from .services import TTLService, CryptoService, CacheService
 from .middleware import CSRFMiddleware
 
@@ -154,6 +155,7 @@ app.include_router(cells_router)
 app.include_router(messages_router)
 app.include_router(steward_router)
 app.include_router(panic_router)
+app.include_router(sanctuary_router)
 
 
 @app.get("/")
