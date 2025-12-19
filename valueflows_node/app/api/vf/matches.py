@@ -12,6 +12,29 @@ from ...services.vf_bundle_publisher import VFBundlePublisher
 router = APIRouter(prefix="/vf/matches", tags=["matches"])
 
 
+@router.get("/", response_model=dict)
+async def get_matches(status: str = None, agent_id: str = None):
+    """Get all matches, optionally filtered by status or agent"""
+    try:
+        db = get_database()
+        db.connect()
+        match_repo = MatchRepository(db.conn)
+
+        if agent_id:
+            matches = match_repo.find_by_agent(agent_id)
+        else:
+            matches = match_repo.find_all(status=status)
+
+        db.close()
+
+        return {
+            "matches": [m.to_dict() for m in matches],
+            "count": len(matches)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @router.post("/", response_model=dict)
 async def create_match(match_data: dict):
     """Create a new match (offer + need pairing)"""

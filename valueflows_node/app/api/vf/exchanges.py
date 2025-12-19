@@ -12,6 +12,29 @@ from ...services.vf_bundle_publisher import VFBundlePublisher
 router = APIRouter(prefix="/vf/exchanges", tags=["exchanges"])
 
 
+@router.get("/", response_model=dict)
+async def get_exchanges(status: str = None, agent_id: str = None):
+    """Get all exchanges, optionally filtered by status or agent"""
+    try:
+        db = get_database()
+        db.connect()
+        exchange_repo = ExchangeRepository(db.conn)
+
+        if agent_id:
+            exchanges = exchange_repo.find_by_agent(agent_id)
+        else:
+            exchanges = exchange_repo.find_all(status=status)
+
+        db.close()
+
+        return {
+            "exchanges": [e.to_dict() for e in exchanges],
+            "count": len(exchanges)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @router.post("/", response_model=dict)
 async def create_exchange(exchange_data: dict):
     """Create a new exchange (from accepted match)"""

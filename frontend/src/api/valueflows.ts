@@ -3,6 +3,7 @@ import axios from 'axios';
 import type {
   Agent,
   Intent,
+  Listing,
   EconomicResource,
   ResourceSpecification,
   EconomicEvent,
@@ -10,6 +11,7 @@ import type {
   Match,
   Commitment,
   CreateIntentRequest,
+  CreateListingRequest,
   CreateEventRequest,
   CreateExchangeRequest,
 } from '@/types/valueflows';
@@ -64,46 +66,67 @@ export const valueflowsApi = {
     return response.data;
   },
 
-  // Intents (Offers & Needs)
-  getIntents: async (type?: 'offer' | 'need'): Promise<Intent[]> => {
-    const url = type ? `/intents?type=${type}` : '/intents';
-    const response = await api.get<Intent[]>(url);
+  // Listings (Offers & Needs)
+  getListings: async (listing_type?: 'offer' | 'need'): Promise<Intent[]> => {
+    const url = listing_type ? `/listings?listing_type=${listing_type}` : '/listings';
+    const response = await api.get<{ listings: Intent[] }>(url);
+    return response.data.listings || response.data;
+  },
+
+  getListing: async (id: string): Promise<Intent> => {
+    const response = await api.get<Intent>(`/listings/${id}`);
     return response.data;
+  },
+
+  createListing: async (data: CreateIntentRequest): Promise<Intent> => {
+    const response = await api.post<Intent>('/listings', data);
+    return response.data;
+  },
+
+  updateListing: async (id: string, data: Partial<Intent>): Promise<Intent> => {
+    const response = await api.patch<Intent>(`/listings/${id}`, data);
+    return response.data;
+  },
+
+  deleteListing: async (id: string): Promise<void> => {
+    await api.delete(`/listings/${id}`);
+  },
+
+  // Legacy aliases for backward compatibility
+  getIntents: async (type?: 'offer' | 'need'): Promise<Intent[]> => {
+    return valueflowsApi.getListings(type);
   },
 
   getIntent: async (id: string): Promise<Intent> => {
-    const response = await api.get<Intent>(`/intents/${id}`);
-    return response.data;
+    return valueflowsApi.getListing(id);
   },
 
   createIntent: async (data: CreateIntentRequest): Promise<Intent> => {
-    const response = await api.post<Intent>('/intents', data);
-    return response.data;
+    return valueflowsApi.createListing(data);
   },
 
   updateIntent: async (id: string, data: Partial<Intent>): Promise<Intent> => {
-    const response = await api.put<Intent>(`/intents/${id}`, data);
-    return response.data;
+    return valueflowsApi.updateListing(id, data);
   },
 
   deleteIntent: async (id: string): Promise<void> => {
-    await api.delete(`/intents/${id}`);
+    return valueflowsApi.deleteListing(id);
   },
 
   // Offers
   getOffers: async (): Promise<Intent[]> => {
-    return valueflowsApi.getIntents('offer');
+    return valueflowsApi.getListings('offer');
   },
 
   // Needs
   getNeeds: async (): Promise<Intent[]> => {
-    return valueflowsApi.getIntents('need');
+    return valueflowsApi.getListings('need');
   },
 
   // Matches
   getMatches: async (): Promise<Match[]> => {
-    const response = await api.get<Match[]>('/matches');
-    return response.data;
+    const response = await api.get<{ matches: Match[]; count: number }>('/matches');
+    return response.data.matches || response.data;
   },
 
   getMatch: async (id: string): Promise<Match> => {
@@ -150,8 +173,8 @@ export const valueflowsApi = {
 
   // Exchanges
   getExchanges: async (): Promise<Exchange[]> => {
-    const response = await api.get<Exchange[]>('/exchanges');
-    return response.data;
+    const response = await api.get<{ exchanges: Exchange[]; count: number }>('/exchanges');
+    return response.data.exchanges || response.data;
   },
 
   getExchange: async (id: string): Promise<Exchange> => {

@@ -21,7 +21,7 @@ export default defineConfig({
       '/api/vf': {
         target: 'http://localhost:8001',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/vf/, '')
+        rewrite: (path) => path.replace(/^\/api/, '')
       },
       '/api/bridge': {
         target: 'http://localhost:8002',
