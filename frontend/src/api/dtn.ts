@@ -65,4 +65,24 @@ export const dtnApi = {
   acknowledgeBundle: async (id: string): Promise<void> => {
     await api.post(`/bundles/${id}/acknowledge`);
   },
+
+  // Mesh sync API endpoints
+
+  // Get bundles ready for forwarding to peers
+  getBundlesForForwarding: async (): Promise<Bundle[]> => {
+    const response = await api.get<{ bundles: Bundle[] }>('/sync/pull?max_bundles=50');
+    return response.data.bundles;
+  },
+
+  // Receive bundles from a peer
+  receiveBundles: async (bundles: Bundle[]): Promise<{ accepted: number; rejected: number }> => {
+    const response = await api.post<{ accepted: number; rejected: number }>('/sync/push', bundles);
+    return response.data;
+  },
+
+  // Get sync statistics
+  getSyncStats: async (): Promise<any> => {
+    const response = await api.get('/sync/stats');
+    return response.data;
+  },
 };

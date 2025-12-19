@@ -24,8 +24,19 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Mesh Network Plugin for WiFi Direct peer discovery and data sync
@@ -54,6 +65,14 @@ public class MeshNetworkPlugin extends Plugin {
     private List<WifiP2pDevice> peers = new ArrayList<>();
     private boolean isWiFiDirectEnabled = false;
 
+    // Socket communication
+    private static final int SERVER_PORT = 8888;
+    private ServerSocket serverSocket;
+    private ExecutorService executorService;
+    private Queue<String> messageQueue = new ConcurrentLinkedQueue<>();
+    private boolean isServerRunning = false;
+    private InetAddress groupOwnerAddress;
+
     @Override
     public void load() {
         // Initialize WiFi Direct
@@ -68,6 +87,9 @@ public class MeshNetworkPlugin extends Plugin {
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
         receiver = new WiFiDirectBroadcastReceiver(wifiP2pManager, channel, this);
+
+        // Initialize executor service for background tasks
+        executorService = Executors.newCachedThreadPool();
     }
 
     @PluginMethod
@@ -209,18 +231,54 @@ public class MeshNetworkPlugin extends Plugin {
 
     @PluginMethod
     public void sendData(PluginCall call) {
-        // TODO: Implement data transfer using sockets
-        // For now, return success
-        JSObject result = new JSObject();
-        result.put("sent", true);
-        call.resolve(result);
+        String peerId = call.getString("peerId");
+        String data = call.getString("data");
+
+        if (data == null) {
+            call.reject("data required");
+            return;
+        }
+
+        if (groupOwnerAddress == null) {
+            call.reject("Not connected to any peer");
+            return;
+        }
+
+        executorService.execute(() -> {
+            try {
+                Socket socket = new Socket();
+                socket.connect(new InetSocketAddress(groupOwnerAddress, SERVER_PORT), 5000);
+
+                OutputStream outputStream = socket.getOutputStream();
+                outputStream.write(data.getBytes());
+                outputStream.close();
+                socket.close();
+
+                JSObject result = new JSObject();
+                result.put("sent", true);
+                call.resolve(result);
+            } catch (IOException e) {
+                call.reject("Send failed: " + e.getMessage());
+            }
+        });
     }
 
     @PluginMethod
     public void receiveData(PluginCall call) {
-        // TODO: Implement data reception
+        JSArray messagesArray = new JSArray();
+
+        // Drain message queue
+        while (!messageQueue.isEmpty()) {
+            String messageData = messageQueue.poll();
+            JSObject message = new JSObject();
+            message.put("from", "peer");
+            message.put("data", messageData);
+            message.put("receivedAt", System.currentTimeMillis());
+            messagesArray.put(message);
+        }
+
         JSObject result = new JSObject();
-        result.put("messages", new JSArray());
+        result.put("messages", messagesArray);
         call.resolve(result);
     }
 
@@ -299,12 +357,78 @@ public class MeshNetworkPlugin extends Plugin {
         }
     }
 
+    // Start server socket to receive data
+    public void startServer() {
+        if (isServerRunning) {
+            return;
+        }
+
+        executorService.execute(() -> {
+            try {
+                serverSocket = new ServerSocket(SERVER_PORT);
+                isServerRunning = true;
+
+                while (isServerRunning) {
+                    Socket client = serverSocket.accept();
+                    handleClient(client);
+                }
+            } catch (IOException e) {
+                isServerRunning = false;
+            }
+        });
+    }
+
+    // Handle incoming client connection
+    private void handleClient(Socket client) {
+        executorService.execute(() -> {
+            try {
+                InputStream inputStream = client.getInputStream();
+                byte[] buffer = new byte[4096];
+                int bytesRead = inputStream.read(buffer);
+
+                if (bytesRead > 0) {
+                    String data = new String(buffer, 0, bytesRead);
+                    messageQueue.offer(data);
+                }
+
+                inputStream.close();
+                client.close();
+            } catch (IOException e) {
+                // Handle error
+            }
+        });
+    }
+
+    // Called when WiFi P2P connection is established
+    public void onConnectionEstablished(WifiP2pInfo info) {
+        if (info.groupFormed && info.isGroupOwner) {
+            // This device is group owner - start server
+            startServer();
+        } else if (info.groupFormed) {
+            // This device is client - save group owner address
+            groupOwnerAddress = info.groupOwnerAddress;
+        }
+    }
+
     @Override
     protected void handleOnDestroy() {
         try {
             getContext().unregisterReceiver(receiver);
         } catch (IllegalArgumentException e) {
             // Receiver not registered, ignore
+        }
+
+        // Cleanup sockets and executor
+        isServerRunning = false;
+        if (serverSocket != null && !serverSocket.isClosed()) {
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
+        if (executorService != null) {
+            executorService.shutdown();
         }
     }
 }

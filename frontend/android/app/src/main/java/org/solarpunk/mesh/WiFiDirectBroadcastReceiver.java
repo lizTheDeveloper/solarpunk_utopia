@@ -51,7 +51,9 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
             // Connection state changed
             if (manager != null) {
-                // Could handle connection info here if needed
+                manager.requestConnectionInfo(channel, info -> {
+                    plugin.onConnectionEstablished(info);
+                });
             }
 
         } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {

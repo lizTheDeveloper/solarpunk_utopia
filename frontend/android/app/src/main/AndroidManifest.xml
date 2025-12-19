@@ -24,6 +24,13 @@
 
         </activity>
 
+        <!-- Mesh Sync Background Service -->
+        <service
+            android:name=".MeshSyncService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
