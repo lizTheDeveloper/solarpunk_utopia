@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
   Home,
   Gift,
@@ -20,10 +21,26 @@ const navItems = [
   { path: '/discovery', label: 'Search', icon: Search },
   { path: '/knowledge', label: 'Knowledge', icon: BookOpen },
   { path: '/network', label: 'Network', icon: Radio },
-  { path: '/agents', label: 'AI Agents', icon: Bot },
+  { path: '/agents', label: 'AI Agents', icon: Bot, showBadge: true },
 ];
 
 export function Navigation() {
+  // Poll for pending proposals count every 30 seconds
+  // TODO: Replace with actual user ID from auth context
+  const userId = 'current-user';
+
+  const { data: pendingData } = useQuery({
+    queryKey: ['pendingProposals', userId],
+    queryFn: async () => {
+      const response = await fetch(`http://localhost:8000/agents/proposals/pending/${userId}/count`);
+      if (!response.ok) return { pending_count: 0 };
+      return response.json();
+    },
+    refetchInterval: 30000, // Poll every 30 seconds
+    retry: false,
+  });
+
+  const pendingCount = pendingData?.pending_count || 0;
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,7 +62,7 @@ export function Navigation() {
                 to={item.path}
                 className={({ isActive }) =>
                   clsx(
-                    'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                    'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors relative',
                     isActive
                       ? 'bg-solarpunk-100 text-solarpunk-800'
                       : 'text-gray-700 hover:bg-gray-100'
@@ -54,6 +71,11 @@ export function Navigation() {
               >
                 <item.icon className="w-4 h-4" />
                 <span>{item.label}</span>
+                {item.showBadge && pendingCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {pendingCount > 9 ? '9+' : pendingCount}
+                  </span>
+                )}
               </NavLink>
             ))}
           </div>
@@ -84,7 +106,7 @@ export function Navigation() {
               to={item.path}
               className={({ isActive }) =>
                 clsx(
-                  'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap',
+                  'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap relative',
                   isActive
                     ? 'bg-solarpunk-100 text-solarpunk-800'
                     : 'text-gray-700 hover:bg-gray-100'
@@ -93,6 +115,11 @@ export function Navigation() {
             >
               <item.icon className="w-4 h-4" />
               <span>{item.label}</span>
+              {item.showBadge && pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {pendingCount > 9 ? '9+' : pendingCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </div>

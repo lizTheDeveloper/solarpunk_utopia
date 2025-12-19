@@ -112,6 +112,21 @@ async def get_pending_approvals(user_id: str) -> ProposalListResponse:
     )
 
 
+@router.get("/proposals/pending/{user_id}/count")
+async def get_pending_count(user_id: str) -> Dict[str, int]:
+    """
+    Get count of proposals pending approval from a specific user.
+
+    Returns just the number - useful for badges and notifications.
+    """
+    proposals = await approval_tracker.get_pending_approvals(user_id)
+
+    return {
+        "user_id": user_id,
+        "pending_count": len(proposals),
+    }
+
+
 @router.get("/proposals/{proposal_id}")
 async def get_proposal(proposal_id: str) -> Proposal:
     """
