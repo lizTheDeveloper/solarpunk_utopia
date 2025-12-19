@@ -10,7 +10,16 @@ This document identifies gaps between what the codebase claims to implement and 
 
 ## Executive Summary
 
-**Total Gaps Found**: 34 (8 CRITICAL, 12 HIGH, 10 MEDIUM, 4 LOW)
+**Total Gaps Found**: 48 (15 CRITICAL, 18 HIGH, 13 MEDIUM, 4 LOW)
+
+### Session 4 Alert: "Implemented" Features Are Facades
+
+Many features marked "✅ IMPLEMENTED" in WORKSHOP_SPRINT.md have APIs that respond but:
+- **Encryption is fake** (Base64 instead of X25519)
+- **DTN propagation never happens** (returns placeholder bundle IDs)
+- **Trust checks always pass** (hardcoded 0.9)
+- **Metrics show fake data** (hardcoded values)
+- **Private keys not actually wiped** (just logs that it would)
 
 ### Critical Issues (Demo Blockers)
 1. Frontend calls endpoints that don't exist (`/matches/{id}/accept`, `/matches/{id}/reject`)
@@ -19,12 +28,17 @@ This document identifies gaps between what the codebase claims to implement and 
 4. No `/vf/commitments` endpoint exists but frontend expects it
 5. LLM integration returns mock responses by default
 6. Auth delete listing has no ownership verification (TODO in code)
+7. **NEW**: Mesh messages use Base64 instead of encryption (GAP-116)
+8. **NEW**: Panic service wipe doesn't destroy keys (GAP-114)
+9. **NEW**: Burn notices never propagate to network (GAP-113)
+10. **NEW**: Admin endpoints have no authentication (GAP-119)
 
 ### Key Patterns Found
-- 26 TODO comments indicating incomplete implementation
+- 26+ TODO comments indicating incomplete implementation
 - Multiple `return []` patterns masking missing functionality
 - Frontend/backend API mismatches
 - Tests may pass but functionality doesn't actually work
+- **NEW**: "Implemented" services with complete APIs but placeholder internals
 
 ---
 
@@ -547,6 +561,220 @@ if len(monthly_vouches) >= MAX_VOUCHES_PER_MONTH:
 
 ---
 
+## Session 4 Gaps: "Implemented" Features Not Actually Working (2025-12-19)
+
+Deep analysis of proposals marked as "✅ IMPLEMENTED" in WORKSHOP_SPRINT.md reveals significant gaps.
+
+### GAP-110: Rapid Response Bundle Propagation Never Actually Happens
+**Severity**: CRITICAL
+**Location**: `app/services/rapid_response_service.py:128, 272, 316`
+**Claimed**: WORKSHOP_SPRINT shows "Rapid Response ✅ IMPLEMENTED - Full coordination system"
+**Reality**: DTN bundle propagation has 3 TODOs and returns placeholder bundle IDs:
+```python
+# Line 128: TODO: Actually create and propagate the bundle
+return f"bundle-alert-{alert.id}"  # Placeholder!
+
+# Line 272: TODO: Create bundle for update
+# Line 316: TODO: Store in distributed storage (DTN bundles)
+```
+**Fix**: Integrate with actual BundleService to create and propagate emergency bundles.
+
+---
+
+### GAP-111: Rapid Response Statistics Always Return Zeros
+**Severity**: HIGH
+**Location**: `app/services/rapid_response_service.py:399`
+**Claimed**: Statistics endpoint works
+**Reality**: Always returns hardcoded zeros:
+```python
+# TODO: Implement statistics
+return {"total_alerts": 0, "avg_response_time_minutes": 0, ...}
+```
+**Fix**: Implement actual statistics computation from database.
+
+---
+
+### GAP-112: Panic Service Seed Phrase Encryption Is Placeholder
+**Severity**: CRITICAL (Security)
+**Location**: `app/services/panic_service.py:354, 360, 374`
+**Claimed**: "Panic Features ✅ IMPLEMENTED - Full OPSEC suite"
+**Reality**: Encryption/decryption is placeholder:
+```python
+# TODO: Implement proper encryption
+return f"ENCRYPTED[{seed_phrase}]"  # NOT ENCRYPTED!
+
+# TODO: Implement proper BIP39 -> Ed25519 derivation
+return {"public_key": "placeholder_public_key", ...}  # PLACEHOLDER!
+```
+**Fix**: Implement actual AES-256-GCM encryption and BIP39 key derivation.
+
+---
+
+### GAP-113: Panic Service Burn Notice Not Propagated
+**Severity**: CRITICAL
+**Location**: `app/services/panic_service.py:187, 201, 223-224`
+**Reality**: Burn notices created but never actually propagated via DTN:
+```python
+# TODO: Integrate with bundle service to propagate via DTN
+# TODO: Create DTN bundle with burn notice
+# TODO: Send "all clear" message to network
+# TODO: Restore trust score
+```
+**Fix**: Integrate with BundleService for burn notice propagation.
+
+---
+
+### GAP-114: Panic Service Private Key Wipe Not Implemented
+**Severity**: CRITICAL (Security)
+**Location**: `app/services/panic_service.py:249`
+**Claimed**: "Quick wipe" securely deletes data
+**Reality**: Private key deletion is TODO:
+```python
+# TODO: Implement key storage wipe
+wiped_types.append("private_keys")  # Claims to wipe but doesn't!
+```
+**Fix**: Implement actual cryptographic key destruction.
+
+---
+
+### GAP-115: Resilience Metrics Service Has 10 TODOs
+**Severity**: HIGH
+**Location**: `app/services/resilience_metrics_service.py` (multiple)
+**Claimed**: "Resilience Metrics ✅ IMPLEMENTED - Full stack"
+**Reality**: Core metrics use placeholder data:
+```python
+# Line 181: TODO: Query actual exchanges from ValueFlows
+# Line 249: TODO: Implement based on ValueFlows intent → proposal flow
+# Line 310: TODO: Implement based on ValueFlows intents
+# Line 461: median_match_time_hours = 20.0  # TODO: compute from actual data
+# Line 464: needs_match_rate = 70.0  # TODO: compute from actual data
+# Line 569, 691, 703, 713, 782: More TODOs for actual implementations
+```
+**Fix**: Implement actual ValueFlows queries for all metrics.
+
+---
+
+### GAP-116: Mesh Messaging Encryption Is Base64 Only
+**Severity**: CRITICAL (Security)
+**Location**: `app/api/messages.py:92-93`
+**Claimed**: "Mesh Messaging ✅ IMPLEMENTED - E2E encrypted"
+**Reality**: "Encryption" is just Base64 encoding:
+```python
+# TODO: Replace with actual X25519 encryption
+encrypted_content = base64.b64encode(request.content.encode()).decode()
+```
+**Fix**: Implement actual X25519/NaCl encryption.
+
+---
+
+### GAP-117: Mesh Messaging DTN Bundle Not Created
+**Severity**: HIGH
+**Location**: `app/api/messages.py:144`
+**Reality**: Messages stored in local DB but never sent via mesh:
+```python
+# TODO: Create DTN bundle for mesh delivery
+```
+**Fix**: Create DTN bundles for actual mesh propagation.
+
+---
+
+### GAP-118: Sanctuary API Trust Score Is Hardcoded
+**Severity**: HIGH
+**Location**: `app/api/sanctuary.py:103-104, 136, 141`
+**Claimed**: "Sanctuary Network ✅ IMPLEMENTED"
+**Reality**: Trust verification uses hardcoded value:
+```python
+# TODO: Get user's actual trust score from trust service
+user_trust = 0.9  # Placeholder - always 0.9!
+
+# TODO: Verify user is steward
+steward_id=user_id,  # TODO: Get actual steward ID
+```
+**Fix**: Integrate with actual trust service.
+
+---
+
+### GAP-119: Sanctuary/Rapid Response Admin Endpoints Unauthenticated
+**Severity**: CRITICAL (Security)
+**Location**: `app/api/sanctuary.py:224`, `app/api/rapid_response.py:539, 555`
+**Reality**: Admin purge/cleanup endpoints have no authentication:
+```python
+# TODO: Add authentication - this should only be callable by background worker
+```
+**Fix**: Add proper authentication for admin endpoints.
+
+---
+
+### GAP-120: Economic Withdrawal Steward Verification Missing
+**Severity**: HIGH
+**Location**: `app/api/economic_withdrawal.py:116, 238, 385, 471`
+**Reality**: Multiple endpoints claim steward-only but don't verify:
+```python
+# TODO: Verify user is steward
+# TODO: Verify user is campaign creator or steward
+# TODO: Verify user trust level
+```
+**Fix**: Add proper role verification.
+
+---
+
+### GAP-121: Bluetooth Discovery Not Implemented
+**Severity**: MEDIUM
+**Location**: `frontend/android/.../MeshNetworkPlugin.java:287-291`
+**Claimed**: Bluetooth fallback for mesh
+**Reality**: Just returns true without doing anything:
+```java
+// TODO: Implement Bluetooth fallback
+result.put("started", true);
+```
+**Fix**: Implement actual Bluetooth discovery.
+
+---
+
+### GAP-122: Steward Dashboard Active Offers Not Queried
+**Severity**: MEDIUM
+**Location**: `app/api/steward_dashboard.py:129, 253`
+**Reality**: Active offers/needs not retrieved from ValueFlows:
+```python
+# TODO: Get active offers/needs from ValueFlows intents
+# TODO: Add more celebration logic
+```
+**Fix**: Implement ValueFlows queries.
+
+---
+
+### GAP-123: Event Onboarding Trust Distribution Missing
+**Severity**: MEDIUM
+**Location**: `app/api/event_onboarding.py:313`
+**Reality**: Trust level distribution not populated:
+```python
+# TODO: Populate trust level distribution from trust service
+```
+**Fix**: Integrate with trust service.
+
+---
+
+## Summary of Session 4 Findings
+
+**New CRITICAL gaps**: 7 (GAP-110, 112, 113, 114, 116, 119, related to security/core functionality)
+**New HIGH gaps**: 6 (GAP-111, 115, 117, 118, 120, 122)
+**New MEDIUM gaps**: 3 (GAP-121, 122, 123)
+
+**Pattern**: Many features marked "✅ IMPLEMENTED" in WORKSHOP_SPRINT.md have:
+1. Database/API layer complete
+2. Models and types defined
+3. Endpoints exist and return data
+4. But core functionality (encryption, propagation, queries) uses placeholders
+
+**Risk Assessment**: At workshop, these features will APPEAR to work (APIs respond, UI renders) but:
+- Messages won't actually be encrypted
+- Alerts won't propagate to mesh network
+- Panic wipe won't destroy keys
+- Trust checks will always pass
+- Metrics will show fake data
+
+---
+
 **Document Status**: Living document. Update as gaps are fixed.
-**Last Updated**: 2025-12-19 (Session 3 fraud/abuse/safety review)
+**Last Updated**: 2025-12-19 (Session 4 - "Implemented" feature verification)
 **Next Review**: After Workshop Sprint items complete.
