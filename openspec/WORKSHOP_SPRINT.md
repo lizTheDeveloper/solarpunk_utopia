@@ -72,28 +72,28 @@ A mesh network that enables:
 
 | Proposal | Gaps Fixed | Status |
 |----------|------------|--------|
-| [Fix Real Encryption](changes/fix-real-encryption/proposal.md) | GAP-112, 114, 116, 119 | NEW |
-| [Fix DTN Propagation](changes/fix-dtn-propagation/proposal.md) | GAP-110, 113, 117 | NEW |
-| [Fix Trust Verification](changes/fix-trust-verification/proposal.md) | GAP-106, 118, 120 | NEW |
-| [Fix API Endpoints](changes/fix-api-endpoints/proposal.md) | GAP-65, 69, 71, 72 | NEW |
-| [Fix Fraud/Abuse Protections](changes/fix-fraud-abuse-protections/proposal.md) | GAP-103-109 | NEW |
+| [Fix Real Encryption](changes/fix-real-encryption/proposal.md) | GAP-112, 114, 116, 119 | ✅ IMPLEMENTED |
+| [Fix DTN Propagation](changes/fix-dtn-propagation/proposal.md) | GAP-110, 113, 117 | ✅ IMPLEMENTED |
+| [Fix Trust Verification](changes/fix-trust-verification/proposal.md) | GAP-106, 118, 120 | ✅ IMPLEMENTED |
+| [Fix API Endpoints](changes/fix-api-endpoints/proposal.md) | GAP-65, 69, 71, 72 | ✅ IMPLEMENTED |
+| [Fix Fraud/Abuse Protections](changes/fix-fraud-abuse-protections/proposal.md) | GAP-103-109 | ✅ IMPLEMENTED |
 
 ### P1 - FIRST WEEK (Quality Issues)
 
 | Proposal | Gaps Fixed | Status |
 |----------|------------|--------|
-| [Fix Mock Data](changes/fix-mock-data/proposal.md) | GAP-66-68, 70, 73-102, 111, 115, 121-123 | NEW |
+| [Fix Mock Data](changes/fix-mock-data/proposal.md) | GAP-66-68, 70, 73-102, 111, 115, 121-123 | ✅ IMPLEMENTED (80% - core metrics done) |
 
-### Known Facade Issues (from VISION_REALITY_DELTA.md)
+### Known Facade Issues (from VISION_REALITY_DELTA.md) - ALL FIXED ✅
 
-| Feature | Claims | Reality |
-|---------|--------|---------|
-| Mesh Messaging | "E2E encrypted" | Base64 encoding only (GAP-116) |
-| Panic Wipe | "Secure deletion" | Keys not actually wiped (GAP-114) |
-| Burn Notices | "Network propagation" | Never sent (GAP-113) |
-| Trust Checks | "0.9 required" | Hardcoded 0.9 always (GAP-118) |
-| Metrics | "Real tracking" | Hardcoded values (GAP-115) |
-| Admin Endpoints | "Protected" | No authentication (GAP-119) |
+| Feature | Claims | Reality | Status |
+|---------|--------|---------|--------|
+| Mesh Messaging | "E2E encrypted" | ~~Base64 encoding only~~ | ✅ FIXED (GAP-116) - Now uses X25519 + XSalsa20-Poly1305 |
+| Panic Wipe | "Secure deletion" | ~~Keys not actually wiped~~ | ✅ FIXED (GAP-114) - Now securely overwrites key material |
+| Burn Notices | "Network propagation" | ~~Never sent~~ | ✅ FIXED (GAP-113) - Now creates and propagates DTN bundles |
+| Trust Checks | "0.9 required" | ~~Hardcoded 0.9 always~~ | ✅ FIXED (GAP-118) - Now queries WebOfTrustService |
+| Metrics | "Real tracking" | ~~Hardcoded values~~ | ✅ FIXED (GAP-115) - Now computes from actual database |
+| Admin Endpoints | "Protected" | ~~No authentication~~ | ✅ FIXED (GAP-119) - Now requires admin API key |
 
 ---
 
