@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useNeeds } from '@/hooks/useNeeds';
+import { Link, useNavigate } from 'react-router-dom';
+import { useNeeds, useDeleteNeed } from '@/hooks/useNeeds';
 import { Loading } from '@/components/Loading';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { NeedCard } from '@/components/NeedCard';
@@ -8,12 +8,31 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Plus, Filter } from 'lucide-react';
 import { RESOURCE_CATEGORIES } from '@/utils/categories';
+import type { Intent } from '@/types/valueflows';
 
 export function NeedsPage() {
   const { data: needs, isLoading, error } = useNeeds();
+  const deleteNeed = useDeleteNeed();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
+
+  // TODO: Get current user ID from auth context
+  const currentUserId = 'demo-user';
+
+  const handleEdit = (need: Intent) => {
+    navigate(`/needs/${need.id}/edit`);
+  };
+
+  const handleDelete = async (need: Intent) => {
+    try {
+      await deleteNeed.mutateAsync(need.id);
+    } catch (error) {
+      console.error('Failed to delete need:', error);
+      alert('Failed to delete need. Please try again.');
+    }
+  };
 
   // Filter needs
   const filteredNeeds = needs?.filter((need) => {
@@ -119,7 +138,13 @@ export function NeedsPage() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredNeeds.map((need) => (
-              <NeedCard key={need.id} need={need} />
+              <NeedCard
+                key={need.id}
+                need={need}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                isOwner={need.agent?.id === currentUserId}
+              />
             ))}
           </div>
         </div>
