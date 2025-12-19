@@ -6,9 +6,51 @@ from typing import Optional
 # Database path
 DB_DIR = Path(__file__).parent.parent.parent / "data"
 DB_PATH = DB_DIR / "dtn_bundles.db"
+MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 
 # Global connection pool
 _db_connection: Optional[aiosqlite.Connection] = None
+
+
+async def _run_migrations(conn: aiosqlite.Connection) -> None:
+    """Run database migrations"""
+    # Create migrations tracking table
+    await conn.execute("""
+        CREATE TABLE IF NOT EXISTS migrations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            filename TEXT UNIQUE NOT NULL,
+            applied_at TEXT NOT NULL
+        )
+    """)
+
+    # Get list of already applied migrations
+    cursor = await conn.execute("SELECT filename FROM migrations")
+    applied = {row[0] for row in await cursor.fetchall()}
+
+    # Get all migration files
+    if not MIGRATIONS_DIR.exists():
+        return
+
+    migration_files = sorted(MIGRATIONS_DIR.glob("*.sql"))
+
+    for migration_file in migration_files:
+        if migration_file.name in applied:
+            continue
+
+        print(f"Applying migration: {migration_file.name}")
+
+        # Read and execute migration
+        sql = migration_file.read_text()
+        await conn.executescript(sql)
+
+        # Record migration
+        await conn.execute(
+            "INSERT INTO migrations (filename, applied_at) VALUES (?, datetime('now'))",
+            (migration_file.name,)
+        )
+        await conn.commit()
+
+        print(f"Applied migration: {migration_file.name}")
 
 
 async def init_db() -> None:
@@ -194,6 +236,9 @@ async def init_db() -> None:
     await _db_connection.execute("""
         CREATE INDEX IF NOT EXISTS idx_memberships_community ON community_memberships(community_id)
     """)
+
+    # Run migrations
+    await _run_migrations(_db_connection)
 
     await _db_connection.commit()
 
