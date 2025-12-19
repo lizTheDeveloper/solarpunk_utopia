@@ -246,11 +246,27 @@ class ResilienceMetricsService:
         Healthy threshold: <= 24 hours from offer to match.
         Returns: (score 0-100, median_hours)
         """
-        # TODO: Implement based on ValueFlows intent → proposal → acceptance flow
-        # For now, return placeholder
+        cursor = conn.cursor()
+        period_start = (datetime.utcnow() - timedelta(days=period_days)).isoformat()
 
-        # Placeholder: assume 18 hours average
-        median_hours = 18.0
+        # Get actual match times: time from need creation to match acceptance
+        cursor.execute("""
+            SELECT
+                (julianday(m.created_at) - julianday(l.created_at)) * 24 as hours_to_match
+            FROM matches m
+            JOIN listings l ON m.need_id = l.id
+            WHERE m.created_at >= ?
+            AND m.status IN ('accepted', 'suggested')
+            AND l.listing_type = 'need'
+        """, (period_start,))
+
+        match_times = [row[0] for row in cursor.fetchall() if row[0] is not None and row[0] >= 0]
+
+        if not match_times:
+            # No data - return neutral score
+            return 50.0, None
+
+        median_hours = statistics.median(match_times)
 
         if median_hours <= 24:
             score = 100.0
@@ -307,12 +323,40 @@ class ResilienceMetricsService:
         Healthy threshold: >= 80% of needs matched.
         Returns: (score 0-100, match_rate)
         """
-        # TODO: Implement based on ValueFlows intents
-        # For now, return placeholder
+        cursor = conn.cursor()
+        period_start = (datetime.utcnow() - timedelta(days=period_days)).isoformat()
 
-        # Placeholder: assume 75% coverage
-        match_rate = 75.0
+        # Count total needs posted in period
+        cursor.execute("""
+            SELECT COUNT(*) FROM listings
+            WHERE listing_type = 'need'
+            AND created_at >= ?
+            AND status != 'cancelled'
+        """, (period_start,))
 
+        total_needs = cursor.fetchone()[0]
+
+        if total_needs == 0:
+            # No needs posted - return neutral score
+            return 50.0, 0.0
+
+        # Count needs that have at least one accepted match
+        cursor.execute("""
+            SELECT COUNT(DISTINCT l.id)
+            FROM listings l
+            JOIN matches m ON l.id = m.need_id
+            WHERE l.listing_type = 'need'
+            AND l.created_at >= ?
+            AND l.status != 'cancelled'
+            AND m.status IN ('accepted', 'suggested')
+        """, (period_start,))
+
+        matched_needs = cursor.fetchone()[0]
+
+        # Calculate match rate as percentage
+        match_rate = (matched_needs / total_needs * 100.0) if total_needs > 0 else 0.0
+
+        # Score: 100 if >= 80% match rate, scaled below that
         score = min(100.0, (match_rate / 80.0) * 100.0)
 
         return score, match_rate
@@ -457,11 +501,54 @@ class ResilienceMetricsService:
         else:
             flow_rate = 0.0
 
-        # Get median match time (placeholder)
-        median_match_time_hours = 20.0  # TODO: compute from actual data
+        # Get median match time from actual matches in this cell
+        cursor = conn.cursor()
+        period_start = (datetime.utcnow() - timedelta(days=period_days)).isoformat()
 
-        # Get needs match rate (placeholder)
-        needs_match_rate = 70.0  # TODO: compute from actual data
+        cursor.execute("""
+            SELECT
+                (julianday(m.created_at) - julianday(l.created_at)) * 24 as hours_to_match
+            FROM matches m
+            JOIN listings l ON m.need_id = l.id
+            JOIN cell_memberships cm ON (l.agent_id = cm.user_id AND cm.cell_id = ?)
+            WHERE m.created_at >= ?
+            AND m.status IN ('accepted', 'suggested')
+            AND l.listing_type = 'need'
+            AND cm.is_active = 1
+        """, (cell_id, period_start))
+
+        match_times = [row[0] for row in cursor.fetchall() if row[0] is not None and row[0] >= 0]
+        median_match_time_hours = statistics.median(match_times) if match_times else None
+
+        # Get needs match rate for this cell
+        cursor.execute("""
+            SELECT COUNT(*) FROM listings l
+            JOIN cell_memberships cm ON (l.agent_id = cm.user_id AND cm.cell_id = ?)
+            WHERE l.listing_type = 'need'
+            AND l.created_at >= ?
+            AND l.status != 'cancelled'
+            AND cm.is_active = 1
+        """, (cell_id, period_start))
+
+        cell_total_needs = cursor.fetchone()[0]
+
+        if cell_total_needs > 0:
+            cursor.execute("""
+                SELECT COUNT(DISTINCT l.id)
+                FROM listings l
+                JOIN matches m ON l.id = m.need_id
+                JOIN cell_memberships cm ON (l.agent_id = cm.user_id AND cm.cell_id = ?)
+                WHERE l.listing_type = 'need'
+                AND l.created_at >= ?
+                AND l.status != 'cancelled'
+                AND m.status IN ('accepted', 'suggested')
+                AND cm.is_active = 1
+            """, (cell_id, period_start))
+
+            cell_matched_needs = cursor.fetchone()[0]
+            needs_match_rate = (cell_matched_needs / cell_total_needs * 100.0) if cell_total_needs > 0 else 0.0
+        else:
+            needs_match_rate = 0.0
 
         # Get network averages for comparison
         network_health = self.repository.get_latest_network_health()
