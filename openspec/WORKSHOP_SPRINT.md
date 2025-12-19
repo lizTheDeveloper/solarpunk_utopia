@@ -24,10 +24,10 @@ A mesh network that enables:
 
 | Proposal | Description | Status |
 |----------|-------------|--------|
-| [Android Deployment](changes/android-deployment/proposal.md) | App runs on phones, not servers | NEW |
+| [Android Deployment](changes/android-deployment/proposal.md) | App runs on phones, not servers | ⚠️ PARTIAL - APK with local storage, DTN sync pending |
 | [Web of Trust](changes/web-of-trust/proposal.md) | Vouching system - keep infiltrators out | ✅ IMPLEMENTED |
-| [Mass Onboarding](changes/mass-onboarding/proposal.md) | Get 200 people in during workshop | NEW |
-| [Offline-First](changes/offline-first/proposal.md) | Works without internet | NEW |
+| [Mass Onboarding](changes/mass-onboarding/proposal.md) | Get 200 people in during workshop | ✅ IMPLEMENTED - Event QR ready |
+| [Offline-First](changes/offline-first/proposal.md) | Works without internet | ⚠️ PARTIAL - Local storage done, sync pending |
 | [Local Cells](changes/local-cells/proposal.md) | Organize into local groups (molecules) | NEW |
 | [Mesh Messaging](changes/mesh-messaging/proposal.md) | E2E encrypted over DTN | NEW |
 
