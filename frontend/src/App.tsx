@@ -24,6 +24,7 @@ import { MessagesPage } from './pages/MessagesPage'
 import { MessageThreadPage } from './pages/MessageThreadPage'
 import { NewMessagePage } from './pages/NewMessagePage'
 import { StewardDashboardPage } from './pages/StewardDashboardPage'
+import RapidResponsePage from './pages/RapidResponsePage'
 import './App.css'
 
 // Import API interceptors to add auth token to requests
@@ -98,6 +99,7 @@ function App() {
                     <Route path="/messages/:threadId" element={<MessageThreadPage />} />
                     <Route path="/steward" element={<StewardDashboardPage />} />
                     <Route path="/steward/:cellId" element={<StewardDashboardPage />} />
+                    <Route path="/rapid-response" element={<RapidResponsePage />} />
                   </Routes>
                 </Layout>
               </ProtectedRoute>
