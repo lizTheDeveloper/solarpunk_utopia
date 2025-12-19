@@ -37,7 +37,7 @@ A mesh network that enables:
 |----------|-------------|--------|
 | [Steward Dashboard](changes/steward-dashboard/proposal.md) | Tools for community leaders | ✅ IMPLEMENTED - Metrics + attention queue |
 | [Leakage Metrics](changes/leakage-metrics/proposal.md) | Track economic impact | ✅ IMPLEMENTED - Privacy-preserving value tracking |
-| [Network Import](changes/network-import/proposal.md) | Bring in existing communities | NEW |
+| [Network Import](changes/network-import/proposal.md) | Bring in existing communities | ✅ IMPLEMENTED - Threshold sigs + offline verification |
 | [Panic Features](changes/panic-features/proposal.md) | Duress codes, wipe, decoy | NEW |
 
 ### Tier 3: IMPORTANT (First Month)
