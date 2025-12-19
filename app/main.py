@@ -43,6 +43,7 @@ from .api.event_onboarding import router as onboarding_router
 from .api.cells import router as cells_router
 from .api.messages import router as messages_router
 from .api.steward_dashboard import router as steward_router
+from .api.panic import router as panic_router
 from .services import TTLService, CryptoService, CacheService
 from .middleware import CSRFMiddleware
 
@@ -152,6 +153,7 @@ app.include_router(onboarding_router)
 app.include_router(cells_router)
 app.include_router(messages_router)
 app.include_router(steward_router)
+app.include_router(panic_router)
 
 
 @app.get("/")
