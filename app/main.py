@@ -61,6 +61,7 @@ from .api.language_justice import router as language_justice_router
 from .api.care_outreach import router as care_outreach_router
 from .api.mycelial_health import router as mycelial_health_router
 from .api.group_formation import router as group_formation_router
+from .api.fork_rights import router as fork_rights_router
 from .services import TTLService, CryptoService, CacheService
 from .middleware import CSRFMiddleware
 
@@ -206,6 +207,7 @@ app.include_router(temporal_justice_router)
 app.include_router(accessibility_router)
 app.include_router(language_justice_router)
 app.include_router(care_outreach_router)
+app.include_router(fork_rights_router)
 
 
 @app.get("/")
