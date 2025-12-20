@@ -31,3 +31,4 @@ class Topic(str, Enum):
     COORDINATION = "coordination"
     INVENTORY = "inventory"
     EDUCATION = "education"
+    TRUST = "trust"  # Trust revocations, burn notices, vouches
