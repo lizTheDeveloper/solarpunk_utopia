@@ -6,6 +6,7 @@ pynacl==1.5.0
 aiosqlite==0.20.0
 python-multipart==0.0.20
 bcrypt==4.1.2
+psutil==6.1.1
 
 # Agent system dependencies
 anthropic==0.18.0  # Claude API for LLM-powered reasoning (optional)

@@ -59,6 +59,7 @@ from .api.temporal_justice import router as temporal_justice_router
 from .api.accessibility import router as accessibility_router
 from .api.language_justice import router as language_justice_router
 from .api.care_outreach import router as care_outreach_router
+from .api.mycelial_health import router as mycelial_health_router
 from .services import TTLService, CryptoService, CacheService
 from .middleware import CSRFMiddleware
 
@@ -197,6 +198,7 @@ app.include_router(saturnalia_router)
 app.include_router(ancestor_voting_router)
 app.include_router(mycelial_strike_router)
 app.include_router(knowledge_osmosis_router)
+app.include_router(mycelial_health_router)
 app.include_router(algorithmic_transparency_router)
 app.include_router(temporal_justice_router)
 app.include_router(accessibility_router)
