@@ -17,6 +17,9 @@ from app.models.mourning import (
     MourningBanner
 )
 from app.repositories.mourning_repository import MourningRepository
+from app.auth.middleware import require_steward
+from app.auth.models import User
+from fastapi import Depends
 
 router = APIRouter(prefix="/api/mourning", tags=["mourning"])
 
@@ -51,7 +54,7 @@ class OfferSupportRequest(BaseModel):
 @router.post("/activate")
 async def activate_mourning(
     request: ActivateMourningRequest,
-    steward_id: str  # TODO: Get from auth + verify steward role
+    steward: User = Depends(require_steward)
 ):
     """Activate mourning mode for a community.
 
@@ -62,6 +65,8 @@ async def activate_mourning(
     - Support offers enabled
 
     "Grief is not something to get over, but something to move through." - bell hooks
+
+    GAP-134: Steward verification via trust score >= 0.9
     """
     try:
         repo = MourningRepository()
@@ -230,11 +235,13 @@ async def get_support_offers(mourning_id: str):
 async def extend_mourning(
     mourning_id: str,
     additional_days: int,
-    steward_id: str  # TODO: Get from auth + verify steward
+    steward: User = Depends(require_steward)
 ):
     """Extend a mourning period.
 
     Grief takes time. Community can extend when needed.
+
+    GAP-134: Steward verification via trust score >= 0.9
     """
     try:
         repo = MourningRepository()
@@ -252,11 +259,13 @@ async def extend_mourning(
 @router.post("/end-early")
 async def end_mourning_early(
     mourning_id: str,
-    steward_id: str  # TODO: Get from auth + verify steward
+    steward: User = Depends(require_steward)
 ):
     """End mourning period early (if community is ready).
 
     Memorial remains accessible.
+
+    GAP-134: Steward verification via trust score >= 0.9
     """
     try:
         repo = MourningRepository()

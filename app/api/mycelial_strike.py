@@ -11,7 +11,8 @@ from datetime import datetime
 
 from app.services.mycelial_strike_service import MycelialStrikeService
 from app.models.mycelial_strike import AbuseType, OverrideAction, ThrottleLevel
-from app.auth.middleware import get_current_user
+from app.auth.middleware import get_current_user, require_steward
+from app.auth.models import User
 
 router = APIRouter(prefix="/api/mycelial-strike", tags=["mycelial-strike"])
 
@@ -267,7 +268,7 @@ async def update_behavior(
 @router.post("/strike/override")
 async def override_strike(
     request: OverrideStrikeRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(require_steward),
     service: MycelialStrikeService = Depends(get_mycelial_strike_service)
 ):
     """Override a strike (steward action).
@@ -280,13 +281,13 @@ async def override_strike(
 
     Used for false positives or special cases.
     All overrides are logged for accountability.
-    """
-    # TODO: Check if user is a steward
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     try:
         service.override_strike(
             strike_id=request.strike_id,
-            steward_user_id=current_user["id"],
+            steward_user_id=current_user.id,
             action=request.action,
             reason=request.reason,
         )
@@ -298,7 +299,7 @@ async def override_strike(
 @router.post("/user/whitelist")
 async def whitelist_user(
     request: WhitelistUserRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(require_steward),
     service: MycelialStrikeService = Depends(get_mycelial_strike_service)
 ):
     """Whitelist a user from automatic strikes (steward action).
@@ -310,13 +311,13 @@ async def whitelist_user(
 
     Can be scoped to all abuse types or specific ones.
     Can be permanent or temporary.
-    """
-    # TODO: Check if user is a steward
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     try:
         entry = service.whitelist_user(
             user_id=request.user_id,
-            steward_user_id=current_user["id"],
+            steward_user_id=current_user.id,
             reason=request.reason,
             scope=request.scope,
             abuse_type=request.abuse_type,

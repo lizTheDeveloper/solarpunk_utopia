@@ -11,7 +11,8 @@ from datetime import datetime
 
 from app.services.ancestor_voting_service import AncestorVotingService
 from app.models.ancestor_voting import DepartureType, ProposalStatus
-from app.auth.middleware import get_current_user
+from app.auth.middleware import get_current_user, require_steward
+from app.auth.models import User
 
 router = APIRouter(prefix="/api/ancestor-voting", tags=["ancestor-voting"])
 
@@ -139,15 +140,15 @@ def get_ancestor_voting_service() -> AncestorVotingService:
 @router.post("/memorial-fund", response_model=MemorialFundResponse)
 async def create_memorial_fund(
     request: CreateMemorialFundRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(require_steward),
     service: AncestorVotingService = Depends(get_ancestor_voting_service)
 ):
     """Create a Memorial Fund when a user departs.
 
     Only stewards or authorized administrators can create Memorial Funds.
-    """
-    # TODO: Check if user is a steward or admin
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     try:
         fund = service.create_memorial_fund_on_departure(
             user_id=request.user_id,
@@ -266,7 +267,7 @@ async def get_fund_impact(
 @router.post("/allocate", response_model=GhostReputationAllocationResponse)
 async def allocate_ghost_reputation(
     request: AllocateGhostReputationRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(require_steward),
     service: AncestorVotingService = Depends(get_ancestor_voting_service)
 ):
     """Allocate Ghost Reputation to boost a proposal.
@@ -278,15 +279,15 @@ async def allocate_ghost_reputation(
     - Cannot allocate more than 20% of fund to a single proposal
     - Must provide written justification
     - Other stewards can veto within 24 hours
-    """
-    # TODO: Check if user is a steward
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     try:
         allocation = service.allocate_ghost_reputation(
             fund_id=request.fund_id,
             proposal_id=request.proposal_id,
             amount=request.amount,
-            allocated_by=current_user["id"],
+            allocated_by=current_user.id,
             reason=request.reason,
             proposal_metadata=request.proposal_metadata,
         )
@@ -317,20 +318,20 @@ async def allocate_ghost_reputation(
 @router.post("/allocate/veto")
 async def veto_allocation(
     request: VetoAllocationRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(require_steward),
     service: AncestorVotingService = Depends(get_ancestor_voting_service)
 ):
     """Veto an allocation within the 24-hour window.
 
     Only stewards can veto allocations.
     Cannot veto your own allocation.
-    """
-    # TODO: Check if user is a steward
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     try:
         service.veto_allocation(
             allocation_id=request.allocation_id,
-            vetoed_by=current_user["id"],
+            vetoed_by=current_user.id,
             veto_reason=request.veto_reason,
         )
         return {"status": "vetoed"}
@@ -380,15 +381,15 @@ async def complete_allocation(
 
 @router.get("/allocations/pending-veto", response_model=List[GhostReputationAllocationResponse])
 async def get_pending_veto_allocations(
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(require_steward),
     service: AncestorVotingService = Depends(get_ancestor_voting_service)
 ):
     """Get allocations still within veto window.
 
     Stewards use this to review recent allocations and decide whether to veto.
-    """
-    # TODO: Check if user is a steward
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     allocations = service.get_allocations_pending_veto()
 
     return [

@@ -11,7 +11,8 @@ from datetime import datetime
 
 from app.services.saturnalia_service import SaturnaliaService
 from app.models.saturnalia import SaturnaliaMode
-from app.auth.middleware import get_current_user
+from app.auth.middleware import get_current_user, require_steward
+from app.auth.models import User
 
 router = APIRouter(prefix="/api/saturnalia", tags=["saturnalia"])
 
@@ -136,17 +137,17 @@ def get_saturnalia_service() -> SaturnaliaService:
 @router.post("/config", response_model=SaturnaliaConfigResponse)
 async def create_config(
     request: CreateConfigRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(require_steward),
     service: SaturnaliaService = Depends(get_saturnalia_service)
 ):
     """Create a new Saturnalia configuration.
 
     Only stewards can create configurations.
-    """
-    # TODO: Check if user is a steward
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     config = service.create_config(
-        created_by=current_user["id"],
+        created_by=current_user.id,
         enabled_modes=request.enabled_modes,
         frequency=request.frequency,
         duration_hours=request.duration_hours,
@@ -177,12 +178,13 @@ async def create_config(
 async def update_config(
     config_id: str,
     request: UpdateConfigRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(require_steward),
     service: SaturnaliaService = Depends(get_saturnalia_service)
 ):
-    """Update a Saturnalia configuration."""
-    # TODO: Check if user is a steward
+    """Update a Saturnalia configuration.
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     config = service.update_config(
         config_id=config_id,
         enabled_modes=request.enabled_modes,
@@ -272,19 +274,19 @@ async def get_config_for_cell(
 @router.post("/event/trigger", response_model=SaturnaliaEventResponse)
 async def trigger_event(
     request: TriggerEventRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(require_steward),
     service: SaturnaliaService = Depends(get_saturnalia_service)
 ):
     """Manually trigger a Saturnalia event.
 
     Only stewards can trigger events.
-    """
-    # TODO: Check if user is a steward
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     try:
         event = service.trigger_event(
             config_id=request.config_id,
-            triggered_by=current_user["id"],
+            triggered_by=current_user.id,
             manual=True,
         )
     except ValueError as e:
@@ -296,15 +298,15 @@ async def trigger_event(
 @router.post("/event/cancel")
 async def cancel_event(
     request: CancelEventRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(require_steward),
     service: SaturnaliaService = Depends(get_saturnalia_service)
 ):
     """Cancel an active Saturnalia event.
 
     Only stewards can cancel events.
-    """
-    # TODO: Check if user is a steward
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     event = service.cancel_event(request.event_id, request.reason)
 
     if not event:

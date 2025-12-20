@@ -16,7 +16,8 @@ from app.services.sanctuary_service import SanctuaryService
 from app.services.web_of_trust_service import WebOfTrustService
 from app.database.vouch_repository import VouchRepository
 from app.models.sanctuary import SanctuaryResourceType, TRUST_THRESHOLDS, VerificationMethod
-from app.auth.middleware import get_current_user, require_admin_key
+from app.auth.middleware import get_current_user, require_admin_key, require_steward
+from app.auth.models import User
 
 router = APIRouter(prefix="/api/sanctuary", tags=["sanctuary"])
 
@@ -156,20 +157,20 @@ async def get_available_resources(
 @router.post("/requests/create")
 async def create_sanctuary_request(
     request: CreateRequestRequest,
-    user_id: str = Depends(get_current_user),
+    user: User = Depends(require_steward),
     service: SanctuaryService = Depends(get_sanctuary_service)
 ):
     """Create a sanctuary request (steward-verified only).
 
     This creates an urgent need for sanctuary resources.
     Only stewards can create these requests.
-    """
-    # TODO: Verify user is steward
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     sanctuary_request = service.create_request(
-        user_id=user_id,
+        user_id=user.id,
         cell_id=request.cell_id,
-        steward_id=user_id,  # TODO: Get actual steward ID
+        steward_id=user.id,
         request_type=request.request_type,
         urgency=request.urgency,
         description=request.description,

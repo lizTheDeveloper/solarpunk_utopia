@@ -15,8 +15,8 @@ from app.models.economic_withdrawal import (
     CampaignStatus,
     PledgeStatus,
 )
-from app.auth.middleware import get_current_user
-from app.auth.steward_auth import require_steward
+from app.auth.middleware import get_current_user, require_steward
+from app.auth.models import User
 
 router = APIRouter(prefix="/api/economic-withdrawal", tags=["economic-withdrawal"])
 
@@ -233,12 +233,13 @@ async def get_campaign_detail(
 @router.post("/campaigns/{campaign_id}/complete")
 async def complete_campaign(
     campaign_id: str,
-    user_id: str = Depends(get_current_user),
+    user: User = Depends(require_steward),
     service: EconomicWithdrawalService = Depends(get_economic_withdrawal_service)
 ):
-    """Complete a campaign and calculate final impact (coordinator only)."""
-    # TODO: Verify user is campaign creator or steward
+    """Complete a campaign and calculate final impact (coordinator only).
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     try:
         campaign = service.complete_campaign(campaign_id)
 
@@ -380,14 +381,15 @@ async def mark_alternative_used(
 @router.post("/alternatives/create")
 async def create_alternative(
     request: CreateAlternativeRequest,
-    user_id: str = Depends(get_current_user),
+    user: User = Depends(require_steward),
     service: EconomicWithdrawalService = Depends(get_economic_withdrawal_service)
 ):
-    """Create a corporate alternative (stewards or trusted members)."""
-    # TODO: Verify user trust level
+    """Create a corporate alternative (stewards or trusted members).
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     alternative = service.create_alternative(
-        created_by=user_id,
+        created_by=user.id,
         campaign_type=request.campaign_type,
         replaces_corporation=request.replaces_corporation,
         replaces_service=request.replaces_service,
@@ -466,14 +468,15 @@ async def get_my_exit_progress(
 @router.post("/bulk-buy/create")
 async def create_bulk_buy(
     request: CreateBulkBuyRequest,
-    user_id: str = Depends(get_current_user),
+    user: User = Depends(require_steward),
     service: EconomicWithdrawalService = Depends(get_economic_withdrawal_service)
 ):
-    """Create a bulk buy order (stewards only)."""
-    # TODO: Verify user is steward
+    """Create a bulk buy order (stewards only).
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     bulk_buy = service.create_bulk_buy(
-        coordinator_id=user_id,
+        coordinator_id=user.id,
         cell_id=request.cell_id,
         item_name=request.item_name,
         item_description=request.item_description,

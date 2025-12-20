@@ -15,7 +15,8 @@ from typing import Optional, List
 from app.services.rapid_response_service import RapidResponseService
 from app.services.web_of_trust_service import WebOfTrustService
 from app.database.vouch_repository import VouchRepository
-from app.auth.middleware import get_current_user, require_admin_key
+from app.auth.middleware import get_current_user, require_admin_key, require_steward
+from app.auth.models import User
 from app.models.rapid_response import (
     AlertLevel,
     AlertType,
@@ -274,14 +275,15 @@ async def confirm_alert(
 @router.post("/alerts/{alert_id}/claim-coordinator")
 async def claim_coordinator(
     alert_id: str,
-    user_id: str = Depends(get_current_user),
+    user: User = Depends(require_steward),
     service: RapidResponseService = Depends(get_rapid_response_service)
 ):
-    """Claim coordinator role for an alert (stewards only, first come first serve)."""
-    # TODO: Verify user is steward
+    """Claim coordinator role for an alert (stewards only, first come first serve).
 
+    GAP-134: Steward verification via trust score >= 0.9
+    """
     try:
-        alert = service.claim_coordinator(alert_id, user_id)
+        alert = service.claim_coordinator(alert_id, user.id)
 
         return {
             "success": True,

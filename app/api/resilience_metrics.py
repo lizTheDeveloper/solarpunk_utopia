@@ -23,6 +23,8 @@ from app.models.resilience_metrics import (
 )
 from app.services.resilience_metrics_service import ResilienceMetricsService
 from app.api.cells import get_current_user
+from app.auth.middleware import require_steward
+from app.auth.models import User
 
 router = APIRouter(prefix="/resilience", tags=["resilience"])
 
@@ -318,7 +320,8 @@ async def get_threat_scenarios(
 async def get_health_trend(
     dimension: ResilienceDimension,
     cell_id: Optional[str] = None,
-    days: int = 30
+    days: int = 30,
+    user: User = Depends(get_current_user)
 ):
     """
     Get health trend for a specific dimension.
@@ -328,10 +331,23 @@ async def get_health_trend(
 
     Available to all members for network trends.
     Cell trends require steward access.
+
+    GAP-134: Steward verification via trust score >= 0.9 (for cell-level trends)
     """
     service = ResilienceMetricsService(db_path="data/cells.db")
 
-    # TODO: Add steward verification for cell-level trends
+    # Verify steward access for cell-level trends
+    if cell_id:
+        from app.auth.middleware import get_vouch_repo, get_trust_service, STEWARD_TRUST_THRESHOLD
+        vouch_repo = get_vouch_repo()
+        trust_service = get_trust_service(vouch_repo)
+        trust_score = trust_service.compute_trust_score(user.id)
+
+        if trust_score.computed_trust < STEWARD_TRUST_THRESHOLD:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Steward access required for cell-level trends (trust >= {STEWARD_TRUST_THRESHOLD})"
+            )
 
     trend = service.repository.get_health_trend(
         dimension=dimension,
