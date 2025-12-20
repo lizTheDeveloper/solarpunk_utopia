@@ -25,6 +25,7 @@ export function CreateOfferPage() {
   const [availableUntil, setAvailableUntil] = useState('');
   const [note, setNote] = useState('');
   const [visibility, setVisibility] = useState<string>('trusted_network');
+  const [anonymous, setAnonymous] = useState(false);  // GAP-61: Emma Goldman
   const [errors, setErrors] = useState<string[]>([]);
 
   const selectedCategory = RESOURCE_CATEGORIES.find(cat => cat.id === category);
@@ -55,7 +56,8 @@ export function CreateOfferPage() {
     try {
       await createOffer.mutateAsync({
         listing_type: 'offer',
-        agent_id: 'current-user', // Would come from auth context
+        agent_id: anonymous ? undefined : 'current-user', // No agent for anonymous gifts (GAP-61)
+        anonymous,  // GAP-61: Emma Goldman - anonymous gifts
         resource_spec_id: resourceName,
         quantity: parseFloat(quantity),
         unit,
@@ -253,6 +255,35 @@ export function CreateOfferPage() {
             value={visibility}
             onChange={setVisibility}
           />
+
+          {/* GAP-61: Anonymous Gift Toggle */}
+          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded">
+            <label className="flex items-start space-x-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={anonymous}
+                onChange={(e) => setAnonymous(e.target.checked)}
+                className="mt-1 h-5 w-5 text-green-600 rounded focus:ring-green-500"
+              />
+              <div className="flex-1">
+                <div className="font-medium text-gray-900">Make this an anonymous gift</div>
+                <p className="text-sm text-gray-600 mt-1">
+                  Leave it on the community shelf. No one will know it's from you.
+                </p>
+                <p className="text-xs text-gray-500 mt-2 italic">
+                  "Free gifts mean I can give without the database knowing." - Emma Goldman
+                </p>
+                {anonymous && (
+                  <div className="mt-3 space-y-1 text-sm text-gray-700">
+                    <p>✓ Anyone can take it</p>
+                    <p>✓ No record of who took it</p>
+                    <p>✓ Doesn't count toward your "stats"</p>
+                    <p>✓ Pure gift, no social credit</p>
+                  </div>
+                )}
+              </div>
+            </label>
+          </div>
 
           {/* Notes */}
           <div>
