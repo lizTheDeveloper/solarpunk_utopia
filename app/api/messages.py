@@ -17,8 +17,18 @@ import sqlite3
 from ..database import get_db
 from .cells import get_current_user
 from ..crypto import encrypt_message
+from ..services.bundle_service import BundleService
+from ..services.crypto_service import CryptoService
+from ..models.bundle import BundleCreate
+from ..models.priority import Priority, Audience, Topic, ReceiptPolicy
 
 router = APIRouter(prefix="/messages", tags=["messages"])
+
+
+def get_bundle_service() -> BundleService:
+    """Get bundle service for DTN mesh propagation"""
+    crypto_service = CryptoService()
+    return BundleService(crypto_service)
 
 
 def get_block_repo():
@@ -179,18 +189,42 @@ async def send_message(
     """, (timestamp, request.content[:100], thread_id))
 
     # Create DTN bundle for mesh delivery
-    import hashlib
-    bundle_data = f"msg:{message_id}:{user_id}:{request.recipient_id}:{timestamp}"
-    bundle_hash = hashlib.sha256(bundle_data.encode()).hexdigest()[:16]
-    bundle_id = f"dtn://mesh/messages/{request.recipient_id}/{message_id}:{bundle_hash}"
+    bundle_service = get_bundle_service()
+
+    bundle_create = BundleCreate(
+        payload={
+            "type": "encrypted_message",
+            "message_id": message_id,
+            "sender_id": user_id,
+            "recipient_id": request.recipient_id,
+            "encrypted_content": encrypted_content,
+            "ephemeral_key": ephemeral_key,
+            "timestamp": timestamp,
+            "expires_at": expires_at,
+            "thread_id": thread_id,
+            "message_type": request.message_type
+        },
+        payloadType="messaging:EncryptedMessage",
+        priority=Priority.NORMAL,
+        audience=Audience.DIRECT,  # Direct message to recipient
+        topic=Topic.MESSAGING,
+        tags=["message", f"recipient:{request.recipient_id}", f"thread:{thread_id}"],
+        hopLimit=30,
+        receiptPolicy=ReceiptPolicy.REQUESTED,
+        ttl_hours=168 if not request.expires_in_hours else request.expires_in_hours  # 1 week default
+    )
+
+    # Create bundle and get bundle ID
+    bundle = await bundle_service.create_bundle(bundle_create)
+    bundle_id = bundle.id
 
     # Store bundle ID for delivery tracking
     await db.execute("""
         UPDATE messages SET bundle_id = ? WHERE id = ?
     """, (bundle_id, message_id))
 
-    # TODO: Integrate with WiFi Direct/Bluetooth mesh for actual propagation
-    # Bundle is queued for delivery via mesh sync worker
+    # Bundle is now in outbox queue and will be propagated by mesh sync worker
+    # Mesh sync handles WiFi Direct/Bluetooth delivery to recipient
 
     await db.commit()
 
