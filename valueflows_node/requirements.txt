@@ -9,10 +9,10 @@ pydantic==2.5.0
 # SQLite is built into Python, no external dependency needed
 
 # Cryptography (for Ed25519 signing)
-cryptography==42.0.0
+cryptography==44.0.1
 
 # Utilities
-python-multipart==0.0.6  # For form data
+python-multipart==0.0.18  # For form data
 python-jose[cryptography]==3.3.0  # JWT tokens (optional)
 
 # Development
