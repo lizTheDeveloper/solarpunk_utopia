@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from .database import initialize_database
-from .api.vf import listings, matches, exchanges, events, agents, resource_specs, commitments, discovery
+from .api.vf import listings, matches, exchanges, events, agents, resource_specs, commitments, discovery, bakunin_analytics
 from .api import communities, leakage_metrics
 
 logger = logging.getLogger(__name__)
@@ -75,6 +75,7 @@ app.include_router(agents.router)
 app.include_router(resource_specs.router)
 app.include_router(leakage_metrics.router)
 app.include_router(discovery.router)
+app.include_router(bakunin_analytics.router)  # GAP-64: Battery Warlord Detection
 
 
 @app.get("/")
