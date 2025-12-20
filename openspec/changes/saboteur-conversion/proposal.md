@@ -66,37 +66,106 @@ Everything else is human-to-human.
 
 Most cases aren't malicious:
 
-```
-Level 0: OOPS
-├── Didn't read the instructions
-├── Made an honest mistake
-├── Clicked wrong button
-└── Response: Friendly clarification. That's it.
+### Level 0: OOPS
 
-Level 1: STRUGGLING
-├── Flaked on commitments (life got hard)
-├── Snapped at someone (bad day)
-├── Took more than they gave (going through something)
-└── Response: Check in. "Hey, everything okay?"
+**Signs:** Didn't read instructions, honest mistake, clicked wrong button
 
-Level 2: PATTERN
-├── Repeated no-shows
-├── Multiple conflicts
-├── Taking without giving (ongoing)
-└── Response: Assign a care volunteer. Befriend. Learn what's going on.
+**Concrete Actions:**
+1. Friendly DM from anyone who noticed: "Hey! Looks like X happened - here's how that works..."
+2. Link to relevant help doc (if one exists)
+3. Offer to walk them through it
+4. That's it. No record. No flag. Everyone makes mistakes.
 
-Level 3: HARMFUL
-├── Vouch selling
-├── Fake offers
-├── Information harvesting
-└── Response: Limit access quietly. Intensive care outreach. Meet their needs.
+---
 
-Level 4: INFILTRATOR
-├── Paid informant
-├── Law enforcement
-├── Organized disruption
-└── Response: Protect the network. STILL treat them as human. Door always open.
-```
+### Level 1: STRUGGLING
+
+**Signs:** Flaked on commitments, snapped at someone, taking more than giving lately
+
+**Concrete Actions:**
+1. Someone (anyone who knows them) reaches out: "Hey, noticed you've been quiet / seemed stressed. Everything okay?"
+2. LISTEN. Don't problem-solve yet.
+3. If they share what's going on, ask: "Is there anything the community could help with?"
+4. Connect them to resources if relevant (housing help, food, someone to talk to)
+5. Follow up in a week
+6. No formal tracking. Just humans noticing humans.
+
+---
+
+### Level 2: PATTERN
+
+**Signs:** Repeated no-shows, multiple conflicts, ongoing imbalance, starting to affect others
+
+**Concrete Actions:**
+1. **Day 1:** Care volunteer assigned (privately, through care coordinator)
+2. **Day 1-3:** Volunteer makes casual contact - NOT about the pattern
+   - "Hey! Saw you're in [area]. Want to grab coffee?"
+   - Invite to low-stakes event (meal, garden day)
+3. **Week 1:** Build relationship. Learn about their life. Don't mention concerns yet.
+4. **Week 2-4:** If trust builds, gently explore:
+   - "How's the community working for you?"
+   - "What would make this better?"
+5. **Ongoing:** Meet any needs that surface (housing, work, food, connection)
+6. **When ready:** Have honest conversation about patterns - WITH care:
+   - "I noticed you've had some no-shows. What's going on?"
+   - "No judgment. Just want to help."
+7. **Track:** Private notes for continuity if volunteer changes
+
+---
+
+### Level 3: HARMFUL
+
+**Signs:** Vouch selling, fake offers, extracting without giving, possible info harvesting
+
+**Concrete Actions:**
+1. **Immediately:** Quietly limit sensitive access (no announcement, no shame)
+   - Remove from high-trust channels
+   - Pause vouch ability
+   - Don't tell them why (yet)
+2. **Day 1:** Assign experienced care volunteer
+3. **Week 1-2:** Relationship building (same as Level 2)
+4. **Week 2-4:** Assess underlying cause:
+   - Financial desperation? → Connect to income opportunities
+   - Didn't understand impact? → Education through experience
+   - Paid by someone? → "We can help you find other work. No judgment."
+5. **Week 4+:** If trust builds, direct conversation:
+   - "We noticed some things. We're not angry. We want to understand."
+   - "What do you need that you're not getting?"
+6. **If they come clean:** Celebrate honesty. Help them make it right.
+7. **If they deny/deflect:** Keep caring anyway. Keep access limited. Keep door open.
+8. **Restoration path:** When ready, they can rebuild trust through:
+   - Genuine participation (not performative)
+   - Time (months, not days)
+   - Vouched back in by people who know them now
+
+---
+
+### Level 4: INFILTRATOR
+
+**Signs:** Confirmed or strongly suspected paid informant, law enforcement, organized disruption
+
+**Concrete Actions:**
+1. **Immediately:**
+   - Remove from ALL sensitive channels/info
+   - Alert security-conscious members (small circle)
+   - Move any at-risk operations
+   - Do NOT confront or tip off
+2. **Day 1:** Assign most experienced care volunteer (who understands the stakes)
+3. **Ongoing:** Maintain relationship WITHOUT sharing sensitive info
+   - They're a person, not just a threat
+   - Chat, invite to public events, be human
+4. **Long game:** Plant seeds
+   - Share stories of why people do this work
+   - Let them see the humanity
+   - Never pressure
+5. **If they reach out:**
+   - "I want out" → Help them. New identity support if needed.
+   - "I was wrong" → Welcome them. Slowly rebuild trust.
+   - "I'm still doing my job but..." → Keep talking. Keep caring.
+6. **Document:** For security purposes (private, encrypted)
+7. **Never:** Public exposure, shame, threats, retaliation
+
+---
 
 Most people are Level 0-1. Be gentle. Don't overreact.
 

@@ -81,9 +81,12 @@ class BaseRepository(Generic[T]):
         query = f"SELECT * FROM {self.table_name} ORDER BY created_at DESC"
 
         if limit is not None:
-            query += f" LIMIT {limit} OFFSET {offset}"
+            # GAP-57: Use parameterized query to prevent SQL injection
+            query += " LIMIT ? OFFSET ?"
+            rows = self._fetch_all(query, (limit, offset))
+        else:
+            rows = self._fetch_all(query)
 
-        rows = self._fetch_all(query)
         return [self.model_class.from_dict(row) for row in rows]
 
     def count(self) -> int:

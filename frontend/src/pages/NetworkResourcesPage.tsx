@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { ErrorMessage } from '@/components/ErrorMessage';
@@ -8,7 +7,6 @@ import { RESOURCE_CATEGORIES } from '@/utils/categories';
 import { Globe, Filter, TrendingUp } from 'lucide-react';
 
 export function NetworkResourcesPage() {
-  const navigate = useNavigate();
   const [results, setResults] = useState<DiscoveryResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

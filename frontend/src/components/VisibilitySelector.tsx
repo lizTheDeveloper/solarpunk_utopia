@@ -1,5 +1,4 @@
 import React from 'react';
-import { FormControl, FormLabel, Select, FormHelperText } from '@chakra-ui/react';
 
 interface VisibilitySelectorProps {
   value?: string;
@@ -41,25 +40,29 @@ export const VisibilitySelector: React.FC<VisibilitySelectorProps> = ({
   helperText,
 }) => {
   return (
-    <FormControl>
-      <FormLabel>Who can see this?</FormLabel>
-      <Select
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        Who can see this?
+      </label>
+      <select
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Choose visibility level"
+        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-solarpunk-500 focus:border-solarpunk-500"
       >
         {visibilityOptions.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label} - {option.description}
           </option>
         ))}
-      </Select>
-      {helperText && <FormHelperText>{helperText}</FormHelperText>}
-      {!helperText && (
-        <FormHelperText>
-          This controls who can discover and see your listing. You're always in control.
-        </FormHelperText>
+      </select>
+      {helperText && (
+        <p className="mt-1 text-sm text-gray-500">{helperText}</p>
       )}
-    </FormControl>
+      {!helperText && (
+        <p className="mt-1 text-sm text-gray-500">
+          This controls who can discover and see your listing. You're always in control.
+        </p>
+      )}
+    </div>
   );
 };
