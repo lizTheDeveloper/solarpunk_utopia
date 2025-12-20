@@ -51,8 +51,22 @@ export interface Listing {
   image_url?: string;
   status: 'active' | 'matched' | 'fulfilled' | 'cancelled';
   community_id?: string;
+
+  // Inter-community sharing (GAP: inter-community-sharing)
+  anonymous?: boolean; // GAP-61: Anonymous gifts
+  visibility?: 'my_cell' | 'my_community' | 'trusted_network' | 'anyone_local' | 'network_wide';
+
   created_at: string;
   updated_at: string;
+}
+
+// Sharing preference for inter-community resource visibility
+export interface SharingPreference {
+  user_id: string;
+  visibility: 'my_cell' | 'my_community' | 'trusted_network' | 'anyone_local' | 'network_wide';
+  location_precision: 'exact' | 'neighborhood' | 'city' | 'region';
+  local_radius_km: number;
+  updated_at?: string;
 }
 
 // Legacy alias for backward compatibility

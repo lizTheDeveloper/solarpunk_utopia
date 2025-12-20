@@ -17,7 +17,6 @@ from valueflows_node.app.models.vf.listing import Listing
 from valueflows_node.app.repositories.sharing_preference_repo import SharingPreferenceRepository
 from valueflows_node.app.repositories.vf.listing_repo import ListingRepository
 from valueflows_node.app.services.inter_community_service import InterCommunityService
-from valueflows_node.app.api.auth import get_current_user
 from app.database.vouch_repository import VouchRepository
 from valueflows_node.app.database.db import get_db_path
 
@@ -50,11 +49,11 @@ def get_listing_repo() -> ListingRepository:
 
 @router.get("/resources", response_model=List[DiscoveryResult])
 async def discover_resources(
+    user_id: str = Query(..., description="User ID for filtering visibility"),
     resource_type: Optional[str] = Query(None, description="Filter by resource type (offer/need)"),
     category: Optional[str] = Query(None, description="Filter by category"),
     max_distance_km: Optional[float] = Query(50, description="Maximum distance in kilometers"),
     min_trust: float = Query(0.3, description="Minimum trust score required"),
-    current_user = Depends(get_current_user),
     service: InterCommunityService = Depends(get_inter_community_service),
     listing_repo: ListingRepository = Depends(get_listing_repo),
 ):
@@ -70,8 +69,6 @@ async def discover_resources(
     3. Distance (if applicable)
     4. Block lists
     """
-    viewer_id = current_user["id"]
-
     # Get all listings (offers and needs)
     all_listings = listing_repo.list_listings(
         listing_type=resource_type,
@@ -83,32 +80,31 @@ async def discover_resources(
 
     for listing in all_listings:
         # Don't show your own listings in discovery
-        if listing.provider_id == viewer_id:
+        if listing.agent_id == user_id:
             continue
 
         # Check if viewer can see this resource
         can_see = await service.can_see_resource(
-            viewer_id=viewer_id,
-            creator_id=listing.provider_id,
-            viewer_community_id=current_user.get("community_id"),
+            viewer_id=user_id,
+            creator_id=listing.agent_id,
+            viewer_community_id=None,  # TODO: Get from user model
             creator_community_id=getattr(listing, "community_id", None),
             # TODO: Add cell_id, lat/lon from user/listing models
-            # viewer_cell_id=current_user.get("cell_id"),
+            # viewer_cell_id=...,
             # creator_cell_id=...,
-            # viewer_lat=current_user.get("latitude"),
-            # viewer_lon=current_user.get("longitude"),
+            # viewer_lat=...,
+            # viewer_lon=...,
             # creator_lat=...,
             # creator_lon=...,
         )
 
         if can_see:
             # Compute metadata for this result
-            trust_score = service._compute_trust_between(viewer_id, listing.provider_id)
+            trust_score = service._compute_trust_between(user_id, listing.agent_id)
 
             is_cross_community = (
-                current_user.get("community_id")
-                and getattr(listing, "community_id", None)
-                and current_user.get("community_id") != getattr(listing, "community_id", None)
+                # TODO: Get viewer's community_id from user model
+                False  # For now, can't determine cross-community without user model
             )
 
             visible_results.append(
@@ -129,24 +125,24 @@ async def discover_resources(
     return visible_results
 
 
-@router.get("/preferences/me", response_model=SharingPreference)
-async def get_my_sharing_preference(
-    current_user = Depends(get_current_user),
+@router.get("/preferences/{user_id}", response_model=SharingPreference)
+async def get_sharing_preference(
+    user_id: str,
     service: InterCommunityService = Depends(get_inter_community_service),
 ):
-    """Get current user's sharing preference."""
-    return service.get_sharing_preference(current_user["id"])
+    """Get user's sharing preference."""
+    return service.get_sharing_preference(user_id)
 
 
-@router.put("/preferences/me", response_model=SharingPreference)
-async def update_my_sharing_preference(
+@router.put("/preferences/{user_id}", response_model=SharingPreference)
+async def update_sharing_preference(
+    user_id: str,
     update: SharingPreferenceUpdate,
-    current_user = Depends(get_current_user),
     service: InterCommunityService = Depends(get_inter_community_service),
 ):
-    """Update current user's sharing preference."""
+    """Update user's sharing preference."""
     # Get current preference
-    current_pref = service.get_sharing_preference(current_user["id"])
+    current_pref = service.get_sharing_preference(user_id)
 
     # Apply updates
     if update.visibility is not None:
@@ -160,15 +156,15 @@ async def update_my_sharing_preference(
     return service.set_sharing_preference(current_pref)
 
 
-@router.post("/preferences/me", response_model=SharingPreference, status_code=201)
-async def create_my_sharing_preference(
+@router.post("/preferences/{user_id}", response_model=SharingPreference, status_code=201)
+async def create_sharing_preference(
+    user_id: str,
     create: SharingPreferenceCreate,
-    current_user = Depends(get_current_user),
     service: InterCommunityService = Depends(get_inter_community_service),
 ):
-    """Create sharing preference for current user."""
+    """Create sharing preference for user."""
     preference = SharingPreference(
-        user_id=current_user["id"],
+        user_id=user_id,
         visibility=create.visibility,
         location_precision=create.location_precision,
         local_radius_km=create.local_radius_km,

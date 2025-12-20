@@ -5,6 +5,7 @@ import { useCommunity } from '@/contexts/CommunityContext';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { ErrorMessage } from '@/components/ErrorMessage';
+import { VisibilitySelector } from '@/components/VisibilitySelector';
 import { RESOURCE_CATEGORIES, COMMON_UNITS, COMMON_LOCATIONS } from '@/utils/categories';
 import { validateIntentForm } from '@/utils/validation';
 import { ArrowLeft } from 'lucide-react';
@@ -23,6 +24,7 @@ export function CreateNeedPage() {
   const [availableFrom, setAvailableFrom] = useState('');
   const [availableUntil, setAvailableUntil] = useState('');
   const [note, setNote] = useState('');
+  const [visibility, setVisibility] = useState<string>('trusted_network');
   const [errors, setErrors] = useState<string[]>([]);
 
   const selectedCategory = RESOURCE_CATEGORIES.find(cat => cat.id === category);
@@ -62,6 +64,7 @@ export function CreateNeedPage() {
         available_until: availableUntil || undefined,
         description: note || undefined,
         community_id: currentCommunity?.id,
+        visibility,
       });
 
       navigate('/needs');
@@ -244,6 +247,12 @@ export function CreateNeedPage() {
               />
             </div>
           </div>
+
+          {/* Visibility */}
+          <VisibilitySelector
+            value={visibility}
+            onChange={setVisibility}
+          />
 
           {/* Notes */}
           <div>

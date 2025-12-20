@@ -12,6 +12,7 @@ import { CreateOfferPage } from './pages/CreateOfferPage'
 import { CreateNeedPage } from './pages/CreateNeedPage'
 import { ExchangesPage } from './pages/ExchangesPage'
 import { DiscoveryPage } from './pages/DiscoveryPage'
+import { NetworkResourcesPage } from './pages/NetworkResourcesPage'
 import { KnowledgePage } from './pages/KnowledgePage'
 import { NetworkPage } from './pages/NetworkPage'
 import { AgentsPage} from './pages/AgentsPage'
@@ -86,6 +87,7 @@ function App() {
                     <Route path="/needs/create" element={<CreateNeedPage />} />
                     <Route path="/exchanges" element={<ExchangesPage />} />
                     <Route path="/discovery" element={<DiscoveryPage />} />
+                    <Route path="/network-resources" element={<NetworkResourcesPage />} />
                     <Route path="/knowledge" element={<KnowledgePage />} />
                     <Route path="/network" element={<NetworkPage />} />
                     <Route path="/agents" element={<AgentsPage />} />
