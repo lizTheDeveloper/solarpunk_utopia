@@ -10,13 +10,15 @@ This document identifies gaps between what the codebase claims to implement and 
 
 ## Executive Summary
 
-**Total Gaps Found**: 72 (14 CRITICAL, 21 HIGH, 21 MEDIUM, 9 LOW)
-**Session 8 Update**: 5 gaps FIXED (GAP-134, GAP-136, GAP-148, GAP-149, GAP-150)
+**Total Gaps Found**: 72 (14 CRITICAL, 19 HIGH, 21 MEDIUM, 9 LOW)
+**Session 8 Update**: 7 gaps FIXED (GAP-114, GAP-134, GAP-135, GAP-136, GAP-148, GAP-149, GAP-150)
 
 ### Session 8 Progress (2025-12-20)
 
 **FIXED:**
+- ✅ **GAP-114**: Private key wipe VERIFIED WORKING - Uses secure_wipe_key() with multiple overwrites (zeros→random→ones→zeros)
 - ✅ **GAP-134**: Steward verification now properly implemented (`require_steward` middleware)
+- ✅ **GAP-135**: Panic "all clear" VERIFIED WORKING - _propagate_all_clear() creates DTN bundle to notify network
 - ✅ **GAP-136**: Resilience metrics now queries actual ValueFlows database
 - ✅ **GAP-148**: Fork Rights API - All 11 endpoints now use `current_user: User = Depends(require_auth)`
 - ✅ **GAP-149**: Security Status API - Auth integrated + settings persistence implemented via AuthService
@@ -29,7 +31,7 @@ Many features marked "✅ IMPLEMENTED" in WORKSHOP_SPRINT.md have APIs that resp
 - **DTN propagation never happens** (returns placeholder bundle IDs)
 - ~~**Trust checks always pass** (hardcoded 0.9)~~ ✅ FIXED
 - ~~**Metrics show fake data** (hardcoded values)~~ ✅ PARTIAL FIX
-- **Private keys not actually wiped** (needs verification)
+- ~~**Private keys not actually wiped**~~ ✅ FIXED (verified secure_wipe_key implementation)
 
 ### Critical Issues (Demo Blockers)
 1. ~~Frontend calls endpoints that don't exist (`/matches/{id}/accept`, `/matches/{id}/reject`)~~ ✅ FIXED
@@ -39,8 +41,8 @@ Many features marked "✅ IMPLEMENTED" in WORKSHOP_SPRINT.md have APIs that resp
 5. LLM integration returns mock responses by default
 6. Auth delete listing has no ownership verification (TODO in code)
 7. ~~Mesh messages use Base64 instead of encryption (GAP-116)~~ ✅ FIXED
-8. Panic service wipe needs verification (GAP-114)
-9. Burn notices never propagate to network (GAP-113)
+8. ~~Panic service wipe needs verification (GAP-114)~~ ✅ FIXED (secure_wipe_key verified)
+9. ~~Burn notices "all clear" network notification (GAP-135)~~ ✅ FIXED (_propagate_all_clear verified)
 10. ~~Admin endpoints have no authentication (GAP-119)~~ ✅ FIXED
 
 ### Key Patterns Found
