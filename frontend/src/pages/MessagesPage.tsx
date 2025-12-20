@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useThreads } from '@/hooks/useMessages';
+import { useAuth } from '@/contexts/AuthContext';
 import { Loading } from '@/components/Loading';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { MessageThreadCard } from '@/components/MessageThreadCard';
@@ -10,12 +11,12 @@ import { MessageCircle, Plus, Search } from 'lucide-react';
 
 export function MessagesPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: threads, isLoading, error } = useThreads();
 
-  // TODO: Get current user from auth context
-  const currentUserId = 'demo-user';
+  const currentUserId = user?.id || 'demo-user';
 
   // Filter threads
   const filteredThreads = threads?.filter((thread) => {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useNeeds, useDeleteNeed } from '@/hooks/useNeeds';
+import { useAuth } from '@/contexts/AuthContext';
 import { Loading } from '@/components/Loading';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { NeedCard } from '@/components/NeedCard';
@@ -14,12 +15,12 @@ export function NeedsPage() {
   const { data: needs, isLoading, error } = useNeeds();
   const deleteNeed = useDeleteNeed();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
 
-  // TODO: Get current user ID from auth context
-  const currentUserId = 'demo-user';
+  const currentUserId = user?.id || 'demo-user';
 
   const handleEdit = (need: Intent) => {
     navigate(`/needs/${need.id}/edit`);

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useOffers, useDeleteOffer } from '@/hooks/useOffers';
+import { useAuth } from '@/contexts/AuthContext';
 import { Loading } from '@/components/Loading';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { OfferCard } from '@/components/OfferCard';
@@ -14,12 +15,12 @@ export function OffersPage() {
   const { data: offers, isLoading, error } = useOffers();
   const deleteOffer = useDeleteOffer();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
 
-  // TODO: Get current user ID from auth context
-  const currentUserId = 'demo-user';
+  const currentUserId = user?.id || 'demo-user';
 
   const handleEdit = (offer: Intent) => {
     // Navigate to edit page (could be same as create with ID param)

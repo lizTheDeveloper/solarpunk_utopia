@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useExchanges, useMatches, useCompleteExchange } from '@/hooks/useExchanges';
+import { useAuth } from '@/contexts/AuthContext';
 import { Loading } from '@/components/Loading';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { Card } from '@/components/Card';
@@ -10,11 +11,11 @@ import { formatTimeAgo, formatQuantity, formatStatus } from '@/utils/formatters'
 export function ExchangesPage() {
   const { data: exchanges, isLoading: exchangesLoading, error: exchangesError } = useExchanges();
   const { data: matches, isLoading: matchesLoading } = useMatches();
+  const { user } = useAuth();
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const completeExchange = useCompleteExchange();
 
-  // TODO: Get current user ID from auth context
-  const currentUserId = 'demo-user';
+  const currentUserId = user?.id || 'demo-user';
 
   const handleComplete = async (exchangeId: string, agentId: string) => {
     try {

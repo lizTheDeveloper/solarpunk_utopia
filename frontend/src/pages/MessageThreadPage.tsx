@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useThreadMessages, useSendMessage } from '@/hooks/useMessages';
+import { useAuth } from '@/contexts/AuthContext';
 import { Loading } from '@/components/Loading';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { Button } from '@/components/Button';
@@ -12,14 +13,14 @@ import type { Message } from '@/types/message';
 export function MessageThreadPage() {
   const { threadId } = useParams<{ threadId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [messageText, setMessageText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: messages, isLoading, error } = useThreadMessages(threadId!);
   const sendMutation = useSendMessage();
 
-  // TODO: Get current user from auth context
-  const currentUserId = 'demo-user';
+  const currentUserId = user?.id || 'demo-user';
 
   // Scroll to bottom on new messages
   useEffect(() => {
