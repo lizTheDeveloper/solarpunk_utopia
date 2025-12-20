@@ -66,13 +66,14 @@ class CareVolunteer:
 
     # Capacity - they're human, they have limits
     currently_supporting: int  # Max 2-3 at a time
-    max_capacity: int = 3
 
     # Support for the supporter
     supervision_partner_id: str  # Someone who checks in on THEM
 
     # When they joined and last check-in
     joined_at: datetime
+
+    max_capacity: int = 3
     last_supervision: Optional[datetime] = None
 
     @property
