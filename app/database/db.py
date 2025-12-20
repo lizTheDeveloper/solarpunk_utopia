@@ -1,7 +1,10 @@
 import aiosqlite
 import os
+import logging
 from pathlib import Path
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 # Database path
 DB_DIR = Path(__file__).parent.parent.parent / "data"
@@ -151,13 +154,19 @@ async def init_db() -> None:
         CREATE INDEX IF NOT EXISTS idx_proposal_type ON proposals(proposal_type)
     """)
 
-    # Add community_id to proposals table (migration - will fail silently if column exists)
+    # Add community_id to proposals table (migration)
     try:
         await _db_connection.execute("""
             ALTER TABLE proposals ADD COLUMN community_id TEXT
         """)
-    except:
-        pass  # Column already exists
+        logger.info("Added community_id column to proposals table")
+    except aiosqlite.OperationalError as e:
+        error_msg = str(e).lower()
+        if "duplicate column name" in error_msg or "already exists" in error_msg:
+            logger.debug("Column community_id already exists in proposals table, skipping migration")
+        else:
+            logger.error(f"Failed to add community_id column to proposals: {e}")
+            raise  # Re-raise unexpected migration errors
 
     await _db_connection.execute("""
         CREATE INDEX IF NOT EXISTS idx_proposal_community ON proposals(community_id)

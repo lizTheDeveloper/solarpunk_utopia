@@ -144,7 +144,18 @@ class OllamaBackend(LLMClient):
         try:
             response = await self.client.get(f"{self.base_url}/api/tags")
             return response.status_code == 200
-        except Exception:
+        except httpx.ConnectError as e:
+            logger.debug(f"Ollama not reachable at {self.base_url}: {e}")
+            return False
+        except httpx.TimeoutException as e:
+            logger.warning(f"Ollama health check timed out: {e}")
+            return False
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Ollama returned error status: {e}")
+            return False
+        except Exception as e:
+            # Unexpected errors should be logged for investigation
+            logger.error(f"Unexpected error checking Ollama health: {e}", exc_info=True)
             return False
 
 
@@ -361,7 +372,18 @@ class RemoteBackend(LLMClient):
         try:
             response = await self.client.get(f"{self.base_url}/models")
             return response.status_code == 200
-        except Exception:
+        except httpx.ConnectError as e:
+            logger.debug(f"Remote API not reachable at {self.base_url}: {e}")
+            return False
+        except httpx.TimeoutException as e:
+            logger.warning(f"Remote API health check timed out: {e}")
+            return False
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Remote API returned error status: {e}")
+            return False
+        except Exception as e:
+            # Unexpected errors should be logged for investigation
+            logger.error(f"Unexpected error checking Remote API health: {e}", exc_info=True)
             return False
 
 

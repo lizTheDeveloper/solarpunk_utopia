@@ -323,7 +323,8 @@ class MycelialHealthMonitorService:
             import uuid
             mac = uuid.getnode()
             return f"node_{mac:012x}"
-        except:
+        except Exception as e:
+            logger.warning(f"Could not determine node ID from MAC address: {e}")
             return "node_unknown"
 
     def _generate_recommendations(self, report: Dict) -> List[Dict]:

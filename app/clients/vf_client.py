@@ -6,9 +6,12 @@ Handles connection management and repository instantiation.
 """
 
 import sqlite3
+import logging
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 # Import VF repositories
 import sys
@@ -214,8 +217,12 @@ class VFClient:
             if row:
                 return dict(row)
             return None
-        except:
+        except sqlite3.Error as e:
+            logger.error(f"Database error fetching agent {agent_id}: {e}")
             return None
+        except Exception as e:
+            logger.error(f"Unexpected error fetching agent {agent_id}: {e}", exc_info=True)
+            raise
 
     def _get_location(self, location_id: str) -> Optional[Dict[str, Any]]:
         """Get location by ID"""
@@ -225,8 +232,12 @@ class VFClient:
             if row:
                 return dict(row)
             return None
-        except:
+        except sqlite3.Error as e:
+            logger.error(f"Database error fetching location {location_id}: {e}")
             return None
+        except Exception as e:
+            logger.error(f"Unexpected error fetching location {location_id}: {e}", exc_info=True)
+            raise
 
     def _get_resource_spec(self, resource_spec_id: str) -> Optional[Dict[str, Any]]:
         """Get resource spec by ID"""
@@ -236,8 +247,12 @@ class VFClient:
             if row:
                 return dict(row)
             return None
-        except:
+        except sqlite3.Error as e:
+            logger.error(f"Database error fetching resource_spec {resource_spec_id}: {e}")
             return None
+        except Exception as e:
+            logger.error(f"Unexpected error fetching resource_spec {resource_spec_id}: {e}", exc_info=True)
+            raise
 
     async def get_inventory_by_location(self, location_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """

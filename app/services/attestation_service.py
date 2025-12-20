@@ -153,8 +153,12 @@ class AttestationService:
 
                 if self.crypto_service.verify(canonical_data, signature, pubkey_pem):
                     valid_signatures += 1
-            except:
+            except ValueError as e:
+                logger.warning(f"Invalid signature format from signer {signer_id}: {e}")
                 continue
+            except Exception as e:
+                logger.error(f"Unexpected error verifying signature from {signer_id}: {e}", exc_info=True)
+                continue  # Don't fail entire verification for one bad signature
 
         is_valid = valid_signatures >= attestation.threshold_required
         return (is_valid, valid_signatures)

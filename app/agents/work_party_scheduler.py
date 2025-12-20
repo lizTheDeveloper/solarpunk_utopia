@@ -184,8 +184,12 @@ class WorkPartyScheduler(BaseAgent):
                 try:
                     due_date = datetime.fromisoformat(commitment["due_date"])
                     participants_map[agent_id]["availability"].append(due_date)
-                except:
-                    pass
+                except (ValueError, TypeError) as e:
+                    logger.warning(
+                        f"Failed to parse due_date for agent {agent_id}: {e}. "
+                        f"Date value: {commitment.get('due_date', 'MISSING')}"
+                    )
+                    # Continue processing other commitments
 
         # Convert map to list
         participants = list(participants_map.values())

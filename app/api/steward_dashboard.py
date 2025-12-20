@@ -187,9 +187,12 @@ async def get_attention_items(db, cell_id: str) -> List[AttentionItem]:
                 message=f'{inactive_members} member{"s" if inactive_members != 1 else ""} haven\'t been active in 2 weeks',
                 count=inactive_members
             ))
-    except:
-        # Table might not exist yet, skip
-        pass
+    except aiosqlite.OperationalError as e:
+        # Table might not exist yet during initial setup
+        logger.debug(f"Could not query inactive members (table may not exist): {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error querying inactive members: {e}", exc_info=True)
+        # Don't fail the whole dashboard for one metric
 
     # All clear if no items
     if not items:
