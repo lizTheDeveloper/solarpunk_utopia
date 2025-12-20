@@ -249,10 +249,11 @@ class PanicService:
         self.repo.update_burn_notice_status(notice_id, BurnNoticeStatus.SENT)
         return True
 
-    def resolve_burn_notice(self, user_id: str, notice_id: str) -> bool:
+    async def resolve_burn_notice(self, user_id: str, notice_id: str) -> bool:
         """User confirms they're safe and re-authenticates.
 
         This restores their trust and clears the burn notice.
+        Sends "all clear" message to network to restore user's reputation.
         """
         notice = self.repo.get_burn_notice(notice_id)
         if not notice or notice.user_id != user_id:
@@ -261,8 +262,47 @@ class PanicService:
         # Mark as resolved
         self.repo.update_burn_notice_status(notice_id, BurnNoticeStatus.RESOLVED)
 
-        # TODO: Send "all clear" message to network
-        # TODO: Restore trust score
+        # Send "all clear" message to network
+        await self._propagate_all_clear(notice)
+
+        # Note: Trust score restoration is handled automatically by WebOfTrustService
+        # when it queries for active burn notices. Resolved notices no longer
+        # reduce trust.
+
+        return True
+
+    async def _propagate_all_clear(self, notice: BurnNotice) -> bool:
+        """Propagate "all clear" message to network via DTN.
+
+        Notifies the network that a burn notice has been resolved and the
+        user has safely re-authenticated. This allows others to restore trust.
+        """
+        # If bundle service not available, skip propagation
+        if not self.bundle_service:
+            return False
+
+        # Create DTN bundle for all clear notification
+        bundle_create = BundleCreate(
+            payload={
+                "type": "burn_notice_resolved",
+                "notice_id": notice.id,
+                "user_id": notice.user_id,
+                "original_reason": notice.reason,
+                "created_at": notice.created_at.isoformat(),
+                "resolved_at": datetime.utcnow().isoformat(),
+            },
+            payloadType="trust:BurnNoticeResolved",
+            priority=Priority.NORMAL,  # Not emergency, just informational
+            audience=Audience.TRUSTED,  # Same audience as original burn notice
+            topic=Topic.TRUST,
+            tags=["all_clear", "trust_restoration", f"user:{notice.user_id}"],
+            hopLimit=30,  # Same propagation as burn notice
+            receiptPolicy=ReceiptPolicy.REQUESTED,
+            ttl_hours=72,  # 3 days to propagate
+        )
+
+        # Create and queue the bundle
+        await self.bundle_service.create_bundle(bundle_create)
 
         return True
 

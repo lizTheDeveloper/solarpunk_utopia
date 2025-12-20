@@ -35,9 +35,10 @@ from app.database.resilience_metrics_repository import ResilienceMetricsReposito
 class ResilienceMetricsService:
     """Service for computing and analyzing network resilience metrics."""
 
-    def __init__(self, db_path: str, vouch_db_path: Optional[str] = None):
+    def __init__(self, db_path: str, vouch_db_path: Optional[str] = None, vf_db_path: Optional[str] = None):
         self.db_path = db_path
         self.vouch_db_path = vouch_db_path or db_path
+        self.vf_db_path = vf_db_path or "data/vf_node.db"
         self.repository = ResilienceMetricsRepository(db_path)
 
     # ============================================================
@@ -176,14 +177,29 @@ class ResilienceMetricsService:
         """
         cursor = conn.cursor()
 
-        # Get exchange count in period (placeholder - need ValueFlows implementation)
-        # For now, return placeholder values
-        # TODO: Query actual exchanges from ValueFlows commitment/fulfillment tables
-
+        # Query actual completed exchanges from ValueFlows database
         since = (datetime.utcnow() - timedelta(days=period_days)).isoformat()
 
-        # Placeholder: count some activity as proxy
-        total_exchanges = 0
+        try:
+            # Connect to ValueFlows database
+            vf_conn = sqlite3.connect(self.vf_db_path)
+            vf_cursor = vf_conn.cursor()
+
+            # Count completed exchanges in the period
+            vf_cursor.execute("""
+                SELECT COUNT(*) FROM exchanges
+                WHERE status = 'completed'
+                AND updated_at >= ?
+            """, (since,))
+            result = vf_cursor.fetchone()
+            total_exchanges = result[0] if result else 0
+
+            vf_conn.close()
+
+        except sqlite3.OperationalError:
+            # Table might not exist yet - fall back to zero
+            total_exchanges = 0
+
         active_members = await self._get_active_member_count(conn)
 
         if active_members == 0:

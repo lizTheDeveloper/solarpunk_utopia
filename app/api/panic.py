@@ -291,15 +291,16 @@ async def resolve_burn_notice(
     """Resolve a burn notice - confirm you're safe.
 
     This restores your trust score and clears the burn notice.
+    Sends "all clear" message to network.
     Requires re-authentication.
     """
-    success = service.resolve_burn_notice(user_id, request.notice_id)
+    success = await service.resolve_burn_notice(user_id, request.notice_id)
     if not success:
         raise HTTPException(status_code=404, detail="Burn notice not found")
 
     return {
         "success": True,
-        "message": "Burn notice resolved, trust restored"
+        "message": "Burn notice resolved, trust restored, all clear sent to network"
     }
 
 
