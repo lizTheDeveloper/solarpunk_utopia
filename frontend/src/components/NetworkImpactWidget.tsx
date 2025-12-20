@@ -1,18 +1,16 @@
 /**
  * Network Impact Widget
  *
- * Shows network-wide economic impact.
- * Demonstrates the scale of the gift economy movement.
+ * Shows network-wide aliveness - exchanges happening, people participating.
+ * Anti-Reputation Capitalism: No dollar values. The exchange IS the value.
  */
 
 import React, { useState, useEffect } from 'react';
 
 interface NetworkMetrics {
-  total_value: number;
   transaction_count: number;
   active_communities: number;
   active_members: number;
-  by_category: Record<string, number>;
   period_type: string;
   period_start: string;
   period_end: string;
@@ -38,14 +36,28 @@ export const NetworkImpactWidget: React.FC<NetworkImpactWidgetProps> = ({
     setError(null);
 
     try {
-      const response = await fetch(
-        `/leakage-metrics/network?period_type=${periodType}`
-      );
-
+      // Fetch exchange counts from the exchanges API
+      const response = await fetch('/vf/exchanges');
       const data = await response.json();
 
-      if (data.found) {
-        setMetrics(data.metrics);
+      if (data.exchanges) {
+        // Count exchanges and active participants
+        const exchanges = data.exchanges;
+        const uniqueAgents = new Set<string>();
+
+        exchanges.forEach((ex: any) => {
+          if (ex.provider_id) uniqueAgents.add(ex.provider_id);
+          if (ex.receiver_id) uniqueAgents.add(ex.receiver_id);
+        });
+
+        setMetrics({
+          transaction_count: exchanges.length,
+          active_members: uniqueAgents.size,
+          active_communities: 1, // TODO: Count actual communities
+          period_type: periodType,
+          period_start: '',
+          period_end: '',
+        });
       } else {
         setMetrics(null);
       }
@@ -77,20 +89,11 @@ export const NetworkImpactWidget: React.FC<NetworkImpactWidgetProps> = ({
   if (!metrics) {
     return (
       <div className="network-impact-widget no-data">
-        <h3>Network Impact</h3>
-        <p>No network-wide data yet.</p>
+        <h3>Network Aliveness</h3>
+        <p>No exchanges yet. Start sharing!</p>
       </div>
     );
   }
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   const formatLargeNumber = (num: number) => {
     if (num >= 1_000_000) {
@@ -104,18 +107,18 @@ export const NetworkImpactWidget: React.FC<NetworkImpactWidgetProps> = ({
   return (
     <div className="network-impact-widget">
       <div className="header">
-        <h3>Network-Wide Impact</h3>
+        <h3>Network Aliveness</h3>
         <p className="subtitle">
-          Together, we're building real alternatives
+          The exchange IS the celebration. No counting needed.
         </p>
       </div>
 
       <div className="hero-stat">
         <div className="big-number">
-          {formatCurrency(metrics.total_value)}
+          {formatLargeNumber(metrics.transaction_count)}
         </div>
         <div className="label">
-          Kept out of extractive systems this {periodType}
+          Exchanges this {periodType}
         </div>
       </div>
 
@@ -142,27 +145,24 @@ export const NetworkImpactWidget: React.FC<NetworkImpactWidgetProps> = ({
       </div>
 
       <div className="impact-message">
-        <h4>What This Means</h4>
+        <h4>Is the Network Alive?</h4>
         <div className="impact-facts">
           <div className="fact">
             <span className="bullet">•</span>
             <span className="text">
-              ${formatLargeNumber(metrics.total_value)} that didn't enrich
-              shareholders
+              {metrics.transaction_count > 0 ? 'Yes - exchanges happening!' : 'Quiet - start sharing!'}
             </span>
           </div>
           <div className="fact">
             <span className="bullet">•</span>
             <span className="text">
-              {formatLargeNumber(metrics.transaction_count)} acts of mutual aid
-              instead of market transactions
+              {formatLargeNumber(metrics.active_members)} people participating
             </span>
           </div>
           <div className="fact">
             <span className="bullet">•</span>
             <span className="text">
-              {formatLargeNumber(metrics.active_members)} people building
-              economic autonomy
+              Community is {metrics.transaction_count > 10 ? 'thriving' : metrics.transaction_count > 0 ? 'growing' : 'just starting'}
             </span>
           </div>
         </div>
@@ -173,6 +173,10 @@ export const NetworkImpactWidget: React.FC<NetworkImpactWidgetProps> = ({
           Every exchange is a prefiguration of the world we're building. A
           world where we take care of each other, not because there's profit in
           it, but because we're all we've got.
+        </p>
+        <p className="philosophy-note">
+          We don't track dollar values. The gift is the point. Carol doesn't need
+          celebration - she was there, she got the joy of sharing.
         </p>
       </div>
     </div>

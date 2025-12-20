@@ -101,10 +101,14 @@ async def get_upcoming_exchanges(agent_id: str = None):
 async def complete_exchange(
     exchange_id: str,
     agent_id: str,
-    event_id: str,
-    estimated_value: float = None
+    event_id: str
 ):
-    """Mark exchange as completed by one party and track economic value"""
+    """
+    Mark exchange as completed by one party.
+
+    Note: Anti-Reputation Capitalism - we no longer track dollar values.
+    The exchange is the celebration. The gift is the point.
+    """
     try:
         db = get_database()
         db.connect()
@@ -125,28 +129,8 @@ async def complete_exchange(
             raise HTTPException(status_code=403, detail="Not authorized")
 
         # Update status if both completed
-        was_just_completed = not exchange.is_completed()
         if exchange.is_completed():
             exchange.status = "completed"
-
-            # Track economic value when exchange is fully completed
-            # (Import here to avoid circular dependencies)
-            from ...services.value_estimation_service import ValueEstimationService
-            from ...repositories.leakage_metrics_repo import LeakageMetricsRepository
-
-            value_service = ValueEstimationService(db.conn)
-            metrics_repo = LeakageMetricsRepository(db.conn)
-
-            # Check if value already exists
-            existing_value = metrics_repo.find_by_exchange_id(exchange.id)
-
-            if not existing_value:
-                # Estimate and save value
-                exchange_value = value_service.estimate_exchange_value(
-                    exchange,
-                    user_input_value=estimated_value
-                )
-                metrics_repo.create_exchange_value(exchange_value)
 
         updated_exchange = exchange_repo.update(exchange)
 

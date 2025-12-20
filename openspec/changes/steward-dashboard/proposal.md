@@ -31,9 +31,9 @@ A dedicated dashboard for cell stewards that provides visibility and control.
 │                                                      │
 │  📊 THIS WEEK                                        │
 │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐   │
-│  │ 12      │ │ 8       │ │ 5       │ │ $2,340  │   │
-│  │ Members │ │ Offers  │ │ Matches │ │ Kept    │   │
-│  │ (+2)    │ │ Active  │ │ Made    │ │ Local   │   │
+│  │ 12      │ │ 8       │ │ 5       │ │ 7       │   │
+│  │ Members │ │ Offers  │ │ Matches │ │ Exchanges│   │
+│  │ (+2)    │ │ Active  │ │ Made    │ │ Complete │   │
 │  └─────────┘ └─────────┘ └─────────┘ └─────────┘   │
 │                                                      │
 │  ⚡ NEEDS ATTENTION                                  │
@@ -49,9 +49,9 @@ A dedicated dashboard for cell stewards that provides visibility and control.
 │  • Bob and Carol completed exchange (yesterday)     │
 │  • New member: Dave (vouched by Alice)              │
 │                                                      │
-│  🎉 CELEBRATIONS                                     │
-│  • Carol hit 10 exchanges this month!               │
-│  • Cell reached $5,000 total value circulated!      │
+│  🎉 GOOD VIBES                                       │
+│  • 3 new members joined this week                   │
+│  • First exchange between Downtown and Riverside!   │
 │                                                      │
 └─────────────────────────────────────────────────────┘
 ```
@@ -115,16 +115,16 @@ The system SHALL help stewards notice members who haven't participated recently.
 - Time spent in app
 - "Last active" timestamps
 
-### Requirement: Celebration Features
+### Requirement: Good Vibes Display
 
-The system SHALL highlight wins.
+The system SHALL highlight community moments (not individual achievements).
 
-#### Scenario: Milestone Celebration
-- GIVEN Carol completed her 10th exchange
+#### Scenario: Community Moments
+- GIVEN something good happened (new member, cross-cell connection)
 - WHEN stewards view the dashboard
-- THEN they see a celebration banner
-- AND they can send Carol a kudos message
-- AND the Joy Agent may trigger a group celebration
+- THEN they see the moment noted
+- AND focus is on community, not individual "scores"
+- NOTE: No gamification of exchanges. Carol got her reward from the exchange itself.
 
 ### Requirement: Cross-Cell Visibility
 
@@ -145,7 +145,7 @@ The system SHALL show stewards what's happening in adjacent cells.
 4. [ ] Create join request management flow
 5. [ ] Build proposal queue for stewards
 6. [ ] Add member participation tracking (offers/needs/exchanges only - no login tracking)
-7. [ ] Create celebration/milestone system
+7. [ ] Create good vibes display (community moments, NOT individual gamification)
 8. [ ] Build regional/cross-cell view
 9. [ ] Add cell settings management
 10. [ ] Implement steward messaging tools
@@ -167,5 +167,5 @@ The system SHALL show stewards what's happening in adjacent cells.
 - [ ] Steward can see cell health in <5 seconds
 - [ ] Join requests are processed through dashboard
 - [ ] Proposals are visible and actionable
-- [ ] Celebrations are surfaced automatically
+- [ ] Community moments are visible (no individual gamification)
 - [ ] Cross-cell opportunities are visible

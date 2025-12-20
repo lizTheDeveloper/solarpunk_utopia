@@ -2,10 +2,18 @@
 
 **Submitted By:** Liz / Antigravity
 **Date:** 2025-12-18
-**Status:** ✅ IMPLEMENTED
+**Status:** ⚠️ SUPERSEDED by anti-reputation-capitalism
 **Complexity:** 2 systems
 **Timeline:** WORKSHOP REQUIRED
 **Implemented:** 2025-12-19
+**Superseded:** 2025-12-20
+
+> **WARNING:** This proposal has been superseded. See `changes/anti-reputation-capitalism/proposal.md`
+>
+> Tracking dollar values of exchanges creates reputation capitalism. The exchange IS the reward.
+> Carol doesn't need "$X kept in community" - she already got the value of the exchange.
+>
+> What remains: Optional "stats for nerds" with rough aggregate estimates, not per-exchange tracking.
 
 ## Problem Statement
 

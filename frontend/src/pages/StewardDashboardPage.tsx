@@ -135,9 +135,9 @@ export function StewardDashboardPage() {
               color="purple"
             />
             <MetricCard
-              icon={TrendingUp}
-              label="Value Kept Local"
-              value={`$${dashboardData.metrics.value_kept_local.toLocaleString()}`}
+              icon={Heart}
+              label="Exchanges This Week"
+              value={dashboardData.metrics.exchanges_this_week || 0}
               color="yellow"
             />
           </div>
