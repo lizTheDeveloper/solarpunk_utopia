@@ -28,13 +28,23 @@ from app.models.rapid_response import (
     WATCH_ALERT_MIN_TRUST,
 )
 from app.database.rapid_response_repository import RapidResponseRepository
+from app.services.bundle_service import BundleService
+from app.services.crypto_service import CryptoService
+from app.models import BundleCreate
+from app.models.priority import Priority, Audience, Topic
 
 
 class RapidResponseService:
     """Service for rapid response coordination."""
 
-    def __init__(self, db_path: str):
+    def __init__(self, db_path: str, bundle_service: Optional[BundleService] = None):
         self.repo = RapidResponseRepository(db_path)
+        # Initialize bundle service for mesh propagation
+        if bundle_service is None:
+            crypto_service = CryptoService()
+            self.bundle_service = BundleService(crypto_service)
+        else:
+            self.bundle_service = bundle_service
 
     # ===== Alert Management =====
 
@@ -112,26 +122,23 @@ class RapidResponseService:
         # Create high-priority bundle
         bundle_create = BundleCreate(
             payload=payload,
-            payload_type="rapid:Alert",
+            payloadType="rapid:Alert",
             priority=priority,
             audience=Audience.TRUSTED,  # Only high-trust members
             topic=Topic.COORDINATION,
             tags=["rapid-response", alert.alert_type.value, alert.alert_level.value],
             hopLimit=30,  # Allow wide propagation
-            ttl_hours=6 if alert.alert_level == AlertLevel.CRITICAL else 24
         )
 
         # Create DTN bundle for mesh propagation
-        import hashlib
-        bundle_data = f"{alert.id}:{alert.alert_type.value}:{alert.created_at.isoformat()}"
-        bundle_hash = hashlib.sha256(bundle_data.encode()).hexdigest()[:16]
-        bundle_id = f"dtn://mesh/alerts/{alert.id}:{bundle_hash}"
+        # BundleService will:
+        # 1. Sign the bundle
+        # 2. Calculate content-addressed bundleId
+        # 3. Queue for propagation via mesh sync worker
+        import asyncio
+        bundle = asyncio.run(self.bundle_service.create_bundle(bundle_create))
 
-        # TODO: Integrate with WiFi Direct/Bluetooth mesh for actual propagation
-        # Bundle is queued for propagation via mesh sync worker
-        # This is a real, trackable bundle ID (not a placeholder)
-
-        return bundle_id
+        return bundle.bundleId
 
     def get_alert(self, alert_id: str) -> Optional[RapidAlert]:
         """Get an alert by ID."""

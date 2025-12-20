@@ -28,7 +28,13 @@ from app.models.panic import (
     WIPE_DATA_TYPES,
 )
 from app.database.panic_repository import PanicRepository
-from app.crypto import encrypt_seed_phrase, decrypt_seed_phrase, secure_wipe_key
+from app.crypto.encryption import (
+    derive_ed25519_from_seed_phrase,
+    generate_bip39_seed_phrase,
+    encrypt_seed_phrase,
+    decrypt_seed_phrase,
+    secure_wipe_key,
+)
 
 
 class PanicService:
@@ -348,29 +354,7 @@ class PanicService:
 
         This is used for identity recovery after wipe.
         """
-        # Simple implementation - in production, use proper BIP39 library
-        # For now, generate 12 random words from a wordlist
-
-        # BIP39 wordlist (simplified - first 100 words for demo)
-        wordlist = [
-            "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract",
-            "absurd", "abuse", "access", "accident", "account", "accuse", "achieve", "acid",
-            "acoustic", "acquire", "across", "act", "action", "actor", "actress", "actual",
-            "adapt", "add", "addict", "address", "adjust", "admit", "adult", "advance",
-            "advice", "aerobic", "affair", "afford", "afraid", "again", "age", "agent",
-            "agree", "ahead", "aim", "air", "airport", "aisle", "alarm", "album",
-            "alcohol", "alert", "alien", "all", "alley", "allow", "almost", "alone",
-            "alpha", "already", "also", "alter", "always", "amateur", "amazing", "among",
-            "amount", "amused", "analyst", "anchor", "ancient", "anger", "angle", "angry",
-            "animal", "ankle", "announce", "annual", "another", "answer", "antenna", "antique",
-            "anxiety", "any", "apart", "apology", "appear", "apple", "approve", "april",
-            "arch", "arctic", "area", "arena", "argue", "arm", "armed", "armor",
-            "army", "around", "arrange", "arrest", "arrive", "arrow", "art", "artefact"
-        ]
-
-        # Generate 12 random words
-        words = [secrets.choice(wordlist) for _ in range(12)]
-        return " ".join(words)
+        return generate_bip39_seed_phrase(word_count=12)
 
     def encrypt_seed_phrase_service(self, seed_phrase: str, password: str) -> str:
         """Encrypt seed phrase with user password using AES-256-GCM.
@@ -406,14 +390,22 @@ class PanicService:
 
         This regenerates Ed25519 keys from the seed phrase.
 
+        Args:
+            seed_phrase: 12 or 24 word BIP39 mnemonic phrase
+
         Returns:
-            Dictionary with 'public_key' and 'private_key'
+            Dictionary with 'public_key' and 'private_key' (base64 encoded)
+
+        Raises:
+            ValueError: If seed phrase is invalid
         """
-        # TODO: Implement proper BIP39 -> Ed25519 derivation
-        # For now, return placeholder
+        # Derive Ed25519 keypair from BIP39 seed phrase
+        private_key_bytes, public_key_bytes = derive_ed25519_from_seed_phrase(seed_phrase)
+
+        # Encode to base64 for storage/transmission
         return {
-            "public_key": "placeholder_public_key",
-            "private_key": "placeholder_private_key"
+            "public_key": base64.b64encode(public_key_bytes).decode('utf-8'),
+            "private_key": base64.b64encode(private_key_bytes).decode('utf-8')
         }
 
     # ===== Status / Info Methods =====

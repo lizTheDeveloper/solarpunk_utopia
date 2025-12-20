@@ -13,6 +13,8 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 from app.services.rapid_response_service import RapidResponseService
+from app.services.web_of_trust_service import WebOfTrustService
+from app.database.vouch_repository import VouchRepository
 from app.auth.middleware import get_current_user, require_admin_key
 from app.models.rapid_response import (
     AlertLevel,
@@ -92,13 +94,20 @@ def get_rapid_response_service() -> RapidResponseService:
     return RapidResponseService(db_path="data/solarpunk.db")
 
 
+def get_trust_service() -> WebOfTrustService:
+    """Get web of trust service instance."""
+    vouch_repo = VouchRepository(db_path="data/solarpunk.db")
+    return WebOfTrustService(vouch_repo=vouch_repo)
+
+
 # ===== Alert Endpoints =====
 
 @router.post("/alerts/trigger")
 async def trigger_alert(
     request: TriggerAlertRequest,
     user_id: str = Depends(get_current_user),
-    service: RapidResponseService = Depends(get_rapid_response_service)
+    service: RapidResponseService = Depends(get_rapid_response_service),
+    trust_service: WebOfTrustService = Depends(get_trust_service)
 ):
     """Trigger a rapid response alert (BIG RED BUTTON).
 
@@ -112,8 +121,9 @@ async def trigger_alert(
     - URGENT: trust >= 0.5
     - WATCH: trust >= 0.3
     """
-    # TODO: Get user's actual trust score
-    user_trust = 0.9  # Placeholder
+    # Get user's actual trust score from Web of Trust
+    trust_score = trust_service.compute_trust_score(user_id)
+    user_trust = trust_score.computed_trust
 
     # TODO: Get coordinates if requested
     coordinates = None

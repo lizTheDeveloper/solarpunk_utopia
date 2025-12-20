@@ -5,8 +5,10 @@ import { ErrorMessage } from '@/components/ErrorMessage';
 import { discoverResources, DiscoveryResult, DiscoveryFilters } from '@/api/interCommunitySharing';
 import { RESOURCE_CATEGORIES } from '@/utils/categories';
 import { Globe, Filter, TrendingUp } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function NetworkResourcesPage() {
+  const { user, isAuthenticated } = useAuth();
   const [results, setResults] = useState<DiscoveryResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,11 +21,16 @@ export function NetworkResourcesPage() {
   const [showFilters, setShowFilters] = useState(false);
 
   const handleDiscover = async () => {
+    if (!user?.id) {
+      setError('Please log in to discover resources');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     const filters: DiscoveryFilters = {
-      user_id: 'current-user', // TODO: Get from auth context
+      user_id: user.id,
       resource_type: resourceType || undefined,
       category: category || undefined,
       max_distance_km: maxDistance,

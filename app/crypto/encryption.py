@@ -4,17 +4,21 @@ This module provides actual cryptographic functions for:
 - E2E message encryption (X25519 + XSalsa20-Poly1305)
 - Seed phrase encryption (AES-256-GCM + Argon2)
 - Secure key deletion
+- BIP39 seed phrase to Ed25519 key derivation
 
 Replaces placeholder Base64 "encryption" with real crypto.
 """
 import os
 import ctypes
+import hashlib
 from typing import Tuple
 from nacl.public import PrivateKey, PublicKey, Box
+from nacl.signing import SigningKey
 from nacl.utils import random as nacl_random
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.backends import default_backend
+from mnemonic import Mnemonic
 
 
 # ===== Message Encryption (X25519 + XSalsa20-Poly1305) =====
@@ -178,3 +182,60 @@ def generate_x25519_keypair() -> Tuple[bytes, bytes]:
     public_key = private_key.public_key
 
     return bytes(private_key), bytes(public_key)
+
+
+# ===== BIP39 Seed Phrase Derivation =====
+
+def derive_ed25519_from_seed_phrase(seed_phrase: str) -> Tuple[bytes, bytes]:
+    """Derive Ed25519 signing key pair from BIP39 seed phrase
+
+    Args:
+        seed_phrase: 12 or 24 word BIP39 mnemonic phrase
+
+    Returns:
+        (private_key, public_key) tuple of 32-byte Ed25519 keys
+
+    Raises:
+        ValueError: If seed phrase is invalid
+    """
+    mnemo = Mnemonic("english")
+
+    # Validate the seed phrase
+    if not mnemo.check(seed_phrase):
+        raise ValueError("Invalid BIP39 seed phrase")
+
+    # Convert mnemonic to seed (512 bits)
+    # Using empty passphrase - could add passphrase support later
+    seed = mnemo.to_seed(seed_phrase, passphrase="")
+
+    # Derive Ed25519 key from first 32 bytes of seed
+    # This is a simplified derivation - production might use BIP32/BIP44 path
+    seed_bytes = seed[:32]
+
+    # Create Ed25519 signing key
+    signing_key = SigningKey(seed_bytes)
+    verify_key = signing_key.verify_key
+
+    return bytes(signing_key), bytes(verify_key)
+
+
+def generate_bip39_seed_phrase(word_count: int = 12) -> str:
+    """Generate a valid BIP39 seed phrase
+
+    Args:
+        word_count: Number of words (12, 15, 18, 21, or 24)
+
+    Returns:
+        BIP39 mnemonic phrase
+
+    Raises:
+        ValueError: If word_count is invalid
+    """
+    if word_count not in [12, 15, 18, 21, 24]:
+        raise ValueError("word_count must be 12, 15, 18, 21, or 24")
+
+    # Calculate strength in bits: 128, 160, 192, 224, or 256
+    strength = (word_count * 11) - (word_count // 3)
+
+    mnemo = Mnemonic("english")
+    return mnemo.generate(strength=strength)
