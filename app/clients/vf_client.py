@@ -350,3 +350,68 @@ class VFClient:
             })
 
         return results
+
+    async def get_commitments(
+        self,
+        agent_id: Optional[str] = None,
+        status: Optional[str] = None,
+        plan_id: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Get commitments (promises to do work or deliver resources).
+
+        Args:
+            agent_id: Filter by agent who made commitment
+            status: Filter by status (proposed, accepted, in_progress, fulfilled, cancelled)
+            plan_id: Filter by plan
+
+        Returns:
+            List of commitment dictionaries
+        """
+        self.connect()
+
+        # Build query
+        query = "SELECT * FROM commitments WHERE 1=1"
+        params = []
+
+        if agent_id:
+            query += " AND agent_id = ?"
+            params.append(agent_id)
+
+        if status:
+            query += " AND status = ?"
+            params.append(status)
+
+        if plan_id:
+            query += " AND plan_id = ?"
+            params.append(plan_id)
+
+        query += " ORDER BY due_date"
+
+        cursor = self.conn.cursor()
+        rows = cursor.execute(query, tuple(params)).fetchall()
+
+        # Convert to dictionaries with denormalized data
+        results = []
+        for row in rows:
+            row_dict = dict(row)
+            agent = self._get_agent(row_dict["agent_id"])
+            resource_spec = self._get_resource_spec(row_dict["resource_spec_id"]) if row_dict.get("resource_spec_id") else None
+
+            results.append({
+                "id": row_dict["id"],
+                "agent_id": row_dict["agent_id"],
+                "agent_name": agent.get("name") if agent else "Unknown",
+                "action": row_dict["action"],
+                "resource": resource_spec.get("name") if resource_spec else None,
+                "quantity": row_dict.get("quantity"),
+                "unit": row_dict.get("unit"),
+                "due_date": row_dict.get("due_date"),
+                "status": row_dict.get("status"),
+                "plan_id": row_dict.get("plan_id"),
+                "exchange_id": row_dict.get("exchange_id"),
+                "note": row_dict.get("note"),
+                "created_at": row_dict.get("created_at"),
+            })
+
+        return results

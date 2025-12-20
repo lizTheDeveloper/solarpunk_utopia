@@ -155,57 +155,43 @@ class WorkPartyScheduler(BaseAgent):
         """
         Get participants available for plan work party.
 
+        Queries real commitments from VF database to find participants
+        who have committed time and have relevant skills.
+
         Returns:
             List of participants with availability and skills
         """
-        # TODO: Query actual participant availability from VF Commitments
-        # For now, return mock data
-        return [
-            {
-                "user_id": "alice",
-                "user_name": "Alice",
-                "skills": ["gardening", "permaculture"],
-                "availability": [
-                    datetime(2025, 12, 21, 9, 0),
-                    datetime(2025, 12, 21, 14, 0),
-                    datetime(2025, 12, 22, 9, 0),
-                ],
-            },
-            {
-                "user_id": "bob",
-                "user_name": "Bob",
-                "skills": ["gardening", "digging"],
-                "availability": [
-                    datetime(2025, 12, 21, 9, 0),
-                ],
-            },
-            {
-                "user_id": "carol",
-                "user_name": "Carol",
-                "skills": ["gardening"],
-                "availability": [
-                    datetime(2025, 12, 21, 9, 0),
-                    datetime(2025, 12, 21, 14, 0),
-                ],
-            },
-            {
-                "user_id": "dave",
-                "user_name": "Dave",
-                "skills": ["permaculture", "landscaping"],
-                "availability": [
-                    datetime(2025, 12, 21, 9, 0),
-                ],
-            },
-            {
-                "user_id": "eve",
-                "user_name": "Eve",
-                "skills": ["gardening", "digging"],
-                "availability": [
-                    datetime(2025, 12, 21, 9, 0),
-                    datetime(2025, 12, 22, 9, 0),
-                ],
-            },
-        ]
+        # Query commitments with status 'accepted' (people committed to help)
+        commitments = await self.vf.get_commitments(
+            status="accepted",
+            plan_id=plan.get("id")
+        )
+
+        # Group commitments by agent
+        participants_map = {}
+        for commitment in commitments:
+            agent_id = commitment["agent_id"]
+            if agent_id not in participants_map:
+                participants_map[agent_id] = {
+                    "user_id": agent_id,
+                    "user_name": commitment["agent_name"],
+                    "skills": [],  # Would need to query agent skills from separate table
+                    "availability": [],
+                }
+
+            # Add due date as availability slot
+            if commitment.get("due_date"):
+                try:
+                    due_date = datetime.fromisoformat(commitment["due_date"])
+                    participants_map[agent_id]["availability"].append(due_date)
+                except:
+                    pass
+
+        # Convert map to list
+        participants = list(participants_map.values())
+
+        # If no real commitments found, return empty list (was mock data before)
+        return participants
 
     async def _propose_work_party(
         self,

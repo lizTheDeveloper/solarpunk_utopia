@@ -71,26 +71,51 @@ class PermaculturePlanner(BaseAgent):
         Returns:
             List of goals needing planning
         """
-        # TODO: Query actual VF goals
-        # For now, return mock data
-        return [
-            {
-                "id": "goal:food-forest-2025",
-                "name": "Establish Food Forest",
-                "description": "Create productive food forest with 20 fruit trees and guild plantings",
-                "target_completion": datetime(2025, 4, 30),
-                "constraints": ["organic methods only", "native species preferred"],
-                "bundle_id": "bundle:goal-food-forest",
-            },
-            {
-                "id": "goal:seed-saving-2025",
-                "name": "Seed Saving Program",
-                "description": "Establish community seed library with saved heirloom seeds",
-                "target_completion": datetime(2025, 10, 31),
-                "constraints": ["heirloom varieties", "open-pollinated"],
-                "bundle_id": "bundle:goal-seed-saving",
-            },
-        ]
+        if not self.vf:
+            return []
+
+        try:
+            # Try to query goals table if it exists
+            # NOTE: goals table doesn't exist yet in VF schema
+            # When it's added, this will automatically start working
+            self.vf.connect()
+            cursor = self.vf.conn.cursor()
+
+            # Check if goals table exists
+            table_check = cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='goals'"
+            ).fetchone()
+
+            if not table_check:
+                # Goals table doesn't exist yet
+                return []
+
+            # Query goals without associated plans
+            rows = cursor.execute("""
+                SELECT g.*
+                FROM goals g
+                LEFT JOIN plans p ON p.goal_id = g.id
+                WHERE p.id IS NULL
+                ORDER BY g.target_completion
+            """).fetchall()
+
+            results = []
+            for row in rows:
+                row_dict = dict(row)
+                results.append({
+                    "id": row_dict["id"],
+                    "name": row_dict.get("name", "Unnamed Goal"),
+                    "description": row_dict.get("description", ""),
+                    "target_completion": datetime.fromisoformat(row_dict["target_completion"]) if row_dict.get("target_completion") else None,
+                    "constraints": [],  # Would need to parse from JSON field if exists
+                    "bundle_id": f"bundle:goal-{row_dict['id']}",
+                })
+
+            return results
+
+        except Exception as e:
+            logger.warning(f"Could not query goals table (may not exist yet): {e}")
+            return []
 
     async def _generate_seasonal_plan(self, goal: Dict[str, Any]) -> Optional[Proposal]:
         """
