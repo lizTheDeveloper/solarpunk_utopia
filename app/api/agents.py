@@ -34,6 +34,9 @@ from app.agents import (
     PermaculturePlanner,
     EducationPathfinder,
     InventoryAgent,
+    ConquestOfBreadAgent,
+    ConscientizationAgent,
+    CounterPowerAgent,
 )
 
 
@@ -248,6 +251,9 @@ async def get_all_agent_settings() -> Dict[str, AgentSettingsResponse]:
         "permaculture-planner": PermaculturePlanner,
         "education-pathfinder": EducationPathfinder,
         "inventory-agent": InventoryAgent,
+        "conquest-of-bread": ConquestOfBreadAgent,
+        "conscientization": ConscientizationAgent,
+        "counter-power": CounterPowerAgent,
     }
 
     settings = {}
@@ -279,6 +285,9 @@ async def get_agent_settings(agent_name: str) -> AgentSettingsResponse:
         "permaculture-planner": PermaculturePlanner,
         "education-pathfinder": EducationPathfinder,
         "inventory-agent": InventoryAgent,
+        "conquest-of-bread": ConquestOfBreadAgent,
+        "conscientization": ConscientizationAgent,
+        "counter-power": CounterPowerAgent,
     }
 
     agent_class = agent_classes.get(agent_name)
@@ -323,6 +332,9 @@ async def update_agent_settings(
         "permaculture-planner",
         "education-pathfinder",
         "inventory-agent",
+        "conquest-of-bread",
+        "conscientization",
+        "counter-power",
     ]:
         raise HTTPException(status_code=404, detail=f"Agent {agent_name} not found")
 
@@ -368,6 +380,9 @@ async def get_all_agent_stats() -> Dict[str, AgentStatsResponse]:
         "permaculture-planner",
         "education-pathfinder",
         "inventory-agent",
+        "conquest-of-bread",
+        "conscientization",
+        "counter-power",
     ]
 
     stats = {}
@@ -410,6 +425,9 @@ async def get_agent_stats(agent_name: str) -> AgentStatsResponse:
         "permaculture-planner",
         "education-pathfinder",
         "inventory-agent",
+        "conquest-of-bread",
+        "conscientization",
+        "counter-power",
     ]:
         raise HTTPException(status_code=404, detail=f"Agent {agent_name} not found")
 
@@ -445,6 +463,9 @@ async def run_agent_manually(agent_name: str) -> Dict:
         "permaculture-planner": PermaculturePlanner,
         "education-pathfinder": EducationPathfinder,
         "inventory-agent": InventoryAgent,
+        "conquest-of-bread": ConquestOfBreadAgent,
+        "conscientization": ConscientizationAgent,
+        "counter-power": CounterPowerAgent,
     }
 
     agent_class = agent_classes.get(agent_name)
@@ -498,6 +519,9 @@ async def run_agent(agent_name: str, context: Optional[Dict] = None) -> Dict:
         "permaculture-planner": PermaculturePlanner,
         "education-pathfinder": EducationPathfinder,
         "inventory-agent": InventoryAgent,
+        "conquest-of-bread": ConquestOfBreadAgent,
+        "conscientization": ConscientizationAgent,
+        "counter-power": CounterPowerAgent,
     }
 
     agent_class = agent_classes.get(agent_name)
@@ -601,6 +625,21 @@ async def list_agents() -> Dict:
             "type": "unused_resource_matcher",
             "name": "Inventory Agent",
             "description": "Tracks and optimizes community resource inventory"
+        },
+        "conquest-of-bread": {
+            "type": "economic_mode_manager",
+            "name": "Conquest of Bread",
+            "description": "Toggles between abundance (Common Heap) and rationing modes based on resource levels"
+        },
+        "conscientization": {
+            "type": "learning_to_action_bridge",
+            "name": "Conscientization",
+            "description": "Bridges gap between learning content and taking action through resource matching and mentor connections"
+        },
+        "counter-power": {
+            "type": "power_asymmetry_detector",
+            "name": "Counter-Power",
+            "description": "Detects and alerts on centralization, resource hoarding, and power accumulation"
         },
     }
 
