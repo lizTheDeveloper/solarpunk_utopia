@@ -115,6 +115,7 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
         # Allow environment variables to override
         case_sensitive = False
+        extra = "ignore"  # Ignore extra env vars (e.g., NATS_*, MATRIX_*, etc.)
 
 
 # Singleton settings instance

@@ -14,10 +14,10 @@ import sys
 # Add valueflows_node to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.services.signing_service import SigningService
-from app.models.vf.listing import Listing, ListingType
-from app.models.vf.agent import Agent, AgentType
-from app.models.vf.location import Location
+from valueflows_node.app.services.signing_service import SigningService
+from valueflows_node.app.models.vf.listing import Listing, ListingType
+from valueflows_node.app.models.vf.agent import Agent, AgentType
+from valueflows_node.app.models.vf.location import Location
 
 
 @pytest.fixture
