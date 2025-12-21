@@ -1,8 +1,8 @@
 # GAP-55: Frontend Agent List Empty
 
-**Status:** Draft
+**Status:** ✅ Implemented
 **Priority:** P3 - Bug Fix
-**Effort:** 1-2 hours
+**Effort:** 1-2 hours (Actual: 1 hour)
 
 ## Problem
 
@@ -43,7 +43,25 @@ Frontend shows empty agent list. Either API route wrong or data not loading.
 3. Verify data exists
 4. Fix whatever's broken
 
+## Solution Implemented
+
+**Root Cause:** Backend endpoint `/api/agents` returned only agent names (strings), but frontend expected full Agent objects with metadata.
+
+**Fix:**
+1. Enhanced backend endpoint (`app/api/agents.py:558-634`) to:
+   - Fetch agent settings from AgentSettingsRepository
+   - Fetch agent stats from AgentStatsRepository
+   - Return full agent objects with: id, type, name, description, enabled, opt_in, last_run, config
+2. Updated frontend API client (`frontend/src/api/agents.ts:17-21`) to:
+   - Actually use the response data instead of returning empty array
+   - Remove TODO comment
+
+**Files Changed:**
+- `app/api/agents.py` - Enhanced `list_agents()` endpoint
+- `frontend/src/api/agents.ts` - Fixed `getAgents()` to return actual data
+
 ## Success Criteria
 
-- [ ] Agent list renders in frontend
-- [ ] API returns actual agent data
+- [x] Agent list renders in frontend
+- [x] API returns actual agent data with full metadata
+- [x] Settings and stats integrated from repositories

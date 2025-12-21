@@ -15,10 +15,9 @@ const api = axios.create({
 export const agentsApi = {
   // Get all agents
   getAgents: async (): Promise<Agent[]> => {
-    await api.get<{ agents: string[]; total: number }>('');
-    // Backend returns {agents: [...], total: N}, need to transform
-    // For now, return empty array - proper implementation needs agent list endpoint
-    return [];
+    const response = await api.get<{ agents: Agent[]; total: number }>('');
+    // GAP-55: Backend now returns full agent objects with metadata
+    return response.data.agents;
   },
 
   // Get specific agent settings

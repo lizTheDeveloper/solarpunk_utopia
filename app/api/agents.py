@@ -558,21 +558,77 @@ async def approve_agent_proposal(
 @router.get("")
 async def list_agents() -> Dict:
     """
-    List all available agents.
+    List all available agents with full metadata.
 
-    Returns list of agent names that can be executed.
+    Returns list of agent objects with configuration and stats.
+    GAP-55: Enhanced to return full agent details instead of just names.
     """
-    agent_names = [
-        "commons-router",
-        "mutual-aid-matchmaker",
-        "perishables-dispatcher",
-        "work-party-scheduler",
-        "permaculture-planner",
-        "education-pathfinder",
-        "inventory-agent",
-    ]
+    from app.database.agent_settings_repository import AgentSettingsRepository
+    from app.database.agent_stats_repository import AgentStatsRepository
+
+    agent_configs = {
+        "commons-router": {
+            "type": "unused_resource_matcher",
+            "name": "Commons Router",
+            "description": "Matches unused resources with community needs"
+        },
+        "mutual-aid-matchmaker": {
+            "type": "unused_resource_matcher",
+            "name": "Mutual Aid Matchmaker",
+            "description": "Connects people who can help with those who need help"
+        },
+        "perishables-dispatcher": {
+            "type": "resource_lifespan_tracker",
+            "name": "Perishables Dispatcher",
+            "description": "Ensures perishable resources are used before expiration"
+        },
+        "work-party-scheduler": {
+            "type": "need_aggregator",
+            "name": "Work Party Scheduler",
+            "description": "Coordinates group work sessions for large tasks"
+        },
+        "permaculture-planner": {
+            "type": "seasonal_need_predictor",
+            "name": "Permaculture Planner",
+            "description": "Plans seasonal growing and harvesting cycles"
+        },
+        "education-pathfinder": {
+            "type": "knowledge_sharer",
+            "name": "Education Pathfinder",
+            "description": "Connects learners with teachers and resources"
+        },
+        "inventory-agent": {
+            "type": "unused_resource_matcher",
+            "name": "Inventory Agent",
+            "description": "Tracks and optimizes community resource inventory"
+        },
+    }
+
+    settings_repo = AgentSettingsRepository()
+    stats_repo = AgentStatsRepository()
+
+    agents = []
+    for agent_name, config in agent_configs.items():
+        # Get settings (enabled status, config)
+        settings = await settings_repo.get_settings(agent_name) or {"enabled": True}
+
+        # Get stats (last run, etc)
+        stats = await stats_repo.get_stats(agent_name)
+
+        agents.append({
+            "id": agent_name,
+            "type": config["type"],
+            "name": config["name"],
+            "description": config["description"],
+            "enabled": settings.get("enabled", True),
+            "opt_in": settings.get("opt_in", True),
+            "last_run": stats.last_run.isoformat() if stats and stats.last_run else None,
+            "next_scheduled_run": None,  # TODO: implement scheduling
+            "run_interval_seconds": settings.get("check_interval_seconds", 3600),
+            "config": settings
+        })
 
     return {
-        "agents": agent_names,
-        "total": len(agent_names)
+        "agents": agents,
+        "total": len(agents)
     }
