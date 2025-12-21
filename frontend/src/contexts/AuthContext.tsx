@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (storedToken && storedUser) {
         try {
           // Verify token is still valid
-          const response = await axios.get('/api/agents/auth/me', {
+          const response = await axios.get('/api/dtn/auth/me', {
             headers: { Authorization: `Bearer ${storedToken}` }
           });
 
@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (name: string) => {
     try {
-      const response = await axios.post('/api/agents/auth/register', { name });
+      const response = await axios.post('/api/dtn/auth/register', { name });
       const { user: newUser, token: newToken } = response.data;
 
       setUser(newUser);

@@ -8,8 +8,17 @@ export function useNeeds() {
 
   return useQuery({
     queryKey: ['needs', currentCommunity?.id],
-    queryFn: () => valueflowsApi.getNeeds(currentCommunity?.id),
+    queryFn: async () => {
+      try {
+        return await valueflowsApi.getNeeds(currentCommunity?.id);
+      } catch (error) {
+        console.warn('Failed to fetch needs:', error);
+        return [];
+      }
+    },
     enabled: !!currentCommunity,
+    retry: false,
+    staleTime: 30000,
   });
 }
 

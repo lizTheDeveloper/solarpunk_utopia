@@ -12,10 +12,10 @@
  */
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import Button from '../components/Button';
-import Card from '../components/Card';
-import Loading from '../components/Loading';
-import ErrorMessage from '../components/ErrorMessage';
+import { Button } from '../components/Button';
+import { Card } from '../components/Card';
+import { Loading } from '../components/Loading';
+import { ErrorMessage } from '../components/ErrorMessage';
 
 interface Alert {
   id: string;

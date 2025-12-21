@@ -16,7 +16,14 @@ from ..models.community import (
 from ..services.community_service import get_community_service
 
 
-router = APIRouter(prefix="/communities", tags=["communities"])
+router = APIRouter(prefix="/vf/communities", tags=["communities"])
+
+
+@router.get("/public", response_model=List[Community])
+async def list_public_communities():
+    """Get all public communities (no auth required)"""
+    service = get_community_service()
+    return await service.get_public_communities()
 
 
 @router.post("", response_model=Community, status_code=201)

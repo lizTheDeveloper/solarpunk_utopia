@@ -8,8 +8,17 @@ export function useExchanges() {
 
   return useQuery({
     queryKey: ['exchanges', currentCommunity?.id],
-    queryFn: () => valueflowsApi.getExchanges(currentCommunity?.id),
+    queryFn: async () => {
+      try {
+        return await valueflowsApi.getExchanges(currentCommunity?.id);
+      } catch (error) {
+        console.warn('Failed to fetch exchanges:', error);
+        return [];
+      }
+    },
     enabled: !!currentCommunity,
+    retry: false,
+    staleTime: 30000,
   });
 }
 

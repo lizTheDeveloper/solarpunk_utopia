@@ -24,7 +24,7 @@ export function CreateOfferPage() {
   const [availableFrom, setAvailableFrom] = useState('');
   const [availableUntil, setAvailableUntil] = useState('');
   const [note, setNote] = useState('');
-  const [visibility, setVisibility] = useState<string>('trusted_network');
+  const [visibility, setVisibility] = useState<'my_cell' | 'my_community' | 'trusted_network' | 'anyone_local' | 'network_wide'>('trusted_network');
   const [errors, setErrors] = useState<string[]>([]);
 
   const selectedCategory = RESOURCE_CATEGORIES.find(cat => cat.id === category);
@@ -251,7 +251,7 @@ export function CreateOfferPage() {
           {/* Visibility */}
           <VisibilitySelector
             value={visibility}
-            onChange={setVisibility}
+            onChange={(value) => setVisibility(value as typeof visibility)}
           />
 
           {/* Notes */}

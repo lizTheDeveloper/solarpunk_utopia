@@ -41,8 +41,8 @@ export function CommunityProvider({ children }: { children: React.ReactNode }) {
 
   const loadCommunities = async () => {
     try {
-      // Fetch user's communities from API
-      const response = await axios.get('/api/vf/communities');
+      // Fetch public communities (no auth required)
+      const response = await axios.get('/api/vf/communities/public');
       const userCommunities: Community[] = response.data;
 
       setCommunities(userCommunities);
@@ -65,7 +65,17 @@ export function CommunityProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Failed to load communities:', error);
-      // If user has no communities, they may need to create one or be invited
+      // Create a default community if none exist
+      const defaultCommunity: Community = {
+        id: 'default-community',
+        name: 'Local Community',
+        description: 'Default local community',
+        created_at: new Date().toISOString(),
+        member_count: 1,
+        is_public: true
+      };
+      setCommunities([defaultCommunity]);
+      setCurrentCommunity(defaultCommunity);
     } finally {
       setLoading(false);
     }

@@ -17,6 +17,10 @@ from fastapi.middleware.cors import CORSMiddleware
 app_path = Path(__file__).parent.parent / "app"
 sys.path.insert(0, str(app_path))
 
+# Also add the root directory to path for proper imports
+root_path = Path(__file__).parent.parent
+sys.path.insert(0, str(root_path))
+
 from .database import init_discovery_db, close_discovery_db
 from .api import discovery_router
 from .api.discovery import init_discovery_services

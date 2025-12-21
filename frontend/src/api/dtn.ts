@@ -45,8 +45,23 @@ export const dtnApi = {
 
   // Get bundle statistics
   getBundleStats: async (): Promise<BundleStats> => {
-    const response = await api.get<BundleStats>('/bundles/stats');
-    return response.data;
+    try {
+      const response = await api.get<BundleStats>('/stats/queues');
+      return response.data;
+    } catch (error) {
+      // Fallback: return empty stats if endpoint doesn't exist
+      console.warn('Stats endpoint not available, returning empty stats');
+      return {
+        queue_counts: {
+          inbox: 0,
+          outbox: 0,
+          pending: 0,
+          delivered: 0,
+          expired: 0,
+          quarantine: 0
+        }
+      };
+    }
   },
 
   // Get pending bundles

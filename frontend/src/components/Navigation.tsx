@@ -1,5 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '../contexts/AuthContext';
+import axios from 'axios';
 import {
   Home,
   Gift,
@@ -30,19 +32,27 @@ const navItems = [
 ];
 
 export function Navigation() {
-  // Poll for pending proposals count every 30 seconds
-  // TODO: Replace with actual user ID from auth context
-  const userId = 'current-user';
+  const { user, token } = useAuth();
 
+  // Poll for pending proposals count every 30 seconds
   const { data: pendingData } = useQuery({
-    queryKey: ['pendingProposals', userId],
+    queryKey: ['pendingProposals', user?.id],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:8000/agents/proposals/pending/${userId}/count`);
-      if (!response.ok) return { pending_count: 0 };
-      return response.json();
+      if (!user || !token) return { pending_count: 0 };
+      
+      try {
+        const response = await axios.get('/api/dtn/agents/proposals/pending/count', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+      } catch (error) {
+        console.warn('Failed to fetch pending proposals:', error);
+        return { pending_count: 0 };
+      }
     },
     refetchInterval: 30000, // Poll every 30 seconds
     retry: false,
+    enabled: false, // Disable for now until proposals system is fixed
   });
 
   const pendingCount = pendingData?.pending_count || 0;

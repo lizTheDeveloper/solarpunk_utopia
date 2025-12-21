@@ -77,9 +77,10 @@ class VFDatabase:
                 self.conn.executescript(migration_sql)
                 self.conn.commit()
             except sqlite3.OperationalError as e:
-                # Table might already exist, that's okay
-                if "already exists" in str(e):
-                    print(f"    (Table already exists, skipping)")
+                # Table/column might already exist, that's okay
+                err_msg = str(e).lower()
+                if "already exists" in err_msg or "duplicate column" in err_msg:
+                    print(f"    (Already applied, skipping)")
                 else:
                     raise
 
