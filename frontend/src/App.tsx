@@ -4,7 +4,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { CommunityProvider } from './contexts/CommunityContext'
 import { Layout } from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
-import LoginPage from './pages/LoginPage'
+import LoginPageStyled from './pages/LoginPageStyled'
 import { HomePage } from './pages/HomePage'
 import { OffersPage } from './pages/OffersPage'
 import { NeedsPage } from './pages/NeedsPage'
@@ -72,7 +72,7 @@ function App() {
       <CommunityProvider>
         <Routes>
           {/* Public route - no auth needed */}
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPageStyled />} />
 
           {/* Onboarding route - shown after first login */}
           <Route path="/onboarding" element={<OnboardingPage />} />

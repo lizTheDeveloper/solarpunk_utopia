@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Test CSS to verify loading */
+body {
+  background-color: #f0f9ff !important;
+  font-family: system-ui, -apple-system, sans-serif !important;
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

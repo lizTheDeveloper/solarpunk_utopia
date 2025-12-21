@@ -8,8 +8,17 @@ export function useOffers() {
 
   return useQuery({
     queryKey: ['offers', currentCommunity?.id],
-    queryFn: () => valueflowsApi.getOffers(currentCommunity?.id),
+    queryFn: async () => {
+      try {
+        return await valueflowsApi.getOffers(currentCommunity?.id);
+      } catch (error) {
+        console.warn('Failed to fetch offers:', error);
+        return [];
+      }
+    },
     enabled: !!currentCommunity,
+    retry: false,
+    staleTime: 30000,
   });
 }
 

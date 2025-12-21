@@ -9,7 +9,7 @@ import { useProposals } from '@/hooks/useAgents';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Loading } from '@/components/Loading';
-import { NetworkStatus } from '@/components/NetworkStatus';
+import { NetworkStatusStyled } from '@/components/NetworkStatusStyled';
 import { OfferCard } from '@/components/OfferCard';
 import { NeedCard } from '@/components/NeedCard';
 import { ProposalCard } from '@/components/ProposalCard';
@@ -127,12 +127,17 @@ export function HomePage() {
       </div>
 
       {/* Network Status */}
-      {networkStatus && (
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Network Status</h2>
-          <NetworkStatus status={networkStatus} />
-        </div>
-      )}
+      <div>
+        <h2 style={{
+          fontSize: '1.5rem',
+          fontWeight: '700',
+          color: '#111827',
+          marginBottom: '1rem'
+        }}>
+          Network Status
+        </h2>
+        <NetworkStatusStyled />
+      </div>
 
       {/* Pending AI Proposals */}
       {pendingProposals.length > 0 && (

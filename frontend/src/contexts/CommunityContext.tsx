@@ -65,7 +65,17 @@ export function CommunityProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Failed to load communities:', error);
-      // If user has no communities, they may need to create one or be invited
+      // Create a default community if none exist
+      const defaultCommunity: Community = {
+        id: 'default-community',
+        name: 'Local Community',
+        description: 'Default local community',
+        created_at: new Date().toISOString(),
+        member_count: 1,
+        is_public: true
+      };
+      setCommunities([defaultCommunity]);
+      setCurrentCommunity(defaultCommunity);
     } finally {
       setLoading(false);
     }

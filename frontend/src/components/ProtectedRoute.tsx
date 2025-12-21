@@ -1,10 +1,7 @@
-/**
- * ProtectedRoute - Require authentication to access route
- */
-
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { LoadingSpinner } from './LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -15,11 +12,14 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f9fafb'
+      }}>
+        <LoadingSpinner size="lg" text="Initializing Solarpunk Network..." />
       </div>
     );
   }
