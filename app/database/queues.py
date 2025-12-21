@@ -1,4 +1,5 @@
 import json
+import asyncio
 from datetime import datetime, timezone
 from typing import List, Optional
 import aiosqlite
@@ -19,6 +20,22 @@ class QueueManager:
     - expired: bundles dropped due to TTL expiration
     - quarantine: bundles with invalid signatures or policy violations
     """
+
+    _lock: Optional[asyncio.Lock] = None
+
+    @classmethod
+    def _get_lock(cls) -> asyncio.Lock:
+        """Get or create the lock for the current event loop"""
+        try:
+            if cls._lock is None:
+                cls._lock = asyncio.Lock()
+            # Test if lock is still valid for current event loop
+            asyncio.get_running_loop()
+            return cls._lock
+        except RuntimeError:
+            # Different event loop, create new lock
+            cls._lock = asyncio.Lock()
+            return cls._lock
 
     @staticmethod
     def _bundle_to_row(bundle: Bundle, queue: QueueName) -> dict:
@@ -63,24 +80,46 @@ class QueueManager:
             authorPublicKey=row['authorPublicKey']
         )
 
-    @staticmethod
-    async def enqueue(queue: QueueName, bundle: Bundle) -> None:
-        """Add bundle to queue"""
-        db = await get_db()
-        row = QueueManager._bundle_to_row(bundle, queue)
+    @classmethod
+    async def enqueue(cls, queue: QueueName, bundle: Bundle) -> None:
+        """
+        Add bundle to queue.
 
-        await db.execute("""
-            INSERT OR REPLACE INTO bundles (
-                bundleId, queue, createdAt, expiresAt, priority, audience,
-                topic, tags, payloadType, payload, hopLimit, hopCount,
-                receiptPolicy, signature, authorPublicKey, sizeBytes, addedToQueueAt
-            ) VALUES (
-                :bundleId, :queue, :createdAt, :expiresAt, :priority, :audience,
-                :topic, :tags, :payloadType, :payload, :hopLimit, :hopCount,
-                :receiptPolicy, :signature, :authorPublicKey, :sizeBytes, :addedToQueueAt
-            )
-        """, row)
-        await db.commit()
+        Uses INSERT with explicit conflict handling to prevent silent overwrites.
+        If bundle already exists, it will be skipped (not replaced).
+        Uses lock to prevent race conditions.
+        """
+        async with cls._get_lock():
+            db = await get_db()
+            row = QueueManager._bundle_to_row(bundle, queue)
+
+            # Check if bundle already exists
+            cursor = await db.execute("""
+                SELECT bundleId FROM bundles WHERE bundleId = ?
+            """, (bundle.bundleId,))
+            existing = await cursor.fetchone()
+
+            if existing:
+                # Bundle already exists, skip (don't overwrite)
+                import logging
+                logging.getLogger(__name__).debug(
+                    f"Bundle {bundle.bundleId} already exists, skipping"
+                )
+                return
+
+            # Insert new bundle
+            await db.execute("""
+                INSERT INTO bundles (
+                    bundleId, queue, createdAt, expiresAt, priority, audience,
+                    topic, tags, payloadType, payload, hopLimit, hopCount,
+                    receiptPolicy, signature, authorPublicKey, sizeBytes, addedToQueueAt
+                ) VALUES (
+                    :bundleId, :queue, :createdAt, :expiresAt, :priority, :audience,
+                    :topic, :tags, :payloadType, :payload, :hopLimit, :hopCount,
+                    :receiptPolicy, :signature, :authorPublicKey, :sizeBytes, :addedToQueueAt
+                )
+            """, row)
+            await db.commit()
 
     @staticmethod
     async def dequeue(

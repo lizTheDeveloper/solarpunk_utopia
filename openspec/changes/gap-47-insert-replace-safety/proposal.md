@@ -1,6 +1,6 @@
 # GAP-47: INSERT OR REPLACE Overwrites Bundles
 
-**Status:** Draft
+**Status:** Implemented
 **Priority:** P2 - Data Integrity
 **Effort:** 2-3 hours
 
@@ -39,6 +39,23 @@ except IntegrityError:
 
 ## Success Criteria
 
-- [ ] No silent overwrites
-- [ ] Explicit conflict handling
-- [ ] Tests for duplicate inserts
+- [x] No silent overwrites
+- [x] Explicit conflict handling
+- [x] Tests for duplicate inserts
+
+## Implementation Notes
+
+**Implemented:** 2025-12-20
+
+Fixed as part of GAP-46 implementation.
+
+### Changes:
+- Replaced `INSERT OR REPLACE` with `INSERT` + explicit duplicate checking in `app/database/queues.py`
+- enqueue() now checks if bundle exists before inserting
+- Existing bundles are skipped (logged as debug) rather than overwritten
+- Test coverage in `app/tests/test_race_conditions.py::test_no_insert_or_replace_overwrites`
+
+### Result:
+- ✅ No silent overwrites
+- ✅ Bundles are immutable once inserted
+- ✅ Explicit logging when duplicates are skipped

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime
 from typing import Optional
@@ -34,6 +35,7 @@ class CacheService:
         self.storage_budget_bytes = storage_budget_bytes
         self.warn_threshold = 0.95  # 95%
         self.evict_threshold = 0.95  # Start evicting at 95%
+        self._cache_lock = asyncio.Lock()  # Lock to prevent race conditions
 
     async def get_current_cache_size(self) -> int:
         """Get current total cache size in bytes"""
@@ -66,6 +68,42 @@ class CacheService:
 
         Returns:
             Number of bundles evicted
+        """
+        # Use lock to prevent race conditions during eviction
+        async with self._cache_lock:
+            return await self._enforce_budget_internal()
+
+    async def can_accept_bundle(self, bundle_size_bytes: int) -> bool:
+        """
+        Check if we can accept a new bundle given its size.
+
+        Args:
+            bundle_size_bytes: Size of bundle to accept
+
+        Returns:
+            True if we have space, False otherwise
+        """
+        # Use lock to prevent race conditions when checking and evicting
+        async with self._cache_lock:
+            current_size = await self.get_current_cache_size()
+            new_size = current_size + bundle_size_bytes
+
+            if new_size > self.storage_budget_bytes:
+                # Try to make space by evicting (will acquire lock, but we already have it)
+                # So we need to call the internal logic without the lock
+                evicted_count = await self._enforce_budget_internal()
+
+                # Check again
+                current_size = await self.get_current_cache_size()
+                new_size = current_size + bundle_size_bytes
+
+                return new_size <= self.storage_budget_bytes
+
+            return True
+
+    async def _enforce_budget_internal(self) -> int:
+        """
+        Internal enforce budget without acquiring lock (caller must hold lock).
         """
         if not await self.is_near_budget():
             return 0
@@ -119,31 +157,6 @@ class CacheService:
 
         logger.info(f"Cache budget enforced: evicted {evicted_count} bundles")
         return evicted_count
-
-    async def can_accept_bundle(self, bundle_size_bytes: int) -> bool:
-        """
-        Check if we can accept a new bundle given its size.
-
-        Args:
-            bundle_size_bytes: Size of bundle to accept
-
-        Returns:
-            True if we have space, False otherwise
-        """
-        current_size = await self.get_current_cache_size()
-        new_size = current_size + bundle_size_bytes
-
-        if new_size > self.storage_budget_bytes:
-            # Try to make space by evicting
-            await self.enforce_budget()
-
-            # Check again
-            current_size = await self.get_current_cache_size()
-            new_size = current_size + bundle_size_bytes
-
-            return new_size <= self.storage_budget_bytes
-
-        return True
 
     async def _get_oldest_bundles_by_priority(
         self,
