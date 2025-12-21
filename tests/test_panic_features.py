@@ -29,7 +29,8 @@ def panic_service():
     os.unlink(db_path)
 
 
-def test_duress_pin_set_and_verify(panic_service):
+@pytest.mark.asyncio
+async def test_duress_pin_set_and_verify(panic_service):
     """Test setting and verifying duress PIN."""
     user_id = "test-user-123"
     duress_pin = "1234"
@@ -40,15 +41,16 @@ def test_duress_pin_set_and_verify(panic_service):
     assert config.user_id == user_id
 
     # Verify correct PIN
-    is_duress = panic_service.verify_duress_pin(user_id, duress_pin)
+    is_duress = await panic_service.verify_duress_pin(user_id, duress_pin)
     assert is_duress is True
 
     # Verify incorrect PIN
-    is_duress = panic_service.verify_duress_pin(user_id, "5678")
+    is_duress = await panic_service.verify_duress_pin(user_id, "5678")
     assert is_duress is False
 
 
-def test_duress_pin_creates_burn_notice(panic_service):
+@pytest.mark.asyncio
+async def test_duress_pin_creates_burn_notice(panic_service):
     """Test that duress PIN triggers burn notice."""
     user_id = "test-user-456"
     duress_pin = "9999"
@@ -57,13 +59,14 @@ def test_duress_pin_creates_burn_notice(panic_service):
     panic_service.set_duress_pin(user_id, duress_pin)
 
     # Verify duress PIN (should create burn notice)
-    panic_service.verify_duress_pin(user_id, duress_pin)
+    await panic_service.verify_duress_pin(user_id, duress_pin)
 
     # Check that burn notice was created
     notices = panic_service.repo.get_burn_notices_for_user(user_id)
     assert len(notices) == 1
     assert notices[0].reason == "duress_pin_entered"
-    assert notices[0].status == BurnNoticeStatus.PENDING
+    # Burn notice should be sent (not just pending)
+    assert notices[0].status == BurnNoticeStatus.SENT
 
 
 def test_quick_wipe_configuration(panic_service):
@@ -186,12 +189,13 @@ def test_decoy_mode_configuration(panic_service):
     assert config.secret_gesture == "secret123"
 
 
-def test_burn_notice_creation(panic_service):
+@pytest.mark.asyncio
+async def test_burn_notice_creation(panic_service):
     """Test burn notice creation and propagation."""
     user_id = "test-user-106"
 
     # Create burn notice
-    notice = panic_service.create_burn_notice(user_id, "manual_trigger")
+    notice = await panic_service.create_burn_notice(user_id, "manual_trigger")
 
     assert notice.user_id == user_id
     assert notice.reason == "manual_trigger"
@@ -199,15 +203,16 @@ def test_burn_notice_creation(panic_service):
     assert notice.vouch_chain_notified is False
 
 
-def test_burn_notice_resolution(panic_service):
+@pytest.mark.asyncio
+async def test_burn_notice_resolution(panic_service):
     """Test burn notice resolution."""
     user_id = "test-user-107"
 
     # Create burn notice
-    notice = panic_service.create_burn_notice(user_id, "manual_trigger")
+    notice = await panic_service.create_burn_notice(user_id, "manual_trigger")
 
     # Resolve it
-    success = panic_service.resolve_burn_notice(user_id, notice.id)
+    success = await panic_service.resolve_burn_notice(user_id, notice.id)
     assert success is True
 
     # Check status
@@ -265,7 +270,8 @@ def test_panic_status_aggregation(panic_service):
     assert isinstance(status["wipe_history"], list)
 
 
-def test_overdue_dead_mans_switches(panic_service):
+@pytest.mark.asyncio
+async def test_overdue_dead_mans_switches(panic_service):
     """Test detection and triggering of overdue dead man's switches."""
     user_id = "test-user-109"
 
@@ -299,7 +305,7 @@ def test_overdue_dead_mans_switches(panic_service):
     assert overdue[0].user_id == user_id
 
     # Trigger overdue switches
-    results = panic_service.check_overdue_switches()
+    results = await panic_service.check_overdue_switches()
     assert len(results) == 1
     assert results[0][0] == user_id  # user_id
     assert results[0][1].trigger == "dead_mans_switch"  # wipe_log

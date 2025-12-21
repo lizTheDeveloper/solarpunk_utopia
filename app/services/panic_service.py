@@ -65,7 +65,7 @@ class PanicService:
         pin_hash = bcrypt.hashpw(duress_pin.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         return self.repo.set_duress_pin(user_id, pin_hash)
 
-    def verify_duress_pin(self, user_id: str, pin: str) -> bool:
+    async def verify_duress_pin(self, user_id: str, pin: str) -> bool:
         """Check if a PIN is the duress PIN.
 
         Returns True if this is the duress PIN, triggering decoy mode and burn notice.
@@ -83,7 +83,7 @@ class PanicService:
 
             # Create burn notice if not already sent
             if not config.burn_notice_sent:
-                self.create_burn_notice(user_id, "duress_pin_entered")
+                await self.create_burn_notice(user_id, "duress_pin_entered")
 
         return is_duress
 
@@ -140,7 +140,7 @@ class PanicService:
         """User checks in, resets dead man's switch timer."""
         self.repo.checkin_dead_mans_switch(user_id)
 
-    def check_overdue_switches(self) -> List[Tuple[str, WipeLog]]:
+    async def check_overdue_switches(self) -> List[Tuple[str, WipeLog]]:
         """Check for and trigger overdue dead man's switches.
 
         Returns:
@@ -154,7 +154,7 @@ class PanicService:
             wipe_log = self._secure_wipe(config.user_id, "dead_mans_switch")
 
             # Send "gone dark" notice to vouch chain
-            self.create_burn_notice(config.user_id, "dead_mans_switch_triggered")
+            await self.create_burn_notice(config.user_id, "dead_mans_switch_triggered")
 
             results.append((config.user_id, wipe_log))
 
