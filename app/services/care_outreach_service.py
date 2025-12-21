@@ -222,11 +222,11 @@ class CareOutreachService:
         self.outreach_repo.save_needs_assessment(assessment)
 
         # Connect to resources based on needs
-        await self._connect_to_resources(assessment)
+        self._connect_to_resources(assessment)
 
         return assessment
 
-    async def _connect_to_resources(self, assessment: NeedsAssessment):
+    def _connect_to_resources(self, assessment: NeedsAssessment):
         """Connect user to resources based on needs assessment
 
         Creates need listings in the ValueFlows system so the community
