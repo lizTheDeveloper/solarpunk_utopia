@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from app.database.db import get_db
 from app.database.temporal_justice_repository import TemporalJusticeRepository
 from app.services.temporal_justice_service import TemporalJusticeService
-from app.auth.dependencies import get_current_user
+from app.auth.middleware import get_current_user
 
 router = APIRouter(prefix="/api/temporal-justice", tags=["temporal-justice"])
 

@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 from app.database.db import get_db
 from app.database.accessibility_repository import AccessibilityRepository
 from app.services.accessibility_service import AccessibilityService
-from app.auth.dependencies import get_current_user
+from app.auth.middleware import get_current_user
 
 router = APIRouter(prefix="/api/accessibility", tags=["accessibility"])
 

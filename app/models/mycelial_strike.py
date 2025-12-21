@@ -140,11 +140,11 @@ class StrikeEvidence:
     # Source
     collected_by: str  # Node fingerprint
 
-    # Weight
-    reliability_score: float = 1.0
-
     # Timestamp
     collected_at: datetime
+
+    # Weight
+    reliability_score: float = 1.0
 
 
 @dataclass
@@ -159,11 +159,13 @@ class StrikePropagation:
 
     # Trust
     trust_score: float
-    accepted: bool = True
-    rejection_reason: Optional[str] = None
 
     # Timestamp
     propagated_at: datetime
+
+    # Status
+    accepted: bool = True
+    rejection_reason: Optional[str] = None
 
 
 @dataclass
@@ -171,13 +173,6 @@ class BehaviorTracking:
     """Tracking of user behavior for strike de-escalation."""
     id: str
     user_id: str
-    strike_id: Optional[str] = None
-
-    # Behavior metrics
-    exchanges_given: int = 0
-    exchanges_received: int = 0
-    offers_posted: int = 0
-    needs_posted: int = 0
 
     # Calculated score
     behavior_score: float  # 0-10, higher is better
@@ -186,6 +181,15 @@ class BehaviorTracking:
     period_start: datetime
     period_end: datetime
     last_updated: datetime
+
+    # Optional fields
+    strike_id: Optional[str] = None
+
+    # Behavior metrics
+    exchanges_given: int = 0
+    exchanges_received: int = 0
+    offers_posted: int = 0
+    needs_posted: int = 0
 
 
 @dataclass
@@ -210,9 +214,6 @@ class StrikeDeescalationLog:
 class StrikeOverrideLog:
     """Log of steward overrides."""
     id: str
-
-    # What was overridden
-    strike_id: Optional[str] = None
     alert_id: Optional[str]
 
     # Override details
@@ -220,12 +221,15 @@ class StrikeOverrideLog:
     override_by: str  # Steward user ID
     reason: str
 
-    # Before/after snapshots
-    before_state: Optional[Dict[str, Any]]
-    after_state: Optional[Dict[str, Any]]
-
     # Timestamp
     overridden_at: datetime
+
+    # What was overridden
+    strike_id: Optional[str] = None
+
+    # Before/after snapshots
+    before_state: Optional[Dict[str, Any]] = None
+    after_state: Optional[Dict[str, Any]] = None
 
 
 @dataclass
@@ -240,14 +244,16 @@ class UserStrikeWhitelist:
 
     # Scope
     scope: str  # 'all', 'specific_abuse_type'
+
+    # Timestamp
+    whitelisted_at: datetime
+
+    # Optional fields
     abuse_type: Optional[AbuseType] = None
 
     # Duration
     is_permanent: bool = False
     expires_at: Optional[datetime] = None
-
-    # Timestamp
-    whitelisted_at: datetime
 
 
 @dataclass
@@ -258,6 +264,9 @@ class StrikeNetworkStats:
     # Timeframe
     period_start: datetime
     period_end: datetime
+
+    # Timestamp
+    calculated_at: datetime
 
     # Alert metrics
     total_alerts_created: int = 0
@@ -275,6 +284,3 @@ class StrikeNetworkStats:
 
     # Effectiveness
     behavior_improvement_count: int = 0
-
-    # Timestamp
-    calculated_at: datetime
