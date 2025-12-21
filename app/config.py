@@ -98,6 +98,8 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
         # Allow environment variables to override
         case_sensitive = False
+        # Allow extra fields from .env that aren't defined in Settings
+        extra = "ignore"
 
 
 # Singleton settings instance

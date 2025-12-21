@@ -78,16 +78,18 @@ class GhostReputationAllocation:
 
     # Status
     status: AllocationStatus
+
+    # Timestamps (required fields)
+    allocated_at: datetime
+    veto_deadline: datetime
+
+    # Optional fields with defaults
     refunded: bool = False
     refund_reason: Optional[str] = None
-
-    # Timestamps
-    allocated_at: datetime
     refunded_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
 
     # Anti-abuse: veto window
-    veto_deadline: datetime
     vetoed: bool = False
     vetoed_by: Optional[str] = None
     veto_reason: Optional[str] = None
@@ -125,13 +127,13 @@ class UserDepartureRecord:
     final_reputation: float
     memorial_fund_id: Optional[str]
 
-    # Data handling
+    # Metadata (required fields)
+    departed_at: datetime
+
+    # Data handling (optional fields with defaults)
     private_data_purged: bool = False
     purged_at: Optional[datetime] = None
     public_contributions_retained: bool = True
-
-    # Metadata
-    departed_at: datetime
     recorded_by: Optional[str] = None  # Who recorded the departure
 
 
@@ -141,17 +143,15 @@ class AllocationPriority:
     id: str
     allocation_id: str
 
-    # Priority factors
+    # Required fields
+    priority_score: int
+    calculated_at: datetime
+
+    # Priority factors (optional with defaults)
     is_new_member: bool = False  # <3 months
     has_low_reputation: bool = False
     is_controversial: bool = False
     is_marginalized_identity: bool = False  # Self-disclosed
-
-    # Calculated score
-    priority_score: int
-
-    # Metadata
-    calculated_at: datetime
 
 
 @dataclass
@@ -160,7 +160,10 @@ class MemorialImpactTracking:
     id: str
     fund_id: str
 
-    # Impact metrics
+    # Metadata (required)
+    last_updated: datetime
+
+    # Impact metrics (optional with defaults)
     total_allocated: float = 0.0
     total_refunded: float = 0.0
     proposals_boosted: int = 0
@@ -170,9 +173,6 @@ class MemorialImpactTracking:
     # Marginalized voice metrics
     new_members_helped: int = 0
     controversial_proposals_boosted: int = 0
-
-    # Metadata
-    last_updated: datetime
 
 
 @dataclass
@@ -186,8 +186,8 @@ class AllocationAuditLog:
     actor_id: str
     actor_role: str  # 'steward', 'system'
 
-    # Context
-    details: Optional[str] = None  # JSON with additional context
-
-    # Timestamp
+    # Timestamp (required)
     logged_at: datetime
+
+    # Context (optional)
+    details: Optional[str] = None  # JSON with additional context

@@ -15,7 +15,8 @@ from typing import Optional, List
 from app.services.sanctuary_service import SanctuaryService
 from app.services.web_of_trust_service import WebOfTrustService
 from app.database.vouch_repository import VouchRepository
-from app.models.sanctuary import SanctuaryResourceType, TRUST_THRESHOLDS, VerificationMethod
+from app.models.sanctuary import SanctuaryResourceType, VerificationMethod
+from app.models.vouch import TRUST_THRESHOLDS
 from app.auth.middleware import get_current_user, require_admin_key, require_steward
 from app.auth.models import User
 
