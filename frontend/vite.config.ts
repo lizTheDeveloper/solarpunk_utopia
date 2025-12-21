@@ -13,6 +13,11 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
+      '/api/agents': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      },
       '/api/dtn': {
         target: 'http://localhost:8000',
         changeOrigin: true,

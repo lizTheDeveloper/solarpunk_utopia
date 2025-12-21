@@ -125,6 +125,27 @@ class CommunityService:
 
         return communities
 
+    async def get_public_communities(self) -> List[Community]:
+        """Get all public communities (no auth required)"""
+        db = await get_db()
+
+        cursor = await db.execute(
+            "SELECT * FROM communities WHERE is_public = 1 ORDER BY name"
+        )
+        rows = await cursor.fetchall()
+
+        return [
+            Community(
+                id=row[0],
+                name=row[1],
+                description=row[2],
+                created_at=datetime.fromisoformat(row[3]),
+                settings=json.loads(row[4]) if row[4] else {},
+                is_public=bool(row[5]),
+            )
+            for row in rows
+        ]
+
     async def update_community(
         self, community_id: str, updates: CommunityUpdate
     ) -> Optional[Community]:

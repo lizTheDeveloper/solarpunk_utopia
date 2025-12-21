@@ -4,7 +4,7 @@
  * Secret gesture (e.g., "31337=") reveals real app.
  * This provides plausible deniability during phone inspection.
  */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function DecoyCalculatorPage() {

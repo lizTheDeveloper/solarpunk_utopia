@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS match_explanations (
     FOREIGN KEY (match_id) REFERENCES matches(id)
 );
 
-CREATE INDEX idx_match_explanations_match_id ON match_explanations(match_id);
+CREATE INDEX IF NOT EXISTS idx_match_explanations_match_id ON match_explanations(match_id);
 
 -- Matching Weights Configuration
 -- Allows communities to adjust matching priorities

@@ -41,8 +41,8 @@ export function CommunityProvider({ children }: { children: React.ReactNode }) {
 
   const loadCommunities = async () => {
     try {
-      // Fetch user's communities from API
-      const response = await axios.get('/api/vf/communities');
+      // Fetch public communities (no auth required)
+      const response = await axios.get('/api/vf/communities/public');
       const userCommunities: Community[] = response.data;
 
       setCommunities(userCommunities);

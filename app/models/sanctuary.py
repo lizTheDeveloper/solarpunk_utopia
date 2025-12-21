@@ -331,6 +331,13 @@ class RapidAlert(BaseModel):
 SANCTUARY_MIN_TRUST = 0.8  # High trust required for HIGH sensitivity resources
 SANCTUARY_MEDIUM_TRUST = 0.6  # Medium trust for MEDIUM sensitivity
 
+# Trust thresholds for various sanctuary operations
+TRUST_THRESHOLDS = {
+    "steward_actions": 0.7,
+    "high_sensitivity": SANCTUARY_MIN_TRUST,
+    "medium_sensitivity": SANCTUARY_MEDIUM_TRUST,
+}
+
 
 # Auto-purge timers
 SANCTUARY_MATCH_PURGE_HOURS = 24  # Purge matches 24 hours after completion

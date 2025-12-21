@@ -73,15 +73,15 @@ class WarlordAlert:
 
     # Source
     reporting_node_fingerprint: str
-    reporting_user_id: Optional[str]
 
-    # Propagation
-    trusted_source: bool = True
-    propagation_count: int = 0
-
-    # Lifecycle
+    # Lifecycle (required)
     created_at: datetime
     expires_at: datetime  # 7 days default
+
+    # Optional fields
+    reporting_user_id: Optional[str] = None
+    trusted_source: bool = True
+    propagation_count: int = 0
     cancelled: bool = False
     cancelled_by: Optional[str] = None
     cancellation_reason: Optional[str] = None
@@ -111,17 +111,17 @@ class LocalStrike:
 
     # Status
     status: StrikeStatus
-    automatic: bool = True
 
     # Behavior tracking
     behavior_score_at_start: float
     current_behavior_score: float
 
-    # Timestamps
+    # Timestamps (required)
     activated_at: datetime
-    deactivated_at: Optional[datetime] = None
 
-    # Override
+    # Optional fields
+    automatic: bool = True
+    deactivated_at: Optional[datetime] = None
     overridden_by: Optional[str] = None
     override_reason: Optional[str] = None
     overridden_at: Optional[datetime] = None
@@ -140,11 +140,11 @@ class StrikeEvidence:
     # Source
     collected_by: str  # Node fingerprint
 
-    # Weight
-    reliability_score: float = 1.0
-
-    # Timestamp
+    # Timestamp (required)
     collected_at: datetime
+
+    # Weight (optional)
+    reliability_score: float = 1.0
 
 
 @dataclass
@@ -159,11 +159,13 @@ class StrikePropagation:
 
     # Trust
     trust_score: float
+
+    # Timestamp (required)
+    propagated_at: datetime
+
+    # Optional
     accepted: bool = True
     rejection_reason: Optional[str] = None
-
-    # Timestamp
-    propagated_at: datetime
 
 
 @dataclass
@@ -171,21 +173,23 @@ class BehaviorTracking:
     """Tracking of user behavior for strike de-escalation."""
     id: str
     user_id: str
-    strike_id: Optional[str]
 
-    # Behavior metrics
+    # Calculated score (required)
+    behavior_score: float  # 0-10, higher is better
+
+    # Tracking period (required)
+    period_start: datetime
+    period_end: datetime
+    last_updated: datetime
+
+    # Optional
+    strike_id: Optional[str] = None
+
+    # Behavior metrics (optional with defaults)
     exchanges_given: int = 0
     exchanges_received: int = 0
     offers_posted: int = 0
     needs_posted: int = 0
-
-    # Calculated score
-    behavior_score: float  # 0-10, higher is better
-
-    # Tracking period
-    period_start: datetime
-    period_end: datetime
-    last_updated: datetime
 
 
 @dataclass
@@ -211,21 +215,21 @@ class StrikeOverrideLog:
     """Log of steward overrides."""
     id: str
 
-    # What was overridden
-    strike_id: Optional[str]
-    alert_id: Optional[str]
-
     # Override details
     action: OverrideAction
     override_by: str  # Steward user ID
     reason: str
 
-    # Before/after snapshots
-    before_state: Optional[Dict[str, Any]]
-    after_state: Optional[Dict[str, Any]]
-
-    # Timestamp
+    # Timestamp (required)
     overridden_at: datetime
+
+    # What was overridden (optional)
+    strike_id: Optional[str] = None
+    alert_id: Optional[str] = None
+
+    # Before/after snapshots (optional)
+    before_state: Optional[Dict[str, Any]] = None
+    after_state: Optional[Dict[str, Any]] = None
 
 
 @dataclass
@@ -240,14 +244,14 @@ class UserStrikeWhitelist:
 
     # Scope
     scope: str  # 'all', 'specific_abuse_type'
-    abuse_type: Optional[AbuseType]
 
-    # Duration
+    # Timestamp (required)
+    whitelisted_at: datetime
+
+    # Optional
+    abuse_type: Optional[AbuseType] = None
     is_permanent: bool = False
     expires_at: Optional[datetime] = None
-
-    # Timestamp
-    whitelisted_at: datetime
 
 
 @dataclass
@@ -255,11 +259,12 @@ class StrikeNetworkStats:
     """Aggregate statistics for the strike network."""
     id: str
 
-    # Timeframe
+    # Timeframe (required)
     period_start: datetime
     period_end: datetime
+    calculated_at: datetime
 
-    # Alert metrics
+    # Alert metrics (optional with defaults)
     total_alerts_created: int = 0
     total_alerts_propagated: int = 0
     total_alerts_cancelled: int = 0
@@ -275,6 +280,3 @@ class StrikeNetworkStats:
 
     # Effectiveness
     behavior_improvement_count: int = 0
-
-    # Timestamp
-    calculated_at: datetime

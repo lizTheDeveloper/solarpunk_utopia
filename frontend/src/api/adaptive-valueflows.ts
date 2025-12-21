@@ -176,7 +176,7 @@ export class AdaptiveValueFlowsAPI {
     }
   }
 
-  async getAgent(id: string): Promise<Agent> {
+  async getAgent(id: string): Promise<Agent | null> {
     if (this.shouldUseLocal()) {
       const local = await this.ensureLocalAPI();
       return local.getAgent(id);
@@ -191,7 +191,7 @@ export class AdaptiveValueFlowsAPI {
     }
   }
 
-  async createAgent(agent: Omit<Agent, 'created_at'>): Promise<Agent> {
+  async createAgent(agent: Omit<Agent, 'created_at'>): Promise<Agent | null> {
     const local = await this.ensureLocalAPI();
 
     if (this.isOnline) {
@@ -227,7 +227,7 @@ export class AdaptiveValueFlowsAPI {
     }
   }
 
-  async getResourceSpec(id: string): Promise<ResourceSpecification> {
+  async getResourceSpec(id: string): Promise<ResourceSpecification | null> {
     if (this.shouldUseLocal()) {
       const local = await this.ensureLocalAPI();
       return local.getResourceSpec(id);
@@ -261,7 +261,7 @@ export class AdaptiveValueFlowsAPI {
     }
   }
 
-  async getListing(id: string): Promise<Listing> {
+  async getListing(id: string): Promise<Listing | null> {
     if (this.shouldUseLocal()) {
       const local = await this.ensureLocalAPI();
       return local.getListing(id);
@@ -276,7 +276,7 @@ export class AdaptiveValueFlowsAPI {
     }
   }
 
-  async createListing(request: CreateListingRequest): Promise<Listing> {
+  async createListing(request: CreateListingRequest): Promise<Listing | null> {
     const local = await this.ensureLocalAPI();
 
     if (this.isOnline) {
@@ -293,7 +293,7 @@ export class AdaptiveValueFlowsAPI {
     return local.createListing(request);
   }
 
-  async updateListing(id: string, updates: Partial<Listing>): Promise<Listing> {
+  async updateListing(id: string, updates: Partial<Listing>): Promise<Listing | null> {
     const local = await this.ensureLocalAPI();
 
     if (this.isOnline) {
@@ -348,7 +348,7 @@ export class AdaptiveValueFlowsAPI {
     }
   }
 
-  async createExchange(request: CreateExchangeRequest): Promise<Exchange> {
+  async createExchange(request: CreateExchangeRequest): Promise<Exchange | null> {
     const local = await this.ensureLocalAPI();
 
     if (this.isOnline) {
@@ -385,7 +385,7 @@ export class AdaptiveValueFlowsAPI {
   // EVENTS
   // ============================================================================
 
-  async createEvent(request: CreateEventRequest): Promise<EconomicEvent> {
+  async createEvent(request: CreateEventRequest): Promise<EconomicEvent | null> {
     const local = await this.ensureLocalAPI();
 
     if (this.isOnline) {
