@@ -30,6 +30,7 @@ import { CommunitiesPage } from './pages/CommunitiesPage'
 import { OnboardingPage } from './pages/OnboardingPage'
 import { CommunityShelfPage } from './pages/CommunityShelfPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { PowerDynamicsPage } from './pages/PowerDynamicsPage'
 import './App.css'
 
 // Import API interceptors to add auth token to requests
@@ -114,6 +115,7 @@ function App() {
                     <Route path="/communities" element={<CommunitiesPage />} />
                     <Route path="/community-shelf" element={<CommunityShelfPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/power-dynamics" element={<PowerDynamicsPage />} />
                   </Routes>
                 </Layout>
               </ProtectedRoute>

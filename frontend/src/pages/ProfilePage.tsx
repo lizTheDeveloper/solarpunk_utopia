@@ -82,17 +82,21 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       {/* Current Status Display */}
-      {status !== 'active' && (
-        <div className="mb-8">
+      <div className="mb-8">
+        {status !== 'active' ? (
           <div className="status-badge inline-block px-4 py-2 rounded-full bg-blue-100 text-blue-800 font-medium">
-            {status === 'resting' && '🌙 Resting'}
-            {status === 'sabbatical' && '✨ Sabbatical'}
+            {status === 'resting' && 'Resting'}
+            {status === 'sabbatical' && 'Sabbatical'}
           </div>
-          {statusNote && (
-            <p className="mt-2 text-gray-600 italic">"{statusNote}"</p>
-          )}
-        </div>
-      )}
+        ) : (
+          <div className="status-badge inline-block px-4 py-2 rounded-full bg-green-100 text-green-800 font-medium">
+            Active
+          </div>
+        )}
+        {statusNote && (
+          <p className="mt-2 text-gray-600 italic">"{statusNote}"</p>
+        )}
+      </div>
 
       {/* User Info */}
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">

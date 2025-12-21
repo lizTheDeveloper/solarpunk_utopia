@@ -33,6 +33,8 @@ export function CreateOfferPage() {
     return null; // Redirect will handle this
   }
 
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [subcategory, setSubcategory] = useState('');
   const [item, setItem] = useState('');
@@ -45,6 +47,7 @@ export function CreateOfferPage() {
   const [visibility, setVisibility] = useState<'my_cell' | 'my_community' | 'trusted_network' | 'anyone_local' | 'network_wide'>('trusted_network');
   const [anonymous, setAnonymous] = useState(false);  // GAP-61: Emma Goldman
   const [errors, setErrors] = useState<string[]>([]);
+  const [success, setSuccess] = useState(false);
 
   const selectedCategory = RESOURCE_CATEGORIES.find(cat => cat.id === category);
   const subcategories = selectedCategory?.subcategories || [];
@@ -55,19 +58,12 @@ export function CreateOfferPage() {
     e.preventDefault();
     setErrors([]);
 
-    // Create resource specification name
-    const resourceName = item || `${category}/${subcategory}`;
+    // Create resource specification name - prefer item, then title, fallback to category path
+    const resourceName = item || title || `${category}/${subcategory}`;
 
     // Validate form
-    const validation = validateIntentForm({
-      resourceSpecificationId: resourceName,
-      quantity: parseFloat(quantity),
-      unit,
-      location,
-    });
-
-    if (!validation.valid) {
-      setErrors(validation.errors);
+    if (!resourceName || !quantity) {
+      setErrors(['Please provide a resource name and quantity']);
       return;
     }
 
@@ -76,22 +72,62 @@ export function CreateOfferPage() {
         listing_type: 'offer',
         agent_id: anonymous ? undefined : user.id, // No agent for anonymous gifts (GAP-61); user exists due to auth check
         anonymous,  // GAP-61: Emma Goldman - anonymous gifts
+        title: title || item,
         resource_spec_id: resourceName,
         quantity: parseFloat(quantity),
         unit,
         location_id: location || undefined,
         available_from: availableFrom || undefined,
         available_until: availableUntil || undefined,
-        description: note || undefined,
+        description: description || note || undefined,
         community_id: currentCommunity?.id,
         visibility,
       });
 
-      navigate('/offers');
+      // Show success message
+      setSuccess(true);
+
+      // Navigate after brief delay
+      setTimeout(() => {
+        if (anonymous) {
+          navigate('/community-shelf');
+        } else {
+          navigate('/offers');
+        }
+      }, 1500);
     } catch (error) {
       setErrors(['Failed to create offer. Please try again.']);
     }
   };
+
+  // Show success screen
+  if (success) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="confirmation success-message bg-green-50 border-l-4 border-green-500 p-6 rounded-lg">
+          <h2 className="text-2xl font-bold text-green-900 mb-2">
+            {anonymous ? '🎁 Posted to Community Shelf' : '✓ Offer Created!'}
+          </h2>
+          <p className="text-green-700 mb-4">
+            {anonymous
+              ? 'Your anonymous gift has been placed on the community shelf. Anyone can take it, no questions asked.'
+              : 'Your offer has been posted successfully!'
+            }
+          </p>
+          {anonymous && (
+            <div className="text-sm text-green-600 space-y-1">
+              <p>• No one will know it's from you</p>
+              <p>• No record of who takes it</p>
+              <p>• Pure gift, no social credit</p>
+            </div>
+          )}
+          <p className="text-sm text-gray-600 mt-4">
+            Redirecting...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -115,77 +151,59 @@ export function CreateOfferPage() {
             <ErrorMessage message={errors.join(', ')} />
           )}
 
-          {/* Resource Selection */}
+          {/* Simple Resource Entry */}
           <div className="space-y-4">
             <h3 className="font-semibold text-gray-900">What are you offering?</h3>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category *
+                Title *
               </label>
-              <select
-                value={category}
-                onChange={(e) => {
-                  setCategory(e.target.value);
-                  setSubcategory('');
-                  setItem('');
-                }}
+              <input
+                type="text"
+                name="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g., Fresh Tomatoes, Bicycle Repair Skills"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-solarpunk-500 focus:border-solarpunk-500"
                 required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Resource Type
+              </label>
+              <select
+                name="resource_spec"
+                value={item}
+                onChange={(e) => setItem(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-solarpunk-500 focus:border-solarpunk-500"
               >
-                <option value="">Select a category...</option>
-                {RESOURCE_CATEGORIES.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
+                <option value="">Select type (optional)...</option>
+                <option value="Tomatoes">Tomatoes</option>
+                <option value="Tools">Tools</option>
+                <option value="Skills">Skills</option>
+                <option value="Seeds">Seeds</option>
+                <option value="Materials">Materials</option>
+                <option value="Other">Other</option>
               </select>
             </div>
 
-            {category && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subcategory *
-                </label>
-                <select
-                  value={subcategory}
-                  onChange={(e) => {
-                    setSubcategory(e.target.value);
-                    setItem('');
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-solarpunk-500 focus:border-solarpunk-500"
-                  required
-                >
-                  <option value="">Select a subcategory...</option>
-                  {subcategories.map((sub) => (
-                    <option key={sub.id} value={sub.id}>
-                      {sub.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                name="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                placeholder="Tell us more about what you're offering..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-solarpunk-500 focus:border-solarpunk-500"
+              />
+            </div>
 
-            {subcategory && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Item *
-                </label>
-                <select
-                  value={item}
-                  onChange={(e) => setItem(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-solarpunk-500 focus:border-solarpunk-500"
-                  required
-                >
-                  <option value="">Select an item...</option>
-                  {items.map((itm) => (
-                    <option key={itm} value={itm}>
-                      {itm}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
           </div>
 
           {/* Quantity */}
@@ -196,6 +214,7 @@ export function CreateOfferPage() {
               </label>
               <input
                 type="number"
+                name="quantity"
                 step="0.01"
                 min="0"
                 value={quantity}
@@ -293,6 +312,11 @@ export function CreateOfferPage() {
                   "Free gifts mean I can give without the database knowing." - Emma Goldman
                 </p>
                 {anonymous && (
+                  <div className="anonymous-badge mt-3 px-4 py-2 bg-amber-100 border border-amber-300 rounded text-amber-900 font-medium inline-block">
+                    🎁 Anonymous Gift
+                  </div>
+                )}
+                {anonymous && (
                   <div className="mt-3 space-y-1 text-sm text-gray-700">
                     <p>✓ Anyone can take it</p>
                     <p>✓ No record of who took it</p>
@@ -304,19 +328,6 @@ export function CreateOfferPage() {
             </label>
           </div>
 
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notes
-            </label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-solarpunk-500 focus:border-solarpunk-500"
-              placeholder="Any additional details about this offer..."
-            />
-          </div>
 
           {/* Actions */}
           <div className="flex gap-3">

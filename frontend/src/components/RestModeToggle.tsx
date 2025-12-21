@@ -149,6 +149,7 @@ export const RestModeToggle: React.FC<RestModeToggleProps> = ({
                 Optional note (visible to community):
               </label>
               <textarea
+                name="status_note"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="e.g., 'Recovering from burnout', 'Caring for sick parent', or just 'Need rest'"
