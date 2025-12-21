@@ -1,8 +1,9 @@
 # GAP-53: Request Tracing
 
-**Status:** Draft
+**Status:** ✅ Implemented
 **Priority:** P3 - Operations
 **Effort:** 4-6 hours
+**Completed:** 2025-12-20 (implemented together with GAP-50)
 
 ## Problem
 
@@ -42,14 +43,35 @@ All logs automatically include correlation_id:
 
 ## Tasks
 
-1. Add correlation ID middleware
-2. Integrate with structlog
-3. Forward ID to downstream services
-4. Add to error responses
+1. ✅ Add correlation ID middleware
+2. ✅ Integrate with structlog
+3. ✅ Forward ID to downstream services
+4. ✅ Add to error responses
 
 ## Success Criteria
 
-- [ ] All requests have correlation ID
-- [ ] ID appears in all logs
-- [ ] ID forwarded to VF service
-- [ ] ID in error responses
+- [x] All requests have correlation ID
+- [x] ID appears in all logs
+- [x] ID forwarded to VF service (via X-Correlation-ID header)
+- [x] ID in error responses
+
+## Implementation Summary
+
+Implemented as part of GAP-50 (Logging System).
+
+**Files Created:**
+- `app/middleware/correlation_id.py` - CorrelationIdMiddleware class
+- `valueflows_node/app/middleware/correlation_id.py` - Same for ValueFlows node
+
+**Files Modified:**
+- `app/main.py` - Added CorrelationIdMiddleware after CORS
+- `valueflows_node/app/main.py` - Added CorrelationIdMiddleware
+
+**Features:**
+- Extracts X-Correlation-ID from request headers or generates UUID
+- Stores correlation ID in request.state for handler access
+- Binds to structlog context variables (auto-included in all logs)
+- Adds X-Correlation-ID to response headers
+- Logs HTTP requests with correlation ID, duration, status code
+- Error handling includes correlation ID in error logs
+- Helper function `get_correlation_id(request)` for manual access

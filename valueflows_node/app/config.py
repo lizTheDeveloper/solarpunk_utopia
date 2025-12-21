@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     port: int = Field(default=8001, description="Server port")
     debug: bool = Field(default=False, description="Debug mode")
     log_level: str = Field(default="INFO", description="Logging level")
+    json_logs: bool = Field(default=False, description="Output JSON logs (production) vs colored logs (dev)")
 
     # Database configuration
     database_url: str = Field(

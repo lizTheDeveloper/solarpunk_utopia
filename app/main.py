@@ -36,6 +36,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
+from .logging_config import configure_logging, get_logger
 from .database import init_db, close_db
 from .api import bundles_router, sync_router, agents_router
 from .api.auth import router as auth_router
@@ -67,13 +68,11 @@ from .api.security_status import router as security_status_router
 from .api.mourning import router as mourning_router
 from .services import TTLService, CryptoService, CacheService
 from .middleware import CSRFMiddleware
+from .middleware.correlation_id import CorrelationIdMiddleware
 
-# Configure logging (use config for level)
-logging.basicConfig(
-    level=getattr(logging, settings.log_level.upper()),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Configure structured logging
+configure_logging(log_level=settings.log_level, json_logs=settings.json_logs)
+logger = get_logger(__name__)
 
 # Global services
 ttl_service: TTLService = None
@@ -153,6 +152,10 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Correlation ID middleware (GAP-53: Request Tracing)
+# Must be added before other middleware to ensure correlation IDs are available
+app.add_middleware(CorrelationIdMiddleware)
 
 # CSRF Protection middleware (GAP-56)
 app.add_middleware(

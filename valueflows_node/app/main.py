@@ -11,16 +11,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from .config import settings
+from .logging_config import configure_logging, get_logger
 from .database import initialize_database
 from .api.vf import listings, matches, exchanges, events, agents, resource_specs, commitments, discovery, bakunin_analytics
 from .api import communities, abundance_osmosis
+from .middleware import CorrelationIdMiddleware
 
-# Configure logging (use config for level)
-logging.basicConfig(
-    level=getattr(logging, settings.log_level.upper()),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Configure structured logging
+configure_logging(log_level=settings.log_level, json_logs=settings.json_logs)
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
@@ -57,6 +56,10 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Correlation ID middleware (GAP-53: Request Tracing)
+# Must be added before other middleware to ensure correlation IDs are available
+app.add_middleware(CorrelationIdMiddleware)
 
 # Include API routers
 app.include_router(communities.router)
