@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateNeed } from '@/hooks/useNeeds';
 import { useCommunity } from '@/contexts/CommunityContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { ErrorMessage } from '@/components/ErrorMessage';
@@ -14,6 +15,14 @@ export function CreateNeedPage() {
   const navigate = useNavigate();
   const createNeed = useCreateNeed();
   const { currentCommunity } = useCommunity();
+  const { user, isAuthenticated, loading } = useAuth();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate('/login?redirect=/create-need');
+    }
+  }, [loading, isAuthenticated, navigate]);
 
   const [category, setCategory] = useState('');
   const [subcategory, setSubcategory] = useState('');
@@ -55,7 +64,7 @@ export function CreateNeedPage() {
     try {
       await createNeed.mutateAsync({
         listing_type: 'need',
-        agent_id: 'current-user', // Would come from auth context
+        agent_id: user?.id,
         resource_spec_id: resourceName,
         quantity: parseFloat(quantity),
         unit,

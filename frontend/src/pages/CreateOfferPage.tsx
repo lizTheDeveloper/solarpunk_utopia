@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateOffer } from '@/hooks/useOffers';
 import { useCommunity } from '@/contexts/CommunityContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { ErrorMessage } from '@/components/ErrorMessage';
@@ -14,6 +15,14 @@ export function CreateOfferPage() {
   const navigate = useNavigate();
   const createOffer = useCreateOffer();
   const { currentCommunity } = useCommunity();
+  const { user, isAuthenticated, loading } = useAuth();
+
+  // Redirect to login if not authenticated (unless anonymous gift)
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate('/login?redirect=/create-offer');
+    }
+  }, [loading, isAuthenticated, navigate]);
 
   const [category, setCategory] = useState('');
   const [subcategory, setSubcategory] = useState('');
@@ -56,7 +65,7 @@ export function CreateOfferPage() {
     try {
       await createOffer.mutateAsync({
         listing_type: 'offer',
-        agent_id: anonymous ? undefined : 'current-user', // No agent for anonymous gifts (GAP-61)
+        agent_id: anonymous ? undefined : user?.id, // No agent for anonymous gifts (GAP-61)
         anonymous,  // GAP-61: Emma Goldman - anonymous gifts
         resource_spec_id: resourceName,
         quantity: parseFloat(quantity),
