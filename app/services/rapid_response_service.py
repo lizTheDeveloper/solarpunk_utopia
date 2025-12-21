@@ -48,7 +48,7 @@ class RapidResponseService:
 
     # ===== Alert Management =====
 
-    def create_alert(
+    async def create_alert(
         self,
         user_id: str,
         cell_id: str,
@@ -95,13 +95,13 @@ class RapidResponseService:
         alert = self.repo.create_alert(alert)
 
         # Propagate via DTN with high priority
-        bundle_id = self._propagate_alert(alert)
+        bundle_id = await self._propagate_alert(alert)
         alert.bundle_id = bundle_id
         self.repo.update_alert(alert)
 
         return alert
 
-    def _propagate_alert(self, alert: RapidAlert) -> str:
+    async def _propagate_alert(self, alert: RapidAlert) -> str:
         """Propagate alert via high-priority DTN bundle."""
         # Determine priority based on alert level
         priority = Priority.EMERGENCY if alert.alert_level == AlertLevel.CRITICAL else Priority.PERISHABLE
@@ -135,8 +135,7 @@ class RapidResponseService:
         # 1. Sign the bundle
         # 2. Calculate content-addressed bundleId
         # 3. Queue for propagation via mesh sync worker
-        import asyncio
-        bundle = asyncio.run(self.bundle_service.create_bundle(bundle_create))
+        bundle = await self.bundle_service.create_bundle(bundle_create)
 
         return bundle.bundleId
 
