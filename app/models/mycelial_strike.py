@@ -73,15 +73,15 @@ class WarlordAlert:
 
     # Source
     reporting_node_fingerprint: str
-    reporting_user_id: Optional[str]
 
-    # Propagation
-    trusted_source: bool = True
-    propagation_count: int = 0
-
-    # Lifecycle
+    # Lifecycle (required fields)
     created_at: datetime
     expires_at: datetime  # 7 days default
+
+    # Optional fields with defaults
+    reporting_user_id: Optional[str] = None
+    trusted_source: bool = True
+    propagation_count: int = 0
     cancelled: bool = False
     cancelled_by: Optional[str] = None
     cancellation_reason: Optional[str] = None
@@ -111,17 +111,17 @@ class LocalStrike:
 
     # Status
     status: StrikeStatus
-    automatic: bool = True
 
-    # Behavior tracking
+    # Behavior tracking (required)
     behavior_score_at_start: float
     current_behavior_score: float
 
-    # Timestamps
+    # Timestamps (required)
     activated_at: datetime
-    deactivated_at: Optional[datetime] = None
 
-    # Override
+    # Optional fields with defaults
+    automatic: bool = True
+    deactivated_at: Optional[datetime] = None
     overridden_by: Optional[str] = None
     override_reason: Optional[str] = None
     overridden_at: Optional[datetime] = None
@@ -171,7 +171,7 @@ class BehaviorTracking:
     """Tracking of user behavior for strike de-escalation."""
     id: str
     user_id: str
-    strike_id: Optional[str]
+    strike_id: Optional[str] = None
 
     # Behavior metrics
     exchanges_given: int = 0
@@ -212,7 +212,7 @@ class StrikeOverrideLog:
     id: str
 
     # What was overridden
-    strike_id: Optional[str]
+    strike_id: Optional[str] = None
     alert_id: Optional[str]
 
     # Override details
@@ -240,7 +240,7 @@ class UserStrikeWhitelist:
 
     # Scope
     scope: str  # 'all', 'specific_abuse_type'
-    abuse_type: Optional[AbuseType]
+    abuse_type: Optional[AbuseType] = None
 
     # Duration
     is_permanent: bool = False

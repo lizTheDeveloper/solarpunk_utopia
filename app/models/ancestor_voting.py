@@ -49,7 +49,6 @@ class MemorialFund:
     id: str
     created_from_user_id: str
     departed_user_name: str
-    departed_user_display_name: Optional[str]
 
     # Reputation balance
     initial_reputation: float
@@ -59,7 +58,8 @@ class MemorialFund:
     created_at: datetime
     updated_at: datetime
 
-    # Privacy
+    # Optional fields with explicit defaults
+    departed_user_display_name: Optional[str] = None
     family_requested_removal: bool = False
     removal_requested_at: Optional[datetime] = None
 
@@ -121,16 +121,16 @@ class UserDepartureRecord:
 
     # Departure details
     departure_type: DepartureType
-    departure_reason: Optional[str]
 
     # Reputation transfer
     final_reputation: float
-    memorial_fund_id: Optional[str]
 
     # Metadata (required fields)
     departed_at: datetime
 
-    # Data handling (optional fields with defaults)
+    # Optional fields with explicit defaults
+    departure_reason: Optional[str] = None
+    memorial_fund_id: Optional[str] = None
     private_data_purged: bool = False
     purged_at: Optional[datetime] = None
     public_contributions_retained: bool = True
