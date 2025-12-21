@@ -22,20 +22,25 @@ class QueueManager:
     """
 
     _lock: Optional[asyncio.Lock] = None
+    _lock_event_loop = None
 
     @classmethod
     def _get_lock(cls) -> asyncio.Lock:
         """Get or create the lock for the current event loop"""
         try:
-            if cls._lock is None:
-                cls._lock = asyncio.Lock()
-            # Test if lock is still valid for current event loop
-            asyncio.get_running_loop()
-            return cls._lock
+            current_loop = asyncio.get_running_loop()
         except RuntimeError:
-            # Different event loop, create new lock
+            # No running event loop
             cls._lock = asyncio.Lock()
+            cls._lock_event_loop = None
             return cls._lock
+
+        # Check if we need a new lock for a different event loop
+        if cls._lock is None or cls._lock_event_loop is not current_loop:
+            cls._lock = asyncio.Lock()
+            cls._lock_event_loop = current_loop
+
+        return cls._lock
 
     @staticmethod
     def _bundle_to_row(bundle: Bundle, queue: QueueName) -> dict:
