@@ -88,8 +88,55 @@ async def root():
 
 @app.get("/health")
 async def health():
-    """Health check endpoint"""
-    return {"status": "healthy"}
+    """
+    Health check endpoint (GAP-51).
+    Returns 503 if any dependency is unhealthy, 200 otherwise.
+    """
+    from .services import HealthCheckService, HealthStatus
+    from fastapi import Response
+    import json
+
+    health_result = await HealthCheckService.health_check()
+
+    # Return 503 if unhealthy
+    status_code = 200 if health_result["status"] == HealthStatus.HEALTHY else 503
+
+    return Response(
+        content=json.dumps(health_result),
+        status_code=status_code,
+        media_type="application/json"
+    )
+
+
+@app.get("/ready")
+async def readiness():
+    """
+    Kubernetes readiness probe endpoint (GAP-51).
+    Returns 503 if service is not ready to accept traffic.
+    """
+    from .services import HealthCheckService
+    from fastapi import Response
+    import json
+
+    ready_result = await HealthCheckService.readiness_check()
+    status_code = 200 if ready_result["ready"] else 503
+
+    return Response(
+        content=json.dumps(ready_result),
+        status_code=status_code,
+        media_type="application/json"
+    )
+
+
+@app.get("/live")
+async def liveness():
+    """
+    Kubernetes liveness probe endpoint (GAP-51).
+    Returns 200 if service is alive and responsive.
+    """
+    from .services import HealthCheckService
+
+    return await HealthCheckService.liveness_check()
 
 
 @app.get("/vf/stats")

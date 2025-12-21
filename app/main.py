@@ -224,24 +224,55 @@ async def root():
 
 @app.get("/health")
 async def health():
-    """Health check endpoint"""
-    global cache_service
+    """
+    Health check endpoint (GAP-51).
+    Returns 503 if any dependency is unhealthy, 200 otherwise.
+    """
+    from .services.health_check import HealthCheckService, HealthStatus
+    from fastapi import Response
+    import json
 
-    # Get cache stats
-    cache_stats = await cache_service.get_cache_stats()
+    health_result = await HealthCheckService.health_check()
 
-    return {
-        "status": "healthy",
-        "cache": {
-            "usage_percentage": cache_stats["usage_percentage"],
-            "is_over_budget": cache_stats["is_over_budget"],
-            "total_bundles": sum(cache_stats["queue_counts"].values())
-        },
-        "services": {
-            "ttl_enforcement": "running" if ttl_service and ttl_service._running else "stopped",
-            "crypto": "initialized" if crypto_service else "not initialized"
-        }
-    }
+    # Return 503 if unhealthy
+    status_code = 200 if health_result["status"] == HealthStatus.HEALTHY else 503
+
+    return Response(
+        content=json.dumps(health_result),
+        status_code=status_code,
+        media_type="application/json"
+    )
+
+
+@app.get("/ready")
+async def readiness():
+    """
+    Kubernetes readiness probe endpoint (GAP-51).
+    Returns 503 if service is not ready to accept traffic.
+    """
+    from .services.health_check import HealthCheckService
+    from fastapi import Response
+    import json
+
+    ready_result = await HealthCheckService.readiness_check()
+    status_code = 200 if ready_result["ready"] else 503
+
+    return Response(
+        content=json.dumps(ready_result),
+        status_code=status_code,
+        media_type="application/json"
+    )
+
+
+@app.get("/live")
+async def liveness():
+    """
+    Kubernetes liveness probe endpoint (GAP-51).
+    Returns 200 if service is alive and responsive.
+    """
+    from .services.health_check import HealthCheckService
+
+    return await HealthCheckService.liveness_check()
 
 
 @app.get("/node/info")
