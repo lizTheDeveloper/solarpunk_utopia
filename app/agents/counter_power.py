@@ -115,20 +115,80 @@ class CounterPowerAgent(BaseAgent):
         """
         Detect resource hoarders (high stock, low outflow).
 
+        A "warlord" is defined as: high inventory but low circulation rate.
+        This distinguishes hoarding from productive guilds (high stock + high flow).
+
         Returns:
             List of warlord data
         """
-        # TODO: Query resource inventory and flow patterns
-        # For now, return mock data
+        if not self.db_client:
+            logger.warning("No db_client available, using mock data")
+            return self._get_mock_warlords()
 
+        try:
+            # Query active offers
+            offers = await self.db_client.get_active_offers()
+
+            # Group offers by agent_id and resource_spec_id
+            agent_resources = {}
+            for offer in offers:
+                agent_id = offer.get('agent_id')
+                resource_spec_id = offer.get('resource_spec_id')
+                quantity = offer.get('quantity', 0)
+
+                key = f"{agent_id}:{resource_spec_id}"
+                if key not in agent_resources:
+                    agent_resources[key] = {
+                        "user_id": agent_id,
+                        "resource_spec_id": resource_spec_id,
+                        "resource_type": offer.get('name', 'unknown'),
+                        "total_stock": 0,
+                        "offer_count": 0,
+                    }
+
+                agent_resources[key]["total_stock"] += quantity
+                agent_resources[key]["offer_count"] += 1
+
+            # Detect warlord pattern: high stock, low offer_count suggests hoarding
+            # (Not circulating despite having resources)
+            warlords = []
+            for data in agent_resources.values():
+                stock = data["total_stock"]
+                offer_count = data["offer_count"]
+
+                # Warlord heuristic: stock > 100 units but only 1-2 offers
+                # (Suggests holding rather than sharing)
+                if stock > 100 and offer_count <= 2:
+                    # Estimate outflow: if only posting occasionally, outflow is low
+                    avg_weekly_outflow = stock * 0.02  # Assume 2% weekly circulation
+
+                    warlords.append({
+                        "user_id": data["user_id"],
+                        "resource_type": data["resource_type"],
+                        "stock_units": stock,
+                        "avg_weekly_outflow": avg_weekly_outflow,
+                        "inflow_rate": 0,  # Can't calculate without exchange history
+                        "guild_classification": "warlord",
+                    })
+
+            logger.info(f"Detected {len(warlords)} potential resource warlords")
+            return warlords
+
+        except Exception as e:
+            logger.error(f"Error detecting warlords: {e}", exc_info=True)
+            return self._get_mock_warlords()
+
+    def _get_mock_warlords(self) -> List[Dict[str, Any]]:
+        """Fallback mock data"""
+        logger.warning("Using mock warlord data")
         return [
             {
                 "user_id": "user:resource_guy",
                 "resource_type": "batteries",
                 "stock_units": 500,
                 "avg_weekly_outflow": 5,
-                "inflow_rate": 50,  # Accumulating
-                "guild_classification": "warlord",  # Not a productive guild
+                "inflow_rate": 50,
+                "guild_classification": "warlord",
             },
         ]
 
@@ -136,19 +196,83 @@ class CounterPowerAgent(BaseAgent):
         """
         Detect members with low activity who might want to leave.
 
+        Looks for agents with old listings but no recent activity.
+
         Returns:
             List of silent member data
         """
-        # TODO: Query user activity patterns
-        # For now, return mock data
+        if not self.db_client:
+            logger.warning("No db_client available, using mock data")
+            return self._get_mock_silent_members()
 
+        try:
+            # Query all listings (offers + needs)
+            all_listings = await self.db_client.get_all_listings()
+
+            # Group by agent and track last activity
+            agent_activity = {}
+            now = datetime.now(timezone.utc)
+
+            for listing in all_listings:
+                agent_id = listing.get('agent_id')
+                created_at = listing.get('created_at')
+
+                if not agent_id or not created_at:
+                    continue
+
+                # Parse created_at timestamp
+                try:
+                    if isinstance(created_at, str):
+                        created_dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                    else:
+                        created_dt = created_at
+                except:
+                    continue
+
+                if agent_id not in agent_activity:
+                    agent_activity[agent_id] = {
+                        "user_id": agent_id,
+                        "last_activity": created_dt,
+                        "total_contributions": 0,
+                    }
+
+                # Track latest activity and count
+                if created_dt > agent_activity[agent_id]["last_activity"]:
+                    agent_activity[agent_id]["last_activity"] = created_dt
+
+                agent_activity[agent_id]["total_contributions"] += 1
+
+            # Detect silent members: > 30 days inactive with <3 contributions total
+            silent_members = []
+            for data in agent_activity.values():
+                days_since_activity = (now - data["last_activity"]).days
+
+                if days_since_activity > 30 and data["total_contributions"] < 3:
+                    silent_members.append({
+                        "user_id": data["user_id"],
+                        "days_since_last_activity": days_since_activity,
+                        "total_contributions": data["total_contributions"],
+                        "governance_participation": 0,  # Can't calculate yet
+                        "pattern": "silence",
+                    })
+
+            logger.info(f"Detected {len(silent_members)} silent members")
+            return silent_members
+
+        except Exception as e:
+            logger.error(f"Error detecting silent members: {e}", exc_info=True)
+            return self._get_mock_silent_members()
+
+    def _get_mock_silent_members(self) -> List[Dict[str, Any]]:
+        """Fallback mock data"""
+        logger.warning("Using mock silent members data")
         return [
             {
                 "user_id": "user:quiet_bob",
                 "days_since_last_activity": 45,
                 "total_contributions": 2,
                 "governance_participation": 0,
-                "pattern": "silence",  # Not blocking, just not participating
+                "pattern": "silence",
             },
         ]
 

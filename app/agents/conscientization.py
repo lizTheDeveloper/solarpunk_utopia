@@ -88,12 +88,45 @@ class ConscientizationAgent(BaseAgent):
         """
         Get users who recently consumed learning content.
 
+        Since there's no consumption tracking table yet, this infers learning
+        activity from active NEED listings in the 'skills' category - someone
+        posting a need for a skill is implicitly a learner.
+
         Returns:
             List of learner data
         """
-        # TODO: Query content access logs
-        # For now, return mock data
+        if not self.db_client:
+            logger.warning("No db_client available, using mock data")
+            return self._get_mock_content_consumers()
 
+        try:
+            # Query active needs in the 'skills' category
+            # These represent people wanting to learn
+            needs = await self.db_client.get_active_needs()
+
+            learners = []
+            for need in needs:
+                # Check if this is a skill-learning need
+                if need.get('category') == 'skills':
+                    learners.append({
+                        "user_id": need.get('agent_id', 'unknown'),
+                        "content_id": f"need:{need.get('id')}",
+                        "content_title": need.get('title', 'Untitled'),
+                        "content_type": "skill_need",
+                        "topic": need.get('name', 'unknown'),
+                        "consumed_at": datetime.fromisoformat(need['created_at']) if 'created_at' in need else datetime.now(timezone.utc),
+                    })
+
+            logger.info(f"Found {len(learners)} active learners from skill needs")
+            return learners
+
+        except Exception as e:
+            logger.error(f"Error querying recent learners: {e}", exc_info=True)
+            return self._get_mock_content_consumers()
+
+    def _get_mock_content_consumers(self) -> List[Dict[str, Any]]:
+        """Fallback mock data"""
+        logger.warning("Using mock content consumers data")
         return [
             {
                 "user_id": "user:alice",
@@ -146,17 +179,50 @@ class ConscientizationAgent(BaseAgent):
         """
         Find nearby mentors for this topic.
 
+        Looks for active OFFER listings in the 'skills' category matching the topic.
+
         Args:
             learner: Learner data
 
         Returns:
             List of potential mentors
         """
-        # TODO: Query user skills and location
-        # For now, return mock data
+        if not self.db_client:
+            logger.warning("No db_client available, using mock data")
+            return self._get_mock_mentors(learner["topic"])
 
-        topic = learner["topic"]
+        try:
+            # Query active skill offers
+            offers = await self.db_client.get_active_offers()
 
+            mentors = []
+            topic = learner["topic"].lower()
+
+            for offer in offers:
+                # Check if this is a skill offer matching the topic
+                if offer.get('category') == 'skills':
+                    skill_name = offer.get('name', '').lower()
+                    # Simple matching: if topic is in skill name or vice versa
+                    if topic in skill_name or skill_name in topic:
+                        mentors.append({
+                            "user_id": offer.get('agent_id', 'unknown'),
+                            "skill": offer.get('name', 'unknown'),
+                            "skill_level": "available",  # We don't track skill level yet
+                            "distance_km": 1.0,  # TODO: Calculate from location data
+                            "available_to_teach": True,
+                            "teaching_schedule": offer.get('notes', 'flexible'),
+                        })
+
+            logger.info(f"Found {len(mentors)} potential mentors for {topic}")
+            return mentors
+
+        except Exception as e:
+            logger.error(f"Error finding mentors: {e}", exc_info=True)
+            return self._get_mock_mentors(learner["topic"])
+
+    def _get_mock_mentors(self, topic: str) -> List[Dict[str, Any]]:
+        """Fallback mock mentors"""
+        logger.warning(f"Using mock mentors for {topic}")
         if topic == "hydroponics":
             return [
                 {
@@ -168,19 +234,60 @@ class ConscientizationAgent(BaseAgent):
                     "teaching_schedule": "Tuesdays",
                 },
             ]
-
         return []
 
     async def _detect_culture_circle_opportunities(self) -> List[Dict[str, Any]]:
         """
         Detect when multiple people are learning same topic.
 
+        Groups people with skill NEEDs for the same topic - they could learn together.
+
         Returns:
             List of culture circle opportunities
         """
-        # TODO: Query recent content consumption patterns
-        # For now, return mock data
+        if not self.db_client:
+            logger.warning("No db_client available, using mock data")
+            return self._get_mock_culture_circles()
 
+        try:
+            # Query active needs
+            needs = await self.db_client.get_active_needs()
+
+            # Group by topic (skill name)
+            topic_groups = {}
+            for need in needs:
+                if need.get('category') == 'skills':
+                    topic = need.get('name', 'unknown')
+                    if topic not in topic_groups:
+                        topic_groups[topic] = []
+
+                    topic_groups[topic].append({
+                        "user_id": need.get('agent_id', 'unknown'),
+                        "need_id": need.get('id'),
+                        "consumed_at": datetime.fromisoformat(need['created_at']) if 'created_at' in need else datetime.now(timezone.utc),
+                    })
+
+            # Find topics with 2+ learners
+            circles = []
+            for topic, learners in topic_groups.items():
+                if len(learners) >= 2:  # Culture circle needs at least 2 people
+                    circles.append({
+                        "topic": topic,
+                        "content_id": f"skill_learning:{topic}",
+                        "learners": learners,
+                        "count": len(learners),
+                    })
+
+            logger.info(f"Found {len(circles)} culture circle opportunities")
+            return circles
+
+        except Exception as e:
+            logger.error(f"Error detecting culture circles: {e}", exc_info=True)
+            return self._get_mock_culture_circles()
+
+    def _get_mock_culture_circles(self) -> List[Dict[str, Any]]:
+        """Fallback mock data"""
+        logger.warning("Using mock culture circle data")
         return [
             {
                 "topic": "data_sovereignty",

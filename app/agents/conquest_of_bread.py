@@ -88,11 +88,61 @@ class ConquestOfBreadAgent(BaseAgent):
         Get all resources that should be tracked for abundance/scarcity.
 
         Returns:
-            List of resource data
+            List of resource data with current stock and consumption estimates
         """
-        # TODO: Query ValueFlows ResourceSpecification and inventory
-        # For now, return mock data
+        if not self.db_client:
+            logger.warning("No db_client available, using mock data")
+            return self._get_mock_tracked_resources()
 
+        try:
+            # Query all resource specs
+            resource_specs = await self.db_client.get_resource_specs()
+
+            # For each resource spec, calculate current inventory and consumption
+            tracked_resources = []
+
+            for spec in resource_specs:
+                # Get current inventory (active offers for this resource)
+                offers = await self.db_client.get_active_offers()
+
+                # Filter offers for this resource spec
+                resource_offers = [
+                    o for o in offers
+                    if o.get('resource_spec_id') == spec['id']
+                ]
+
+                # Calculate total stock (sum of all offer quantities)
+                total_stock = sum(o.get('quantity', 0) for o in resource_offers)
+
+                # Estimate weekly consumption from historical data
+                # For now, use a simple heuristic: 10% of current stock per week
+                # TODO: Query actual exchange history for accurate consumption rate
+                weekly_consumption = total_stock * 0.10 if total_stock > 0 else 1.0
+
+                # Check if heap mode is enabled for this resource
+                # TODO: Query from resource_specs table or separate heap_mode_config table
+                heap_mode_enabled = spec.get('heap_mode_enabled', False)
+
+                tracked_resources.append({
+                    "resource_id": spec['id'],
+                    "name": spec['name'],
+                    "current_stock_kg": total_stock,
+                    "weekly_consumption_kg": weekly_consumption,
+                    "heap_mode_enabled": heap_mode_enabled,
+                    "category": spec.get('category', 'unknown'),
+                    "unit": spec.get('unit', 'units'),
+                })
+
+            logger.info(f"Tracked {len(tracked_resources)} resources from ValueFlows database")
+            return tracked_resources
+
+        except Exception as e:
+            logger.error(f"Error querying tracked resources: {e}", exc_info=True)
+            return self._get_mock_tracked_resources()
+
+    def _get_mock_tracked_resources(self) -> List[Dict[str, Any]]:
+        """Fallback mock data for testing"""
+        logger.warning("Using mock tracked resources data")
         return [
             {
                 "resource_id": "resource:tomatoes",
