@@ -257,8 +257,51 @@ async def init_db() -> None:
 
 
 async def get_db() -> aiosqlite.Connection:
-    """Get database connection"""
+    """Get database connection
+
+    Respects DB_PATH environment variable for testing.
+    If DB_PATH is set to a different path than current connection,
+    closes old connection and creates new one.
+    """
     global _db_connection
+
+    # Check if DB_PATH environment variable is set
+    env_db_path = os.environ.get('DB_PATH')
+    if env_db_path:
+        # If we have a connection to a different database, close it
+        if _db_connection is not None:
+            try:
+                # Get current connection's database path
+                cursor = await _db_connection.execute("PRAGMA database_list")
+                rows = await cursor.fetchall()
+                current_path = None
+                for row in rows:
+                    if row[1] == 'main':
+                        current_path = row[2]
+                        break
+
+                # If paths don't match, close and reconnect
+                if current_path != env_db_path:
+                    await _db_connection.close()
+                    _db_connection = None
+            except Exception:
+                # If we can't check, just close and reconnect
+                try:
+                    await _db_connection.close()
+                except Exception:
+                    pass
+                _db_connection = None
+
+        # Create new connection to the specified path if needed
+        if _db_connection is None:
+            _db_connection = await aiosqlite.connect(env_db_path)
+            _db_connection.row_factory = aiosqlite.Row
+            await _db_connection.execute("PRAGMA foreign_keys = ON")
+            await _db_connection.commit()
+
+        return _db_connection
+
+    # Default behavior: use standard path
     if _db_connection is None:
         await init_db()
     return _db_connection
