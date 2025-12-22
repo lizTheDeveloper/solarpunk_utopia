@@ -1,6 +1,6 @@
 # GAP-E2E: End-to-End Test Coverage Gaps
 
-**Status:** In Progress
+**Status:** Near Complete (CI configured, multi-node harness pending)
 **Priority:** P1 - Reliability
 **Effort:** 20-30 hours (across multiple sessions)
 **Last Updated:** 2025-12-21
@@ -336,7 +336,7 @@ Predefined trust networks:
 ## Success Criteria
 
 - [x] All P1 (safety-critical) flows have passing E2E tests
-- [ ] E2E tests run in CI on every PR
+- [x] E2E tests run in CI on every PR (GitHub Actions workflows configured)
 - [ ] Multi-node test harness enables mesh testing
 - [ ] Trust graph fixtures enable complex scenarios
 - [ ] Time manipulation enables timeout testing

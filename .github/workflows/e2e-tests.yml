@@ -1,0 +1,217 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  python-e2e:
+    name: Python E2E Tests
+    runs-on: ubuntu-latest
+
+    services:
+      # PostgreSQL for ValueFlows (if needed)
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: solarpunk_test
+          POSTGRES_USER: solarpunk
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov
+
+      - name: Set up test databases
+        run: |
+          # Create SQLite databases for testing
+          mkdir -p data
+          python -c "from app.database import init_db; init_db()"
+          python -c "from valueflows_node.app.database import init_db as vf_init; vf_init()"
+
+      - name: Start DTN Bundle System
+        run: |
+          cd app
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          echo "DTN_PID=$!" >> $GITHUB_ENV
+          sleep 5
+          curl -f http://localhost:8000/health || exit 1
+        env:
+          PYTHONUNBUFFERED: 1
+          DTN_PORT: 8000
+          DTN_HOST: 0.0.0.0
+
+      - name: Start ValueFlows Node
+        run: |
+          cd valueflows_node
+          uvicorn valueflows_node.app.main:app --host 0.0.0.0 --port 8001 &
+          echo "VF_PID=$!" >> $GITHUB_ENV
+          sleep 5
+          curl -f http://localhost:8001/health || exit 1
+        env:
+          PYTHONUNBUFFERED: 1
+          VF_PORT: 8001
+          VF_HOST: 0.0.0.0
+          DTN_API_URL: http://localhost:8000
+
+      - name: Run Python E2E Tests
+        run: |
+          pytest tests/e2e/ -v --tb=short --cov=app --cov=valueflows_node --cov-report=xml --cov-report=term
+        env:
+          PYTHONUNBUFFERED: 1
+          DTN_API_URL: http://localhost:8000
+          VF_API_URL: http://localhost:8001
+
+      - name: Upload coverage reports
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: python-e2e
+          name: python-e2e-coverage
+
+      - name: Stop services
+        if: always()
+        run: |
+          kill $DTN_PID || true
+          kill $VF_PID || true
+
+  playwright-e2e:
+    name: Playwright E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Set up test databases
+        run: |
+          mkdir -p data
+          python -c "from app.database import init_db; init_db()"
+          python -c "from valueflows_node.app.database import init_db as vf_init; vf_init()"
+
+      - name: Start DTN Bundle System
+        run: |
+          cd app
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          echo "DTN_PID=$!" >> $GITHUB_ENV
+          sleep 5
+          curl -f http://localhost:8000/health || exit 1
+        env:
+          PYTHONUNBUFFERED: 1
+
+      - name: Start ValueFlows Node
+        run: |
+          cd valueflows_node
+          uvicorn valueflows_node.app.main:app --host 0.0.0.0 --port 8001 &
+          echo "VF_PID=$!" >> $GITHUB_ENV
+          sleep 5
+          curl -f http://localhost:8001/health || exit 1
+        env:
+          PYTHONUNBUFFERED: 1
+          DTN_API_URL: http://localhost:8000
+
+      - name: Start Frontend Dev Server
+        working-directory: frontend
+        run: |
+          npm run dev &
+          echo "FRONTEND_PID=$!" >> $GITHUB_ENV
+          # Wait for frontend to be ready
+          timeout 60 bash -c 'until curl -f http://localhost:3000 > /dev/null 2>&1; do sleep 2; done'
+        env:
+          CI: true
+
+      - name: Run Playwright tests
+        working-directory: frontend
+        run: npx playwright test
+        env:
+          CI: true
+          BASE_URL: http://localhost:3000
+
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 30
+
+      - name: Upload test screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: frontend/test-results/
+          retention-days: 7
+
+      - name: Stop services
+        if: always()
+        run: |
+          kill $DTN_PID || true
+          kill $VF_PID || true
+          kill $FRONTEND_PID || true
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [python-e2e, playwright-e2e]
+    if: always()
+
+    steps:
+      - name: Check test results
+        run: |
+          echo "Python E2E: ${{ needs.python-e2e.result }}"
+          echo "Playwright E2E: ${{ needs.playwright-e2e.result }}"
+
+          if [[ "${{ needs.python-e2e.result }}" == "failure" ]] || [[ "${{ needs.playwright-e2e.result }}" == "failure" ]]; then
+            echo "::error::One or more E2E test suites failed"
+            exit 1
+          fi

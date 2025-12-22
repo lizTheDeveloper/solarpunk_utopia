@@ -1,0 +1,178 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov
+
+      - name: Run unit tests
+        run: |
+          pytest tests/unit/ -v --tb=short --cov=app --cov=valueflows_node --cov-report=xml --cov-report=term
+        env:
+          PYTHONUNBUFFERED: 1
+
+      - name: Upload coverage
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: unit-tests
+          name: unit-test-coverage
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov
+
+      - name: Set up test database
+        run: |
+          mkdir -p data
+          python -c "from app.database import init_db; init_db()"
+          python -c "from valueflows_node.app.database import init_db as vf_init; vf_init()"
+
+      - name: Run integration tests
+        run: |
+          pytest tests/integration/ -v --tb=short --cov=app --cov=valueflows_node --cov-report=xml --cov-report=term
+        env:
+          PYTHONUNBUFFERED: 1
+
+      - name: Upload coverage
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: integration-tests
+          name: integration-test-coverage
+
+  valueflows-tests:
+    name: ValueFlows Node Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov
+
+      - name: Run ValueFlows tests
+        run: |
+          pytest valueflows_node/tests/ -v --tb=short --cov=valueflows_node --cov-report=xml --cov-report=term
+        env:
+          PYTHONUNBUFFERED: 1
+
+      - name: Upload coverage
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: valueflows-tests
+          name: valueflows-test-coverage
+
+  root-tests:
+    name: Root Tests (Panic, Fraud, etc.)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov
+
+      - name: Set up test database
+        run: |
+          mkdir -p data
+          python -c "from app.database import init_db; init_db()"
+          python -c "from valueflows_node.app.database import init_db as vf_init; vf_init()"
+
+      - name: Run root-level tests
+        run: |
+          pytest tests/test_*.py -v --tb=short --cov=app --cov=valueflows_node --cov-report=xml --cov-report=term
+        env:
+          PYTHONUNBUFFERED: 1
+
+      - name: Upload coverage
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: root-tests
+          name: root-test-coverage
+
+  test-summary:
+    name: All Tests Summary
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, valueflows-tests, root-tests]
+    if: always()
+
+    steps:
+      - name: Check test results
+        run: |
+          echo "Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "Integration Tests: ${{ needs.integration-tests.result }}"
+          echo "ValueFlows Tests: ${{ needs.valueflows-tests.result }}"
+          echo "Root Tests: ${{ needs.root-tests.result }}"
+
+          if [[ "${{ needs.unit-tests.result }}" == "failure" ]] || \
+             [[ "${{ needs.integration-tests.result }}" == "failure" ]] || \
+             [[ "${{ needs.valueflows-tests.result }}" == "failure" ]] || \
+             [[ "${{ needs.root-tests.result }}" == "failure" ]]; then
+            echo "::error::One or more test suites failed"
+            exit 1
+          fi
