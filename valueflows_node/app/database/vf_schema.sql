@@ -444,6 +444,52 @@ CREATE INDEX IF NOT EXISTS idx_lessons_type ON lessons(lesson_type);
 CREATE INDEX IF NOT EXISTS idx_lessons_title ON lessons(title);
 
 -- =============================================================================
+-- USERS
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE,
+    public_key TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_public_key ON users(public_key);
+
+-- =============================================================================
+-- CELLS (Local Groups)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS cells (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT
+);
+
+-- =============================================================================
+-- PROPOSALS (Governance)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS proposals (
+    proposal_id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    proposer_id TEXT NOT NULL,
+    status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected', 'active', 'completed')),
+    created_at TEXT NOT NULL,
+    updated_at TEXT,
+    FOREIGN KEY (proposer_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_proposals_status ON proposals(status);
+CREATE INDEX IF NOT EXISTS idx_proposals_proposer ON proposals(proposer_id);
+
+-- =============================================================================
 -- METADATA TABLE (for schema versioning and node info)
 -- =============================================================================
 

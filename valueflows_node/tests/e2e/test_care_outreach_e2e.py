@@ -63,7 +63,7 @@ class TestCareOutreachE2E:
         import sqlite3
         self.sync_conn = sqlite3.connect(self.db_path)
         self.outreach_repo = CareOutreachRepository(self.sync_conn)
-        self.vouch_repo = VouchRepository(self.sync_conn)
+        self.vouch_repo = VouchRepository(self.db_path)  # VouchRepository expects path, not connection
         self.trust_service = WebOfTrustService(self.vouch_repo)
         self.service = CareOutreachService(self.outreach_repo, self.trust_service)
 

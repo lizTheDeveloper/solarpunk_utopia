@@ -42,28 +42,31 @@ class TestTemporalJusticeE2E:
         test_file_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(test_file_dir)))
 
-        async with aiosqlite.connect(self.db_path) as db:
-            # Load base schema first (has users, proposals, cells tables)
-            vf_schema_path = os.path.join(project_root, "valueflows_node", "app", "database", "vf_schema.sql")
-            with open(vf_schema_path) as f:
-                base_schema = f.read()
-            await db.executescript(base_schema)
-            await db.commit()
+        # Open database connection and run migrations
+        self.db = await aiosqlite.connect(self.db_path)
 
-            # Load temporal justice migration
-            temporal_migration_path = os.path.join(project_root, "app", "database", "migrations", "012_add_temporal_justice.sql")
-            with open(temporal_migration_path) as f:
-                migration_sql = f.read()
-            await db.executescript(migration_sql)
-            await db.commit()
+        # Load base schema first (has users, proposals, cells tables)
+        vf_schema_path = os.path.join(project_root, "valueflows_node", "app", "database", "vf_schema.sql")
+        with open(vf_schema_path) as f:
+            base_schema = f.read()
+        await self.db.executescript(base_schema)
+        await self.db.commit()
 
-        # Create repository and service
-        self.repo = TemporalJusticeRepository(self.db_path)
+        # Load temporal justice migration
+        temporal_migration_path = os.path.join(project_root, "app", "database", "migrations", "012_add_temporal_justice.sql")
+        with open(temporal_migration_path) as f:
+            migration_sql = f.read()
+        await self.db.executescript(migration_sql)
+        await self.db.commit()
+
+        # Create repository and service with open connection
+        self.repo = TemporalJusticeRepository(self.db)
         self.service = TemporalJusticeService(self.repo)
 
         yield  # Run the test
 
         # Teardown
+        await self.db.close()
         os.close(self.db_fd)
         os.unlink(self.db_path)
 

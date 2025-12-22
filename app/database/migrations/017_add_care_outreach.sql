@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS care_volunteers (
 
     -- Metadata
     joined_at TEXT NOT NULL,
-    created_at TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT,
 
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -52,11 +52,10 @@ CREATE TABLE IF NOT EXISTS outreach_assignments (
     flagged_user_id TEXT NOT NULL,
 
     -- Who is caring for them
-    volunteer_id TEXT NOT NULL,
+    outreach_volunteer_id TEXT NOT NULL,
 
     -- Why were they flagged (detection reason)
     detection_reason TEXT NOT NULL,
-    detection_level INTEGER NOT NULL,  -- 0 (oops) to 4 (suspected infiltrator)
 
     -- Details about the flagging
     detection_details TEXT,  -- JSON with specifics
@@ -64,24 +63,19 @@ CREATE TABLE IF NOT EXISTS outreach_assignments (
     -- Status of outreach
     status TEXT DEFAULT 'active',  -- 'active', 'converted', 'chose_to_leave', 'still_trying'
 
-    -- Access level while receiving care
-    access_level TEXT DEFAULT 'receiving_care',  -- 'receiving_care', 'minimal_but_human', 'standard', 'full'
-
     -- Timeline
-    assigned_at TEXT NOT NULL,
-    last_contact TEXT,
+    started_at TEXT NOT NULL,
+    ended_at TEXT,
+    needs_assessment TEXT,  -- JSON
     converted_at TEXT,  -- When they came around
-
-    -- Metadata
-    created_at TEXT NOT NULL,
-    updated_at TEXT,
+    conversion_story TEXT,
 
     FOREIGN KEY (flagged_user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (volunteer_id) REFERENCES care_volunteers(user_id) ON DELETE CASCADE
+    FOREIGN KEY (outreach_volunteer_id) REFERENCES care_volunteers(user_id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_outreach_assignments_flagged_user ON outreach_assignments(flagged_user_id);
-CREATE INDEX IF NOT EXISTS idx_outreach_assignments_volunteer ON outreach_assignments(volunteer_id);
+CREATE INDEX IF NOT EXISTS idx_outreach_assignments_volunteer ON outreach_assignments(outreach_volunteer_id);
 CREATE INDEX IF NOT EXISTS idx_outreach_assignments_status ON outreach_assignments(status);
 
 -- Create outreach_notes table (private notes from volunteers)
@@ -101,7 +95,7 @@ CREATE TABLE IF NOT EXISTS outreach_notes (
     contact_type TEXT,  -- 'meeting', 'phone_call', 'resource_connection', 'event_invitation', 'follow_up'
 
     -- Metadata
-    created_at TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
 
     FOREIGN KEY (assignment_id) REFERENCES outreach_assignments(id) ON DELETE CASCADE,
     FOREIGN KEY (volunteer_id) REFERENCES care_volunteers(user_id) ON DELETE CASCADE
@@ -129,7 +123,7 @@ CREATE TABLE IF NOT EXISTS conversion_experiences (
     approved_by_user INTEGER DEFAULT 0,
 
     -- Metadata
-    created_at TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
 
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
