@@ -138,7 +138,7 @@ class AncestorVotingRepository:
             UPDATE memorial_funds
             SET current_balance = ?, updated_at = ?
             WHERE id = ?
-        """, (new_balance, datetime.now(datetime.UTC).isoformat(), fund_id))
+        """, (new_balance, datetime.now(UTC).isoformat(), fund_id))
 
         conn.commit()
         conn.close()
@@ -154,7 +154,7 @@ class AncestorVotingRepository:
                 removal_requested_at = ?,
                 updated_at = ?
             WHERE id = ?
-        """, (datetime.now(datetime.UTC).isoformat(), datetime.now(datetime.UTC).isoformat(), fund_id))
+        """, (datetime.now(UTC).isoformat(), datetime.now(UTC).isoformat(), fund_id))
 
         conn.commit()
         conn.close()
@@ -262,7 +262,7 @@ class AncestorVotingRepository:
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         cursor.execute("""
             SELECT * FROM ghost_reputation_allocations
@@ -295,7 +295,7 @@ class AncestorVotingRepository:
                 vetoed_at = ?,
                 status = 'vetoed'
             WHERE id = ?
-        """, (vetoed_by, veto_reason, datetime.now(datetime.UTC).isoformat(), allocation_id))
+        """, (vetoed_by, veto_reason, datetime.now(UTC).isoformat(), allocation_id))
 
         conn.commit()
         conn.close()
@@ -316,7 +316,7 @@ class AncestorVotingRepository:
                 refunded_at = ?,
                 status = 'refunded'
             WHERE id = ?
-        """, (refund_reason, datetime.now(datetime.UTC).isoformat(), allocation_id))
+        """, (refund_reason, datetime.now(UTC).isoformat(), allocation_id))
 
         conn.commit()
         conn.close()
@@ -331,7 +331,7 @@ class AncestorVotingRepository:
             SET status = 'completed',
                 completed_at = ?
             WHERE id = ?
-        """, (datetime.now(datetime.UTC).isoformat(), allocation_id))
+        """, (datetime.now(UTC).isoformat(), allocation_id))
 
         conn.commit()
         conn.close()

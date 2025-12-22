@@ -41,7 +41,7 @@ class KnowledgeOsmosisService:
             member_count=1,
             status=CircleStatus.FORMING,
             artifact_commitment=artifact_commitment,
-            created_at=datetime.now(datetime.UTC),
+            created_at=datetime.now(UTC),
             created_by=created_by
         )
         return self.repo.create_study_circle(circle)
@@ -72,7 +72,7 @@ class KnowledgeOsmosisService:
             tags=tags,
             difficulty=difficulty,
             builds_on_artifact_id=builds_on_artifact_id,
-            published_at=datetime.now(datetime.UTC)
+            published_at=datetime.now(UTC)
         )
         return self.repo.create_artifact(artifact)
 
@@ -95,6 +95,6 @@ class KnowledgeOsmosisService:
             question=question,
             context=context,
             status=QuestionStatus.OPEN,
-            asked_at=datetime.now(datetime.UTC)
+            asked_at=datetime.now(UTC)
         )
         return self.repo.create_unanswered_question(q)

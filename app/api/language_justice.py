@@ -152,7 +152,7 @@ async def suggest_translation(
 
     # Create suggestion
     suggestion_id = str(uuid.uuid4())
-    now = datetime.now(datetime.UTC).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     await db.execute(
         """
@@ -206,7 +206,7 @@ async def get_language_metrics(
     from datetime import datetime, timedelta
     import json
 
-    period_end = datetime.now(datetime.UTC)
+    period_end = datetime.now(UTC)
     period_start = period_end - timedelta(days=days_back)
 
     # Total active users

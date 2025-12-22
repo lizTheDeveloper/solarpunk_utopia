@@ -228,7 +228,7 @@ class ResilienceMetricsRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        since = (datetime.now(datetime.UTC) - timedelta(days=days)).isoformat()
+        since = (datetime.now(UTC) - timedelta(days=days)).isoformat()
 
         cursor.execute("""
             SELECT * FROM network_health_snapshots
@@ -606,7 +606,7 @@ class ResilienceMetricsRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        since = (datetime.now(datetime.UTC) - timedelta(days=days)).isoformat()
+        since = (datetime.now(UTC) - timedelta(days=days)).isoformat()
 
         if cell_id:
             cursor.execute("""

@@ -112,7 +112,7 @@ class TestBakuninAnalyticsE2E(unittest.TestCase):
         alice_id = "agent:alice"
         bob_id = "agent:bob"
 
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
         cursor.execute("INSERT INTO agents VALUES (?, ?, ?, ?, ?)",
                       (carol_id, "Carol", "person", "active", now))
         cursor.execute("INSERT INTO agents VALUES (?, ?, ?, ?, ?)",
@@ -198,7 +198,7 @@ class TestBakuninAnalyticsE2E(unittest.TestCase):
 
         # Create Dan
         dan_id = "agent:dan"
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
         cursor.execute("INSERT INTO agents VALUES (?, ?, ?, ?, ?)",
                       (dan_id, "Dan", "person", "active", now))
 
@@ -264,7 +264,7 @@ class TestBakuninAnalyticsE2E(unittest.TestCase):
         cursor = conn.cursor()
 
         # Create 3 agents
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
         for person in ['alice', 'bob', 'carol']:
             cursor.execute("INSERT INTO agents VALUES (?, ?, ?, ?, ?)",
                           (f"agent:{person}", person.title(), "person", "active", now))
@@ -316,7 +316,7 @@ class TestBakuninAnalyticsE2E(unittest.TestCase):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
         cursor.execute("INSERT INTO agents VALUES (?, ?, ?, ?, ?)",
                       ("agent:warlord", "Warlord", "person", "active", now))
         cursor.execute("INSERT INTO agents VALUES (?, ?, ?, ?, ?)",
@@ -364,7 +364,7 @@ class TestBakuninAnalyticsE2E(unittest.TestCase):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         # Create agents
         cursor.execute("INSERT INTO agents VALUES (?, ?, ?, ?, ?)",

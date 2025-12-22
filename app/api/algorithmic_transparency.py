@@ -367,7 +367,7 @@ async def get_transparency_stats(
     - Average match scores
     - Most recent bias detection results
     """
-    end_time = datetime.now(datetime.UTC)
+    end_time = datetime.now(UTC)
     start_time = end_time - timedelta(days=days_back)
 
     # Get audit logs

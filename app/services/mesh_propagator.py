@@ -59,7 +59,7 @@ class MeshPropagator:
             payloadType="application/json",
             payload=json.dumps(payload_data),
             hopLimit=10,  # Allow wide propagation for emergencies
-            expiresAt=datetime.now(datetime.UTC) + timedelta(hours=24),  # 24 hour TTL
+            expiresAt=datetime.now(UTC) + timedelta(hours=24),  # 24 hour TTL
             receiptPolicy="delivery_report"
         )
 
@@ -103,7 +103,7 @@ class MeshPropagator:
             payloadType="application/json",
             payload=json.dumps(payload_data),
             hopLimit=20,  # Maximum propagation for trust updates
-            expiresAt=datetime.now(datetime.UTC) + timedelta(days=7),  # 7 day TTL
+            expiresAt=datetime.now(UTC) + timedelta(days=7),  # 7 day TTL
             receiptPolicy="none"  # Don't need receipts for broadcasts
         )
 
@@ -133,7 +133,7 @@ class MeshPropagator:
             Bundle ID
         """
         if expires_at is None:
-            expires_at = datetime.now(datetime.UTC) + timedelta(days=3)
+            expires_at = datetime.now(UTC) + timedelta(days=3)
 
         payload_data = {
             "message_id": message_id,
@@ -141,7 +141,7 @@ class MeshPropagator:
             "recipient_id": recipient_id,
             "encrypted_content": encrypted_content.decode('utf-8') if isinstance(encrypted_content, bytes) else encrypted_content,
             "message_type": message_type,
-            "timestamp": datetime.now(datetime.UTC).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
 
         # Messages are DIRECT audience (unicast to specific recipient)
@@ -187,7 +187,7 @@ class MeshPropagator:
             "encrypted_content": encrypted_content.decode('utf-8') if isinstance(encrypted_content, bytes) else encrypted_content,
             "message_type": "broadcast",
             "recipient_count": recipient_count,
-            "timestamp": datetime.now(datetime.UTC).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
 
         # Cell broadcasts are MULTICAST to cell members
@@ -199,7 +199,7 @@ class MeshPropagator:
             payloadType="application/json",
             payload=json.dumps(payload_data),
             hopLimit=10,
-            expiresAt=datetime.now(datetime.UTC) + timedelta(days=1),
+            expiresAt=datetime.now(UTC) + timedelta(days=1),
             receiptPolicy="none"
         )
 

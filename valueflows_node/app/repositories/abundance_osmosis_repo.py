@@ -118,7 +118,7 @@ class AbundanceOsmosisRepository:
 
         NOTE: Returns aggregate only - no individual tracking.
         """
-        cutoff = (datetime.now(datetime.UTC) - timedelta(days=days)).isoformat()
+        cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat()
 
         cursor = self.conn.execute(
             """
@@ -188,7 +188,7 @@ class AbundanceOsmosisRepository:
                 last_updated = ?
             WHERE id = ?
             """,
-            (new_location, notes, datetime.now(datetime.UTC).isoformat(), resource_id),
+            (new_location, notes, datetime.now(UTC).isoformat(), resource_id),
         )
         self.conn.commit()
 
@@ -241,7 +241,7 @@ class AbundanceOsmosisRepository:
 
     def get_pending_overflow_prompts(self, user_id: str) -> List[OverflowPrompt]:
         """Get overflow prompts for a user that haven't been answered"""
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
         cursor = self.conn.execute(
             """
             SELECT * FROM overflow_prompts
@@ -298,8 +298,8 @@ class AbundanceOsmosisRepository:
 
         "You learned bicycle repair 2 weeks ago. Ready to teach?"
         """
-        cutoff = (datetime.now(datetime.UTC) - timedelta(weeks=weeks_ago)).isoformat()
-        now = datetime.now(datetime.UTC).isoformat()
+        cutoff = (datetime.now(UTC) - timedelta(weeks=weeks_ago)).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         cursor = self.conn.execute(
             """
@@ -309,7 +309,7 @@ class AbundanceOsmosisRepository:
             AND status = 'pending'
             AND permanently_dismissed = 0
             """,
-            (cutoff, (datetime.now(datetime.UTC) - timedelta(weeks=weeks_ago + 1)).isoformat()),
+            (cutoff, (datetime.now(UTC) - timedelta(weeks=weeks_ago + 1)).isoformat()),
         )
         return [self._row_to_knowledge_ripple(row) for row in cursor.fetchall()]
 
@@ -321,7 +321,7 @@ class AbundanceOsmosisRepository:
             SET prompted_at = ?, status = 'prompted'
             WHERE id = ?
             """,
-            (datetime.now(datetime.UTC).isoformat(), ripple_id),
+            (datetime.now(UTC).isoformat(), ripple_id),
         )
         self.conn.commit()
 

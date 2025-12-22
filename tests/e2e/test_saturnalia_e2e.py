@@ -105,7 +105,7 @@ class TestSaturnaliaE2E:
 
         # Verify: Next event scheduled for ~1 year from now
         assert config.next_scheduled_start is not None
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(UTC)
         days_until = (config.next_scheduled_start - now).days
         assert 350 <= days_until <= 380  # 365 ± 15 days
 
@@ -509,7 +509,7 @@ class TestSaturnaliaE2E:
         import sqlite3
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        past_time = (datetime.now(datetime.UTC) - timedelta(hours=1)).isoformat()
+        past_time = (datetime.now(UTC) - timedelta(hours=1)).isoformat()
         cursor.execute("UPDATE saturnalia_events SET end_time = ? WHERE id = ?", (past_time, event.id))
         conn.commit()
         conn.close()
@@ -619,6 +619,6 @@ class TestSaturnaliaE2E:
         assert updated.duration_hours == 48
 
         # Verify: Next scheduled event recalculated for quarterly
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(UTC)
         days_until = (updated.next_scheduled_start - now).days
         assert 83 <= days_until <= 97  # 90 ± 7 days

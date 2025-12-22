@@ -560,7 +560,7 @@ class TestMycelialStrikeE2E:
         # Fast-forward 8 days
         with freeze_time("2025-01-09 00:00:00"):
             # Check if alert is expired
-            now = datetime.now(datetime.UTC)
+            now = datetime.now(UTC)
             is_expired = alert.expires_at < now
             assert is_expired is True
 

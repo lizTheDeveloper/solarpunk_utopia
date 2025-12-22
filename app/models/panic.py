@@ -113,11 +113,11 @@ class DeadMansSwitchConfig(BaseModel):
 
     def is_overdue(self) -> bool:
         """Check if dead man's switch is overdue to trigger."""
-        return datetime.now(datetime.UTC) >= self.calculate_trigger_time()
+        return datetime.now(UTC) >= self.calculate_trigger_time()
 
     def checkin(self):
         """User checks in, resets the timer."""
-        self.last_checkin = datetime.now(datetime.UTC)
+        self.last_checkin = datetime.now(UTC)
         self.trigger_time = self.calculate_trigger_time()
         self.triggered = False
 

@@ -53,7 +53,7 @@ class ResilienceMetricsService:
 
         Returns aggregated metrics with NO individual data exposed.
         """
-        snapshot_time = datetime.now(datetime.UTC)
+        snapshot_time = datetime.now(UTC)
         snapshot_id = f"health-{uuid.uuid4()}"
 
         # Get database connections
@@ -178,7 +178,7 @@ class ResilienceMetricsService:
         cursor = conn.cursor()
 
         # Query actual completed exchanges from ValueFlows database
-        since = (datetime.now(datetime.UTC) - timedelta(days=period_days)).isoformat()
+        since = (datetime.now(UTC) - timedelta(days=period_days)).isoformat()
 
         try:
             # Connect to ValueFlows database
@@ -263,7 +263,7 @@ class ResilienceMetricsService:
         Returns: (score 0-100, median_hours)
         """
         cursor = conn.cursor()
-        period_start = (datetime.now(datetime.UTC) - timedelta(days=period_days)).isoformat()
+        period_start = (datetime.now(UTC) - timedelta(days=period_days)).isoformat()
 
         # Get actual match times: time from need creation to match acceptance
         cursor.execute("""
@@ -303,8 +303,8 @@ class ResilienceMetricsService:
         cursor = conn.cursor()
 
         # Proxy: measure member retention rate
-        thirty_days_ago = (datetime.now(datetime.UTC) - timedelta(days=30)).isoformat()
-        sixty_days_ago = (datetime.now(datetime.UTC) - timedelta(days=60)).isoformat()
+        thirty_days_ago = (datetime.now(UTC) - timedelta(days=30)).isoformat()
+        sixty_days_ago = (datetime.now(UTC) - timedelta(days=60)).isoformat()
 
         # Members who joined 30-60 days ago
         cursor.execute("""
@@ -340,7 +340,7 @@ class ResilienceMetricsService:
         Returns: (score 0-100, match_rate)
         """
         cursor = conn.cursor()
-        period_start = (datetime.now(datetime.UTC) - timedelta(days=period_days)).isoformat()
+        period_start = (datetime.now(UTC) - timedelta(days=period_days)).isoformat()
 
         # Count total needs posted in period
         cursor.execute("""
@@ -499,7 +499,7 @@ class ResilienceMetricsService:
 
         Visible to cell stewards only.
         """
-        snapshot_time = datetime.now(datetime.UTC)
+        snapshot_time = datetime.now(UTC)
         snapshot_id = f"cell-health-{uuid.uuid4()}"
 
         conn = sqlite3.connect(self.db_path)
@@ -519,7 +519,7 @@ class ResilienceMetricsService:
 
         # Get median match time from actual matches in this cell
         cursor = conn.cursor()
-        period_start = (datetime.now(datetime.UTC) - timedelta(days=period_days)).isoformat()
+        period_start = (datetime.now(UTC) - timedelta(days=period_days)).isoformat()
 
         cursor.execute("""
             SELECT
@@ -719,7 +719,7 @@ class ResilienceMetricsService:
 
         Returns nodes/edges that if removed would harm network.
         """
-        report_time = datetime.now(datetime.UTC)
+        report_time = datetime.now(UTC)
         report_id = f"vuln-{uuid.uuid4()}"
 
         conn = sqlite3.connect(self.db_path)
@@ -877,7 +877,7 @@ class ResilienceMetricsService:
 
         All data is AGGREGATED by cell - no individual transactions exposed.
         """
-        analysis_time = datetime.now(datetime.UTC)
+        analysis_time = datetime.now(UTC)
         analysis_id = f"flow-{uuid.uuid4()}"
 
         conn = sqlite3.connect(self.db_path)
@@ -920,7 +920,7 @@ class ResilienceMetricsService:
         Example: "What if Alice is compromised?"
         """
         scenario_id = f"scenario-{uuid.uuid4()}"
-        run_at = datetime.now(datetime.UTC)
+        run_at = datetime.now(UTC)
 
         conn = sqlite3.connect(self.db_path)
         vouch_conn = sqlite3.connect(self.vouch_db_path)

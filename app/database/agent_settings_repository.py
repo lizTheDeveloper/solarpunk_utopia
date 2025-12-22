@@ -48,7 +48,7 @@ class AgentSettingsRepository:
             settings: Settings dictionary to save
         """
         db = await self._get_db()
-        updated_at = datetime.now(datetime.UTC).isoformat()
+        updated_at = datetime.now(UTC).isoformat()
         settings_json = json.dumps(settings)
 
         await db.execute(

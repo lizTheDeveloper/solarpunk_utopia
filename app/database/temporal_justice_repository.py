@@ -47,7 +47,7 @@ class TemporalJusticeRepository:
     ) -> AvailabilityWindow:
         """Create a new availability window"""
         window_id = str(uuid.uuid4())
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         await self.db.execute(
             """
@@ -143,7 +143,7 @@ class TemporalJusticeRepository:
     ) -> SlowExchange:
         """Create a new slow exchange"""
         exchange_id = str(uuid.uuid4())
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         await self.db.execute(
             """
@@ -193,7 +193,7 @@ class TemporalJusticeRepository:
         note: Optional[str] = None,
     ) -> None:
         """Update slow exchange status and optionally add a note"""
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         # Get current notes
         cursor = await self.db.execute(
@@ -287,7 +287,7 @@ class TemporalJusticeRepository:
     ) -> TimeContribution:
         """Record a time contribution"""
         contrib_id = str(uuid.uuid4())
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         await self.db.execute(
             """
@@ -368,7 +368,7 @@ class TemporalJusticeRepository:
     ) -> ChunkOffer:
         """Create a chunk offer for a specific time window"""
         chunk_id = str(uuid.uuid4())
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         await self.db.execute(
             """
@@ -407,7 +407,7 @@ class TemporalJusticeRepository:
         self, chunk_id: str, claiming_user_id: str
     ) -> ChunkOffer:
         """Claim a chunk offer"""
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         await self.db.execute(
             """
@@ -477,7 +477,7 @@ class TemporalJusticeRepository:
     ) -> AsyncVotingRecord:
         """Record an async vote on a proposal"""
         vote_id = str(uuid.uuid4())
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(UTC)
 
         # Calculate time to vote if proposal creation time provided
         time_to_vote_hours = None
@@ -520,7 +520,7 @@ class TemporalJusticeRepository:
     ) -> TemporalJusticeMetrics:
         """Calculate temporal justice metrics for a period"""
         metrics_id = str(uuid.uuid4())
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(UTC)
 
         # Total active members (those with any activity in period)
         cursor = await self.db.execute(

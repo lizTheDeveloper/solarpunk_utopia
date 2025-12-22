@@ -178,8 +178,8 @@ def test_connection_consent_request(service):
         id="consent-1",
         requester_id="maria-pk",
         connection_id="bob-pk",
-        asked_at=datetime.now(datetime.UTC),
-        expires_at=datetime.now(datetime.UTC)
+        asked_at=datetime.now(UTC),
+        expires_at=datetime.now(UTC)
     )
 
     result = service.repo.create_consent_request(consent)
@@ -194,8 +194,8 @@ def test_respond_to_consent(service):
         id="consent-1",
         requester_id="maria-pk",
         connection_id="bob-pk",
-        asked_at=datetime.now(datetime.UTC),
-        expires_at=datetime.now(datetime.UTC)
+        asked_at=datetime.now(UTC),
+        expires_at=datetime.now(UTC)
     )
     service.repo.create_consent_request(consent)
 
@@ -294,8 +294,8 @@ def test_connection_export_with_consent(service, setup_test_data):
         id="consent-1",
         requester_id="maria-pk",
         connection_id="bob-pk",
-        asked_at=datetime.now(datetime.UTC),
-        expires_at=datetime.now(datetime.UTC)
+        asked_at=datetime.now(UTC),
+        expires_at=datetime.now(UTC)
     )
     service.repo.create_consent_request(consent)
     service.respond_to_connection_consent("consent-1", "allow")

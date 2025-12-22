@@ -75,7 +75,7 @@ class TemporalJusticeService:
         """Create a new slow exchange"""
         deadline = None
         if deadline_days:
-            deadline = datetime.now(datetime.UTC) + timedelta(days=deadline_days)
+            deadline = datetime.now(UTC) + timedelta(days=deadline_days)
 
         return await self.repo.create_slow_exchange(
             offerer_id=offerer_id,
@@ -204,7 +204,7 @@ class TemporalJusticeService:
         self, days_back: int = 30
     ) -> TemporalJusticeMetrics:
         """Get temporal justice metrics"""
-        period_end = datetime.now(datetime.UTC)
+        period_end = datetime.now(UTC)
         period_start = period_end - timedelta(days=days_back)
 
         return await self.repo.calculate_temporal_justice_metrics(

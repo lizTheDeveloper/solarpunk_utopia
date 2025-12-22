@@ -132,7 +132,7 @@ class RapidResponseRepository:
 
     def update_alert(self, alert: RapidAlert) -> RapidAlert:
         """Update an existing alert."""
-        alert.updated_at = datetime.now(datetime.UTC)
+        alert.updated_at = datetime.now(UTC)
 
         conn = self._get_connection()
         cursor = conn.cursor()
@@ -481,7 +481,7 @@ class RapidResponseRepository:
         """
         conn = self._get_connection()
         cursor = conn.cursor()
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         # Purge media first (foreign key cascade handles)
         cursor.execute("DELETE FROM alert_media WHERE purge_at <= ?", (now,))
@@ -503,7 +503,7 @@ class RapidResponseRepository:
         """Get CRITICAL alerts that need auto-downgrade (unconfirmed past 5 min)."""
         conn = self._get_connection()
         cursor = conn.cursor()
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         cursor.execute("""
             SELECT * FROM rapid_alerts

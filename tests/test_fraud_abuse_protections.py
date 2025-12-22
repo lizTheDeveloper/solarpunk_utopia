@@ -32,7 +32,7 @@ class TestMonthlyVouchLimit:
 
         # Simulate user who has already created 5 vouches this month
         recent_vouches = [
-            Mock(created_at=datetime.now(datetime.UTC) - timedelta(days=i))
+            Mock(created_at=datetime.now(UTC) - timedelta(days=i))
             for i in range(MAX_VOUCHES_PER_MONTH)
         ]
         mock_repo.get_vouches_since.return_value = recent_vouches
@@ -56,7 +56,7 @@ class TestMonthlyVouchLimit:
 
         # User has only 3 vouches this month
         recent_vouches = [
-            Mock(created_at=datetime.now(datetime.UTC) - timedelta(days=i))
+            Mock(created_at=datetime.now(UTC) - timedelta(days=i))
             for i in range(3)
         ]
         mock_repo.get_vouches_since.return_value = recent_vouches
@@ -79,9 +79,9 @@ class TestVouchRevocationCooloff:
         """Verify revocation within 48h has no consequence"""
         # Vouch created 12 hours ago (within cooloff)
         vouch = Mock()
-        vouch.created_at = datetime.now(datetime.UTC) - timedelta(hours=12)
+        vouch.created_at = datetime.now(UTC) - timedelta(hours=12)
 
-        hours_since = (datetime.now(datetime.UTC) - vouch.created_at).total_seconds() / 3600
+        hours_since = (datetime.now(UTC) - vouch.created_at).total_seconds() / 3600
 
         assert hours_since <= VOUCH_COOLOFF_HOURS
         # This would allow revocation without cascade in the actual implementation
@@ -90,9 +90,9 @@ class TestVouchRevocationCooloff:
         """Verify revocation after 48h requires reason"""
         # Vouch created 3 days ago (past cooloff)
         vouch = Mock()
-        vouch.created_at = datetime.now(datetime.UTC) - timedelta(days=3)
+        vouch.created_at = datetime.now(UTC) - timedelta(days=3)
 
-        hours_since = (datetime.now(datetime.UTC) - vouch.created_at).total_seconds() / 3600
+        hours_since = (datetime.now(UTC) - vouch.created_at).total_seconds() / 3600
 
         assert hours_since > VOUCH_COOLOFF_HOURS
         # This would require reason and trigger cascade in the actual implementation
@@ -202,7 +202,7 @@ class TestSanctuaryVerification:
             verified_by=["steward_1", "steward_2"],  # 2 stewards
             escape_routes=["route_1", "route_2"],
             has_buddy_protocol=True,
-            verified_at=datetime.now(datetime.UTC)
+            verified_at=datetime.now(UTC)
         )
 
         # Valid with 2 verifications
@@ -214,7 +214,7 @@ class TestSanctuaryVerification:
         old_verification = SanctuaryVerification(
             space_id="space_001",
             verified_by=["steward_1", "steward_2"],
-            verified_at=datetime.now(datetime.UTC) - timedelta(days=100),
+            verified_at=datetime.now(UTC) - timedelta(days=100),
             escape_routes=["route_1"],
             has_buddy_protocol=True
         )

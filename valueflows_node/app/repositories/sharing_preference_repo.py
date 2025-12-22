@@ -56,7 +56,7 @@ class SharingPreferenceRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        updated_at = datetime.now(datetime.UTC).isoformat()
+        updated_at = datetime.now(UTC).isoformat()
 
         cursor.execute("""
             INSERT OR REPLACE INTO sharing_preferences

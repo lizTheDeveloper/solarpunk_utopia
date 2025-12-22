@@ -46,7 +46,7 @@ class ForkRightsService:
         request = DataExportRequest(
             user_id=user_id,
             export_type=export_type,
-            requested_at=datetime.now(datetime.UTC),
+            requested_at=datetime.now(UTC),
             status="pending"
         )
 
@@ -68,8 +68,8 @@ class ForkRightsService:
                 id=f"consent-{uuid.uuid4()}",
                 requester_id=user_id,
                 connection_id=connection_id,
-                asked_at=datetime.now(datetime.UTC),
-                expires_at=datetime.now(datetime.UTC) + timedelta(days=7)
+                asked_at=datetime.now(UTC),
+                expires_at=datetime.now(UTC) + timedelta(days=7)
             )
             self.repo.create_consent_request(consent)
 
@@ -148,7 +148,7 @@ class ForkRightsService:
 
         return DataExport(
             user_id=user_id,
-            exported_at=datetime.now(datetime.UTC),
+            exported_at=datetime.now(UTC),
             my_profile=my_profile,
             my_offers=my_offers,
             my_needs=my_needs,
@@ -166,7 +166,7 @@ class ForkRightsService:
         export_data = self.export_user_data(user_id)
 
         # Create export-specific SQLite database
-        export_path = f"data/exports/{user_id}-{datetime.now(datetime.UTC).isoformat()}.db"
+        export_path = f"data/exports/{user_id}-{datetime.now(UTC).isoformat()}.db"
         export_conn = sqlite3.connect(export_path)
         export_cursor = export_conn.cursor()
 
@@ -275,13 +275,13 @@ class ForkRightsService:
         cursor.execute("""
             INSERT INTO cells (id, name, created_by, created_at)
             VALUES (?, ?, ?, ?)
-        """, (new_cell_id, new_cell_name, user_id, datetime.now(datetime.UTC).isoformat()))
+        """, (new_cell_id, new_cell_name, user_id, datetime.now(UTC).isoformat()))
 
         # Add forker as steward
         cursor.execute("""
             INSERT INTO cell_members (cell_id, user_id, role, joined_at)
             VALUES (?, ?, 'steward', ?)
-        """, (new_cell_id, user_id, datetime.now(datetime.UTC).isoformat()))
+        """, (new_cell_id, user_id, datetime.now(UTC).isoformat()))
 
         conn.commit()
         conn.close()
@@ -295,7 +295,7 @@ class ForkRightsService:
             forked_by=user_id,
             fork_reason=fork_reason,
             members_invited=members_to_invite,
-            forked_at=datetime.now(datetime.UTC)
+            forked_at=datetime.now(UTC)
         )
 
         self.repo.create_fork(fork)
@@ -330,7 +330,7 @@ class ForkRightsService:
                 cursor.execute("""
                     INSERT INTO cell_members (cell_id, user_id, role, joined_at)
                     VALUES (?, ?, 'member', ?)
-                """, (new_cell_id, user_id, datetime.now(datetime.UTC).isoformat()))
+                """, (new_cell_id, user_id, datetime.now(UTC).isoformat()))
 
                 conn.commit()
 
@@ -366,7 +366,7 @@ class ForkRightsService:
         exit_record = ExitRecord(
             user_id=user_id,
             cell_id=cell_id,
-            left_at=datetime.now(datetime.UTC)
+            left_at=datetime.now(UTC)
         )
         self.repo.record_exit(exit_record)
 

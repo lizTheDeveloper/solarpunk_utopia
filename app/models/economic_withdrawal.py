@@ -131,7 +131,7 @@ class Campaign(BaseModel):
         """Check if campaign can activate (threshold met, before deadline)."""
         return (
             self.current_participants >= self.threshold_participants and
-            datetime.now(datetime.UTC) < self.pledge_deadline and
+            datetime.now(UTC) < self.pledge_deadline and
             self.status == CampaignStatus.GATHERING
         )
 
@@ -141,14 +141,14 @@ class Campaign(BaseModel):
             raise ValueError("Campaign cannot be activated yet")
 
         self.status = CampaignStatus.ACTIVE
-        self.activated_at = datetime.now(datetime.UTC)
-        self.updated_at = datetime.now(datetime.UTC)
+        self.activated_at = datetime.now(UTC)
+        self.updated_at = datetime.now(UTC)
 
     def complete(self):
         """Complete campaign (calculate final impact)."""
         self.status = CampaignStatus.COMPLETED
-        self.completed_at = datetime.now(datetime.UTC)
-        self.updated_at = datetime.now(datetime.UTC)
+        self.completed_at = datetime.now(UTC)
+        self.updated_at = datetime.now(UTC)
 
     class Config:
         json_schema_extra = {
@@ -233,12 +233,12 @@ class CampaignPledge(BaseModel):
                 self.estimated_spending_redirected += estimated_value
             else:
                 self.estimated_spending_redirected = estimated_value
-        self.updated_at = datetime.now(datetime.UTC)
+        self.updated_at = datetime.now(UTC)
 
     def mark_alternative_used(self):
         """Mark that user used an alternative transaction."""
         self.alternatives_used += 1
-        self.updated_at = datetime.now(datetime.UTC)
+        self.updated_at = datetime.now(UTC)
 
     class Config:
         json_schema_extra = {

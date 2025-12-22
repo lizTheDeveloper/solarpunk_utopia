@@ -145,7 +145,7 @@ class SaturnaliaRepository:
             1 if config.exclude_safety_critical else 0,
             1 if config.allow_individual_opt_out else 0,
             config.next_scheduled_start.isoformat() if config.next_scheduled_start else None,
-            datetime.now(datetime.UTC).isoformat(),
+            datetime.now(UTC).isoformat(),
             config.id,
         ))
 
@@ -323,7 +323,7 @@ class SaturnaliaRepository:
                 status = ?,
                 restored_at = ?
             WHERE id = ?
-        """, (SwapStatus.RESTORED.value, datetime.now(datetime.UTC).isoformat(), swap_id))
+        """, (SwapStatus.RESTORED.value, datetime.now(UTC).isoformat(), swap_id))
 
         conn.commit()
         conn.close()
@@ -363,7 +363,7 @@ class SaturnaliaRepository:
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
         cursor.execute("""
             SELECT * FROM saturnalia_opt_outs
             WHERE user_id = ? AND mode = ?
@@ -424,7 +424,7 @@ class SaturnaliaRepository:
             UPDATE saturnalia_anonymous_posts SET
                 revealed_at = ?
             WHERE event_id = ? AND revealed_at IS NULL
-        """, (datetime.now(datetime.UTC).isoformat(), event_id))
+        """, (datetime.now(UTC).isoformat(), event_id))
 
         conn.commit()
         conn.close()

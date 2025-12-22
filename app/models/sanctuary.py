@@ -242,7 +242,7 @@ class SanctuaryMatch(BaseModel):
 
     def mark_completed(self):
         """Mark match as completed and set purge timer."""
-        self.completed_at = datetime.now(datetime.UTC)
+        self.completed_at = datetime.now(UTC)
         self.status = "completed"
         # Purge 24 hours after completion
         self.purge_at = self.completed_at + timedelta(hours=24)
@@ -503,7 +503,7 @@ class SanctuaryVerification(BaseModel):
             return False
 
         # Must not be expired
-        if self.expires_at and datetime.now(datetime.UTC) > self.expires_at:
+        if self.expires_at and datetime.now(UTC) > self.expires_at:
             return False
 
         return True
@@ -524,7 +524,7 @@ class SanctuaryVerification(BaseModel):
         """Check if resource needs re-verification (expiring soon)."""
         if not self.expires_at:
             return False
-        days_until_expiry = (self.expires_at - datetime.now(datetime.UTC)).days
+        days_until_expiry = (self.expires_at - datetime.now(UTC)).days
         return 0 < days_until_expiry <= 14  # Expiring in next 14 days
 
     def can_add_verification(self, steward_id: str) -> bool:

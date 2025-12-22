@@ -391,8 +391,8 @@ def test_bias_report_generation():
     """Test generating bias detection report"""
     report = BiasDetectionReport(
         id="bias:1",
-        analysis_start=datetime.now(datetime.UTC) - timedelta(days=30),
-        analysis_end=datetime.now(datetime.UTC),
+        analysis_start=datetime.now(UTC) - timedelta(days=30),
+        analysis_end=datetime.now(UTC),
         community_id="community:1",
         total_matches_analyzed=100,
         geographic_bias_score=0.35,

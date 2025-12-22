@@ -87,8 +87,8 @@ class RapidResponseService:
             description=description,
             people_affected=people_affected,
             coordinates=coordinates,
-            created_at=datetime.now(datetime.UTC),
-            expires_at=datetime.now(datetime.UTC) + timedelta(hours=6 if alert_level == AlertLevel.CRITICAL else 24)
+            created_at=datetime.now(UTC),
+            expires_at=datetime.now(UTC) + timedelta(hours=6 if alert_level == AlertLevel.CRITICAL else 24)
         )
 
         # Save to database
@@ -211,7 +211,7 @@ class RapidResponseService:
             role=role,
             eta_minutes=eta_minutes,
             notes=notes,
-            responded_at=datetime.now(datetime.UTC)
+            responded_at=datetime.now(UTC)
         )
 
         return self.repo.add_responder(responder)
@@ -264,7 +264,7 @@ class RapidResponseService:
             update_type=update_type,
             message=message,
             new_alert_level=new_alert_level,
-            posted_at=datetime.now(datetime.UTC)
+            posted_at=datetime.now(UTC)
         )
 
         # Save update
@@ -275,7 +275,7 @@ class RapidResponseService:
             alert = self.repo.get_alert(alert_id)
             if alert:
                 alert.alert_level = new_alert_level
-                alert.updated_at = datetime.now(datetime.UTC)
+                alert.updated_at = datetime.now(UTC)
                 self.repo.update_alert(alert)
 
         # Propagate update via DTN
@@ -309,7 +309,7 @@ class RapidResponseService:
         if alert.resolved_at:
             purge_at = alert.resolved_at + timedelta(hours=24)
         else:
-            purge_at = datetime.now(datetime.UTC) + timedelta(days=7)
+            purge_at = datetime.now(UTC) + timedelta(days=7)
 
         media = AlertMedia(
             id=f"media-{uuid.uuid4()}",
@@ -320,7 +320,7 @@ class RapidResponseService:
             file_size_bytes=file_size_bytes,
             encrypted_metadata=encrypted_metadata,
             purge_at=purge_at,
-            captured_at=datetime.now(datetime.UTC)
+            captured_at=datetime.now(UTC)
         )
 
         # TODO: Store in distributed storage (DTN bundles)
@@ -356,7 +356,7 @@ class RapidResponseService:
             challenges=challenges,
             lessons=lessons,
             recommendations=recommendations,
-            completed_at=datetime.now(datetime.UTC)
+            completed_at=datetime.now(UTC)
         )
 
         return self.repo.add_review(review)
@@ -386,7 +386,7 @@ class RapidResponseService:
             # Downgrade to WATCH
             alert.alert_level = AlertLevel.WATCH
             alert.auto_downgrade_at = None
-            alert.updated_at = datetime.now(datetime.UTC)
+            alert.updated_at = datetime.now(UTC)
 
             # Add system update
             self.add_update(

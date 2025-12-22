@@ -69,7 +69,7 @@ class SanctuaryService:
             duration_days=duration_days,
             verification_status=VerificationStatus.PENDING,
             available=True,
-            available_from=datetime.now(datetime.UTC)
+            available_from=datetime.now(UTC)
         )
 
         return self.repo.create_resource(resource)
@@ -151,9 +151,9 @@ class SanctuaryService:
             duration_needed_days=duration_needed_days,
             location_hint=location_hint,
             status="pending",
-            purge_at=datetime.now(datetime.UTC) + timedelta(days=1),
-            created_at=datetime.now(datetime.UTC),
-            expires_at=datetime.now(datetime.UTC) + timedelta(hours=expires_in_hours)
+            purge_at=datetime.now(UTC) + timedelta(days=1),
+            created_at=datetime.now(UTC),
+            expires_at=datetime.now(UTC) + timedelta(hours=expires_in_hours)
         )
 
         return self.repo.create_request(request)
@@ -173,8 +173,8 @@ class SanctuaryService:
             cell_id=cell_id,
             coordinated_by=steward_id,
             status="active",
-            purge_at=datetime.now(datetime.UTC) + timedelta(days=1),
-            created_at=datetime.now(datetime.UTC)
+            purge_at=datetime.now(UTC) + timedelta(days=1),
+            created_at=datetime.now(UTC)
         )
 
         return self.repo.create_match(match)
@@ -208,9 +208,9 @@ class SanctuaryService:
             location_hint=location_hint,
             description=description,
             people_affected=people_affected,
-            purge_at=datetime.now(datetime.UTC) + timedelta(days=7),
-            created_at=datetime.now(datetime.UTC),
-            expires_at=datetime.now(datetime.UTC) + timedelta(hours=24)
+            purge_at=datetime.now(UTC) + timedelta(days=7),
+            created_at=datetime.now(UTC),
+            expires_at=datetime.now(UTC) + timedelta(hours=24)
         )
 
         return self.repo.create_alert(alert)
@@ -273,7 +273,7 @@ class SanctuaryService:
             id=f"ver-{uuid.uuid4()}",
             resource_id=resource_id,
             steward_id=steward_id,
-            verified_at=datetime.now(datetime.UTC),
+            verified_at=datetime.now(UTC),
             verification_method=verification_method,
             notes=notes,
             escape_routes_verified=escape_routes_verified,
@@ -357,9 +357,9 @@ class SanctuaryService:
             id=f"use-{uuid.uuid4()}",
             resource_id=resource_id,
             request_id=request_id,
-            completed_at=datetime.now(datetime.UTC),
+            completed_at=datetime.now(UTC),
             outcome=outcome,
-            purge_at=datetime.now(datetime.UTC) + timedelta(days=30)
+            purge_at=datetime.now(UTC) + timedelta(days=30)
         )
 
         self.repo.create_sanctuary_use(use)

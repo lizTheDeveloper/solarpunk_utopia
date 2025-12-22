@@ -364,4 +364,4 @@ async def split_group(request: SplitGroupRequest):
 
 
 # Helper method to add to service (for timestamp)
-GroupFormationService._get_current_timestamp = lambda self: __import__('datetime').datetime.now(datetime.UTC).isoformat()
+GroupFormationService._get_current_timestamp = lambda self: __import__('datetime').datetime.now(UTC).isoformat()

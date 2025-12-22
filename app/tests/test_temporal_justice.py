@@ -146,7 +146,7 @@ async def db():
     """)
 
     # Create test users
-    now = datetime.now(datetime.UTC).isoformat()
+    now = datetime.now(UTC).isoformat()
     await conn.execute(
         "INSERT INTO users (id, name, email, created_at) VALUES (?, ?, ?, ?)",
         ("user1", "Test User 1", "user1@test.com", now),

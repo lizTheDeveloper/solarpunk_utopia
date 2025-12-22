@@ -289,7 +289,7 @@ class PanicService:
                 "user_id": notice.user_id,
                 "original_reason": notice.reason,
                 "created_at": notice.created_at.isoformat(),
-                "resolved_at": datetime.now(datetime.UTC).isoformat(),
+                "resolved_at": datetime.now(UTC).isoformat(),
             },
             payloadType="trust:BurnNoticeResolved",
             priority=Priority.NORMAL,  # Not emergency, just informational
@@ -494,7 +494,7 @@ class PanicService:
                 "enabled": (config := self.repo.get_dead_mans_switch(user_id)) and config.enabled,
                 "config": config,
                 "time_remaining": (
-                    config.calculate_trigger_time() - datetime.now(datetime.UTC)
+                    config.calculate_trigger_time() - datetime.now(UTC)
                     if config and config.enabled
                     else None
                 )

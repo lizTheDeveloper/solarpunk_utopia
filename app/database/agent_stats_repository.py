@@ -71,7 +71,7 @@ class AgentStatsRepository:
         """
         db = await self._get_db()
         run_id = str(uuid4())
-        run_at = datetime.now(datetime.UTC).isoformat()
+        run_at = datetime.now(UTC).isoformat()
 
         await db.execute(
             """
@@ -204,7 +204,7 @@ class AgentStatsRepository:
         """
         db = await self._get_db()
 
-        cutoff_date = (datetime.now(datetime.UTC) - timedelta(days=days_to_keep)).isoformat()
+        cutoff_date = (datetime.now(UTC) - timedelta(days=days_to_keep)).isoformat()
 
         cursor = await db.execute(
             """

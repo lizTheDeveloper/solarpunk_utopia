@@ -37,7 +37,7 @@ class WebOfTrustService:
         # Check for cached score (within last hour)
         if not force_recompute:
             cached = self.vouch_repo.get_trust_score(user_id)
-            if cached and (datetime.now(datetime.UTC) - cached.last_computed) < timedelta(hours=1):
+            if cached and (datetime.now(UTC) - cached.last_computed) < timedelta(hours=1):
                 return cached
 
         # Check if genesis node
@@ -48,7 +48,7 @@ class WebOfTrustService:
                 vouch_chains=[[user_id]],
                 best_chain_distance=0,
                 is_genesis=True,
-                last_computed=datetime.now(datetime.UTC),
+                last_computed=datetime.now(UTC),
                 vouch_count=0,
                 revocation_count=0,
             )
@@ -70,7 +70,7 @@ class WebOfTrustService:
                 vouch_chains=[],
                 best_chain_distance=999,
                 is_genesis=False,
-                last_computed=datetime.now(datetime.UTC),
+                last_computed=datetime.now(UTC),
                 vouch_count=len(vouches_received),
                 revocation_count=revocation_count,
             )
@@ -102,7 +102,7 @@ class WebOfTrustService:
             vouch_chains=all_chains,
             best_chain_distance=best_distance,
             is_genesis=False,
-            last_computed=datetime.now(datetime.UTC),
+            last_computed=datetime.now(UTC),
             vouch_count=len(vouches_received),
             revocation_count=revocation_count,
         )
@@ -199,7 +199,7 @@ class WebOfTrustService:
             "vouch_id": vouch_id,
             "vouchee_id": vouch.vouchee_id,
             "affected_users": affected_users,
-            "revoked_at": datetime.now(datetime.UTC).isoformat(),
+            "revoked_at": datetime.now(UTC).isoformat(),
         }
 
     def _cascade_trust_recomputation(self, start_user_id: str) -> List[str]:
@@ -281,10 +281,10 @@ class WebOfTrustService:
             }
 
         # GAP-103: Check monthly vouch limit
-        thirty_days_ago = datetime.now(datetime.UTC) - timedelta(days=30)
+        thirty_days_ago = datetime.now(UTC) - timedelta(days=30)
         recent_vouches = self.vouch_repo.get_vouches_since(voucher_id, thirty_days_ago)
         if len(recent_vouches) >= MAX_VOUCHES_PER_MONTH:
-            days_until_reset = 30 - (datetime.now(datetime.UTC) - recent_vouches[0].created_at).days
+            days_until_reset = 30 - (datetime.now(UTC) - recent_vouches[0].created_at).days
             return {
                 "can_vouch": False,
                 "reason": f"Monthly vouch limit reached ({MAX_VOUCHES_PER_MONTH}). Resets in {days_until_reset} days.",

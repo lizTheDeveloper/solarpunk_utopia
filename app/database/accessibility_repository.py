@@ -118,7 +118,7 @@ class AccessibilityRepository:
         device_info: Optional[Dict[str, Any]] = None,
     ) -> AccessibilityFeatureUsage:
         """Record usage of an accessibility feature"""
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         # Check if already exists
         cursor = await self.db.execute(
@@ -198,7 +198,7 @@ class AccessibilityRepository:
     ) -> AccessibilityFeedback:
         """Create accessibility feedback"""
         feedback_id = str(uuid.uuid4())
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         await self.db.execute(
             """
@@ -284,7 +284,7 @@ class AccessibilityRepository:
     ) -> AccessibilityMetrics:
         """Calculate accessibility metrics"""
         metrics_id = str(uuid.uuid4())
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(UTC)
 
         # Total active users
         cursor = await self.db.execute(

@@ -99,7 +99,7 @@ class AccessibilityService:
 
     async def get_metrics(self, days_back: int = 30) -> AccessibilityMetrics:
         """Get accessibility metrics"""
-        period_end = datetime.now(datetime.UTC)
+        period_end = datetime.now(UTC)
         period_start = period_end - timedelta(days=days_back)
 
         return await self.repo.calculate_accessibility_metrics(period_start, period_end)

@@ -276,7 +276,7 @@ async def respond_to_overflow_prompt(
     try:
         snooze_until = None
         if response == "snoozed" and snooze_days:
-            snooze_until = datetime.now(datetime.UTC) + timedelta(days=snooze_days)
+            snooze_until = datetime.now(UTC) + timedelta(days=snooze_days)
 
         db = get_database()
         db.connect()
@@ -307,11 +307,11 @@ async def detect_overflow(days_threshold: int = 3):
 
         # Find old active offers
         all_offers = listing_repo.find_offers(status="active", limit=1000)
-        threshold = datetime.now(datetime.UTC) - timedelta(days=days_threshold)
+        threshold = datetime.now(UTC) - timedelta(days=days_threshold)
 
         prompts_created = 0
         for offer in all_offers:
-            offer_age = datetime.now(datetime.UTC) - offer.created_at
+            offer_age = datetime.now(UTC) - offer.created_at
             if offer_age.days >= days_threshold:
                 # Check if we already prompted for this
                 existing = osmosis_repo.get_pending_overflow_prompts(offer.provider_id)

@@ -51,7 +51,7 @@ class BlockRepository:
         import uuid
 
         block_id = f"block:{uuid.uuid4()}"
-        created_at = datetime.now(datetime.UTC)
+        created_at = datetime.now(UTC)
 
         entry = BlockEntry(
             id=block_id,

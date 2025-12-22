@@ -129,7 +129,7 @@ class PanicRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        created_at = datetime.now(datetime.UTC).isoformat()
+        created_at = datetime.now(UTC).isoformat()
 
         cursor.execute("""
             INSERT OR REPLACE INTO duress_pins
@@ -177,7 +177,7 @@ class PanicRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        last_used = datetime.now(datetime.UTC).isoformat()
+        last_used = datetime.now(UTC).isoformat()
         cursor.execute("""
             UPDATE duress_pins SET last_used = ? WHERE user_id = ?
         """, (last_used, user_id))
@@ -198,7 +198,7 @@ class PanicRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        created_at = datetime.now(datetime.UTC).isoformat()
+        created_at = datetime.now(UTC).isoformat()
 
         cursor.execute("""
             INSERT OR REPLACE INTO quick_wipe_configs
@@ -247,7 +247,7 @@ class PanicRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        last_triggered = datetime.now(datetime.UTC).isoformat()
+        last_triggered = datetime.now(UTC).isoformat()
         cursor.execute("""
             UPDATE quick_wipe_configs SET last_triggered = ? WHERE user_id = ?
         """, (last_triggered, user_id))
@@ -267,7 +267,7 @@ class PanicRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(UTC)
         created_at = now.isoformat()
         last_checkin = now.isoformat()
 
@@ -345,7 +345,7 @@ class PanicRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         cursor.execute("""
             SELECT user_id, enabled, timeout_hours, last_checkin, trigger_time, triggered, created_at
@@ -379,7 +379,7 @@ class PanicRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        created_at = datetime.now(datetime.UTC).isoformat()
+        created_at = datetime.now(UTC).isoformat()
 
         cursor.execute("""
             INSERT OR REPLACE INTO decoy_mode_configs
@@ -428,7 +428,7 @@ class PanicRepository:
     def create_burn_notice(self, user_id: str, reason: str) -> BurnNotice:
         """Create a burn notice for a compromised user."""
         notice_id = f"burn-notice-{uuid.uuid4()}"
-        created_at = datetime.now(datetime.UTC)
+        created_at = datetime.now(UTC)
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -506,7 +506,7 @@ class PanicRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        now = datetime.now(datetime.UTC).isoformat()
+        now = datetime.now(UTC).isoformat()
         if status == BurnNoticeStatus.SENT or status == BurnNoticeStatus.PROPAGATED:
             cursor.execute("""
                 UPDATE burn_notices SET status = ?, propagated_at = ? WHERE id = ?
@@ -534,7 +534,7 @@ class PanicRepository:
     ) -> WipeLog:
         """Log a data wipe event."""
         log_id = f"wipe-log-{uuid.uuid4()}"
-        wiped_at = datetime.now(datetime.UTC)
+        wiped_at = datetime.now(UTC)
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()

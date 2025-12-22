@@ -60,8 +60,8 @@ class SaturnaliaService:
             exclude_safety_critical=exclude_safety_critical,
             allow_individual_opt_out=allow_individual_opt_out,
             next_scheduled_start=next_start,
-            created_at=datetime.now(datetime.UTC),
-            updated_at=datetime.now(datetime.UTC),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
             created_by=created_by,
         )
 
@@ -91,7 +91,7 @@ class SaturnaliaService:
         if enabled is not None:
             config.enabled = enabled
 
-        config.updated_at = datetime.now(datetime.UTC)
+        config.updated_at = datetime.now(UTC)
 
         return self.repo.update_config(config)
 
@@ -116,7 +116,7 @@ class SaturnaliaService:
         if not config or not config.enabled:
             raise ValueError("Config not found or disabled")
 
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(UTC)
         end_time = now + timedelta(hours=config.duration_hours)
 
         event = SaturnaliaEvent(
@@ -154,7 +154,7 @@ class SaturnaliaService:
 
         # Update event status
         event.status = EventStatus.COMPLETED
-        event.completed_at = datetime.now(datetime.UTC)
+        event.completed_at = datetime.now(UTC)
 
         return self.repo.update_event(event)
 
@@ -169,7 +169,7 @@ class SaturnaliaService:
 
         # Update event status
         event.status = EventStatus.CANCELLED
-        event.cancelled_at = datetime.now(datetime.UTC)
+        event.cancelled_at = datetime.now(UTC)
         event.cancellation_reason = reason
 
         return self.repo.update_event(event)
@@ -185,7 +185,7 @@ class SaturnaliaService:
     def check_event_expiry(self) -> List[SaturnaliaEvent]:
         """Check for expired events and complete them."""
         active_events = self.repo.get_active_events()
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(UTC)
 
         completed_events = []
         for event in active_events:
@@ -217,7 +217,7 @@ class SaturnaliaService:
             scope_type=scope_type,
             scope_id=scope_id,
             status=SwapStatus.ACTIVE,
-            swapped_at=datetime.now(datetime.UTC),
+            swapped_at=datetime.now(UTC),
         )
 
         return self.repo.create_role_swap(swap)
@@ -247,7 +247,7 @@ class SaturnaliaService:
         """Create a new opt-out."""
         expires_at = None
         if not is_permanent and duration_days:
-            expires_at = datetime.now(datetime.UTC) + timedelta(days=duration_days)
+            expires_at = datetime.now(UTC) + timedelta(days=duration_days)
 
         opt_out = SaturnaliaOptOut(
             id=f"saturnalia-optout-{uuid.uuid4()}",
@@ -258,7 +258,7 @@ class SaturnaliaService:
             reason=reason,
             is_permanent=is_permanent,
             expires_at=expires_at,
-            opted_out_at=datetime.now(datetime.UTC),
+            opted_out_at=datetime.now(UTC),
         )
 
         return self.repo.create_opt_out(opt_out)
@@ -288,7 +288,7 @@ class SaturnaliaService:
             post_type=post_type,
             post_id=post_id,
             actual_author_id=actual_author_id,
-            created_at=datetime.now(datetime.UTC),
+            created_at=datetime.now(UTC),
         )
 
         return self.repo.create_anonymous_post(post)
@@ -325,7 +325,7 @@ class SaturnaliaService:
             suggestions=suggestions,
             overall_rating=overall_rating,
             would_do_again=would_do_again,
-            submitted_at=datetime.now(datetime.UTC),
+            submitted_at=datetime.now(UTC),
         )
 
         return self.repo.create_reflection(reflection)
@@ -373,7 +373,7 @@ class SaturnaliaService:
 
     def _calculate_next_start(self, frequency: str) -> datetime:
         """Calculate next event start time based on frequency."""
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(UTC)
 
         if frequency == 'annually':
             # Random day in next year, same month

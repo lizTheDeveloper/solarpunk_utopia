@@ -292,7 +292,7 @@ class CareOutreachRepository:
         conversion_story: Optional[str] = None
     ):
         """Update assignment status"""
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(UTC)
 
         if status in [OutreachStatus.CONVERTED, OutreachStatus.CHOSE_TO_LEAVE]:
             # Mark as ended
@@ -494,7 +494,7 @@ class CareOutreachRepository:
             counts[OutreachStatus(status)] = count
 
         # Get conversions this month
-        one_month_ago = (datetime.now(datetime.UTC) - timedelta(days=30)).isoformat()
+        one_month_ago = (datetime.now(UTC) - timedelta(days=30)).isoformat()
         converted_this_month = self.conn.execute("""
             SELECT COUNT(*)
             FROM outreach_assignments

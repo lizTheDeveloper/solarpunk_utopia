@@ -91,7 +91,7 @@ async def activate_mourning(
             id=memorial_id,
             mourning_id=mourning_id,
             person_name=request.honoring,
-            created_at=datetime.now(datetime.UTC)
+            created_at=datetime.now(UTC)
         )
         repo.create_memorial(memorial)
 
@@ -153,7 +153,7 @@ async def add_memorial_entry(
             author_id=current_user.id,
             content=request.content,
             media_url=request.media_url,
-            created_at=datetime.now(datetime.UTC)
+            created_at=datetime.now(UTC)
         )
 
         repo.add_memorial_entry(entry)
@@ -201,7 +201,7 @@ async def offer_support(
             offered_by=current_user.id,
             support_type=request.support_type,
             details=request.details,
-            created_at=datetime.now(datetime.UTC)
+            created_at=datetime.now(UTC)
         )
 
         repo.add_support_offer(support)

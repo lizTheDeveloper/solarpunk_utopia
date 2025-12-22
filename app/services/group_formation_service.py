@@ -85,7 +85,7 @@ class GroupFormationService:
         group = {
             "id": group_id,
             "name": group_name,
-            "created_at": datetime.now(datetime.UTC).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "parent_group_id": parent_group_id,
             "shared_key": Base64Encoder.encode(group_key).decode('utf-8'),
             "founding_members": [k["user_id"] for k in founder_keys],
@@ -163,7 +163,7 @@ class GroupFormationService:
             "group_id": group_id,
             "inviter_user_id": inviter_user_id,
             "encrypted_group_key": encrypted_key.decode('utf-8'),
-            "created_at": datetime.now(datetime.UTC).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "invitation_type": "group_formation",
         }
 
@@ -267,7 +267,7 @@ class GroupFormationService:
         encrypted_key = encryptor.update(key_with_checksum) + encryptor.finalize()
 
         # Create token
-        expiry = datetime.now(datetime.UTC) + timedelta(minutes=expiry_minutes)
+        expiry = datetime.now(UTC) + timedelta(minutes=expiry_minutes)
         token = {
             "group_id": group_id,
             "inviter_user_id": inviter_user_id,
@@ -310,7 +310,7 @@ class GroupFormationService:
 
         # Check expiry
         expiry = datetime.fromisoformat(token["expires_at"])
-        if datetime.now(datetime.UTC) > expiry:
+        if datetime.now(UTC) > expiry:
             raise ValueError("QR formation token has expired")
 
         # Decrypt group key using OTP
@@ -446,7 +446,7 @@ class GroupFormationService:
         merged_group = {
             "id": merged_id,
             "name": merged_name,
-            "created_at": datetime.now(datetime.UTC).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "shared_key": Base64Encoder.encode(merged_key).decode('utf-8'),
             "formation_method": "group_fusion",
             "parent_groups": [group_a_id, group_b_id],
@@ -504,7 +504,7 @@ class GroupFormationService:
         new_group = {
             "id": new_group_id,
             "name": new_group_name,
-            "created_at": datetime.now(datetime.UTC).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "shared_key": Base64Encoder.encode(new_group_key).decode('utf-8'),
             "formation_method": "group_fission",
             "parent_group_id": original_group_id,  # Lineage tracking
@@ -525,7 +525,7 @@ class GroupFormationService:
             "new_group": new_group,
             "original_group_id": original_group_id,
             "original_group_new_key": Base64Encoder.encode(rotated_key).decode('utf-8'),
-            "split_timestamp": datetime.now(datetime.UTC).isoformat(),
+            "split_timestamp": datetime.now(UTC).isoformat(),
             "action": "group_fission",
         }
 

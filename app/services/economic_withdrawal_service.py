@@ -68,8 +68,8 @@ class EconomicWithdrawalService:
             pledge_deadline=pledge_deadline,
             campaign_start=campaign_start,
             campaign_end=campaign_end,
-            created_at=datetime.now(datetime.UTC),
-            updated_at=datetime.now(datetime.UTC),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         # Save to database
@@ -226,7 +226,7 @@ class EconomicWithdrawalService:
         if campaign.status not in [CampaignStatus.GATHERING]:
             raise ValueError("Campaign is not accepting new pledges")
 
-        if datetime.now(datetime.UTC) > campaign.pledge_deadline:
+        if datetime.now(UTC) > campaign.pledge_deadline:
             raise ValueError("Pledge deadline has passed")
 
         # Create pledge
@@ -238,15 +238,15 @@ class EconomicWithdrawalService:
             commitment_notes=commitment_notes,
             status=PledgeStatus.COMMITTED,
             buddy_id=buddy_id,
-            pledged_at=datetime.now(datetime.UTC),
-            updated_at=datetime.now(datetime.UTC),
+            pledged_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         pledge = self.repo.create_pledge(pledge)
 
         # Update campaign participant count
         campaign.current_participants += 1
-        campaign.updated_at = datetime.now(datetime.UTC)
+        campaign.updated_at = datetime.now(UTC)
         self.repo.update_campaign(campaign)
 
         # Check if campaign can activate
@@ -307,7 +307,7 @@ class EconomicWithdrawalService:
         for pledge in pledges:
             if pledge.status == PledgeStatus.COMMITTED:
                 pledge.status = PledgeStatus.ACTIVE
-                pledge.updated_at = datetime.now(datetime.UTC)
+                pledge.updated_at = datetime.now(UTC)
                 self.repo.update_pledge(pledge)
 
     def _propagate_pledge(self, campaign: Campaign, pledge: CampaignPledge):
@@ -357,7 +357,7 @@ class EconomicWithdrawalService:
             contact_user_id=contact_user_id,
             access_instructions=access_instructions,
             times_used=0,
-            created_at=datetime.now(datetime.UTC),
+            created_at=datetime.now(UTC),
             created_by=created_by,
         )
 
@@ -398,8 +398,8 @@ class EconomicWithdrawalService:
                 total_estimated_redirected=0.0,
                 campaigns_participated=0,
                 campaigns_completed=0,
-                created_at=datetime.now(datetime.UTC),
-                updated_at=datetime.now(datetime.UTC),
+                created_at=datetime.now(UTC),
+                updated_at=datetime.now(UTC),
             )
             progress = self.repo.create_exit_progress(progress)
         return progress
@@ -433,7 +433,7 @@ class EconomicWithdrawalService:
             }
 
         progress.categories[category]["campaigns_completed"] += 1
-        progress.updated_at = datetime.now(datetime.UTC)
+        progress.updated_at = datetime.now(UTC)
 
         self.repo.update_exit_progress(progress)
 
@@ -476,8 +476,8 @@ class EconomicWithdrawalService:
             delivery_date=delivery_date,
             distribution_location=distribution_location,
             status="gathering",
-            created_at=datetime.now(datetime.UTC),
-            updated_at=datetime.now(datetime.UTC),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         bulk_buy = self.repo.create_bulk_buy(bulk_buy)
@@ -501,7 +501,7 @@ class EconomicWithdrawalService:
         if bulk_buy.status != "gathering":
             raise ValueError("Bulk buy is not accepting commitments")
 
-        if datetime.now(datetime.UTC) > bulk_buy.commitment_deadline:
+        if datetime.now(UTC) > bulk_buy.commitment_deadline:
             raise ValueError("Commitment deadline has passed")
 
         # Calculate total cost
@@ -516,14 +516,14 @@ class EconomicWithdrawalService:
             total_cost=total_cost,
             paid=False,
             picked_up=False,
-            committed_at=datetime.now(datetime.UTC),
+            committed_at=datetime.now(UTC),
         )
 
         commitment = self.repo.create_bulk_buy_commitment(commitment)
 
         # Update bulk buy
         bulk_buy.current_committed_units += units
-        bulk_buy.updated_at = datetime.now(datetime.UTC)
+        bulk_buy.updated_at = datetime.now(UTC)
 
         # Check if threshold met
         if bulk_buy.can_order() and bulk_buy.status == "gathering":

@@ -53,7 +53,7 @@ class AncestorVotingService:
         - A user is removed from the network
         - A user is inactive for extended period
         """
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(UTC)
 
         # Create Memorial Fund
         fund = MemorialFund(
@@ -176,7 +176,7 @@ class AncestorVotingService:
         priority = self._calculate_priority(proposal_metadata)
 
         # Create allocation
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(UTC)
         veto_deadline = now + timedelta(hours=24)
 
         allocation = GhostReputationAllocation(
@@ -264,7 +264,7 @@ class AncestorVotingService:
             raise ValueError(f"Allocation {allocation_id} not found")
 
         # Check veto window
-        if datetime.now(datetime.UTC) > allocation.veto_deadline:
+        if datetime.now(UTC) > allocation.veto_deadline:
             raise ValueError("Veto window has expired")
 
         # Check not already vetoed
@@ -369,7 +369,7 @@ class AncestorVotingService:
             elif proposal_status == ProposalStatus.APPROVED:
                 tracking.proposals_approved += 1
 
-            tracking.last_updated = datetime.now(datetime.UTC)
+            tracking.last_updated = datetime.now(UTC)
             self.repo.create_or_update_impact_tracking(tracking)
 
         # Log audit
@@ -552,7 +552,7 @@ class AncestorVotingService:
                 proposals_implemented=0,
                 new_members_helped=0,
                 controversial_proposals_boosted=0,
-                last_updated=datetime.now(datetime.UTC),
+                last_updated=datetime.now(UTC),
             )
 
         tracking.total_allocated += amount
@@ -564,7 +564,7 @@ class AncestorVotingService:
         if priority['is_controversial']:
             tracking.controversial_proposals_boosted += 1
 
-        tracking.last_updated = datetime.now(datetime.UTC)
+        tracking.last_updated = datetime.now(UTC)
 
         self.repo.create_or_update_impact_tracking(tracking)
 
@@ -578,7 +578,7 @@ class AncestorVotingService:
         if tracking:
             tracking.total_allocated -= amount  # Subtract from allocated
             tracking.total_refunded += amount
-            tracking.last_updated = datetime.now(datetime.UTC)
+            tracking.last_updated = datetime.now(UTC)
             self.repo.create_or_update_impact_tracking(tracking)
 
     def _log_audit(
@@ -597,6 +597,6 @@ class AncestorVotingService:
             actor_id=actor_id,
             actor_role=actor_role,
             details=details,
-            logged_at=datetime.now(datetime.UTC),
+            logged_at=datetime.now(UTC),
         )
         self.repo.create_audit_log(log)

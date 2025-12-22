@@ -86,7 +86,7 @@ class CareVolunteer:
         """Has it been more than a week since supervision check-in?"""
         if not self.last_supervision:
             return True
-        days_since = (datetime.now(datetime.UTC) - self.last_supervision).days
+        days_since = (datetime.now(UTC) - self.last_supervision).days
         return days_since > 7
 
 
@@ -143,14 +143,14 @@ class OutreachAssignment:
 
     def __post_init__(self):
         if self.started_at is None:
-            self.started_at = datetime.now(datetime.UTC)
+            self.started_at = datetime.now(UTC)
         if self.notes is None:
             self.notes = []
 
     @property
     def duration_days(self) -> int:
         """How long has this outreach been active?"""
-        end = self.ended_at or datetime.now(datetime.UTC)
+        end = self.ended_at or datetime.now(UTC)
         return (end - self.started_at).days
 
     @property
