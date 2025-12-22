@@ -407,10 +407,13 @@ class CareOutreachRepository:
             INSERT OR REPLACE INTO needs_assessments (
                 user_id, assessed_by, assessed_at,
                 housing_insecure, food_insecure, employment_unstable,
-                healthcare_access, isolated, past_trauma_with_orgs,
+                healthcare_access, transportation_needed,
+                mental_health_crisis, substance_issues, disability_accommodation,
+                childcare_needed, eldercare_needed,
+                isolated, past_trauma_with_orgs,
                 trust_issues, being_paid_to_sabotage, law_enforcement,
                 resources_connected
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             assessment.user_id,
             assessment.assessed_by,
@@ -419,6 +422,12 @@ class CareOutreachRepository:
             assessment.food_insecure,
             assessment.employment_unstable,
             assessment.healthcare_access,
+            assessment.transportation_needed,
+            assessment.mental_health_crisis,
+            assessment.substance_issues,
+            assessment.disability_accommodation,
+            assessment.childcare_needed,
+            assessment.eldercare_needed,
             assessment.isolated,
             assessment.past_trauma_with_orgs,
             assessment.trust_issues,
@@ -434,7 +443,10 @@ class CareOutreachRepository:
         row = self.conn.execute("""
             SELECT user_id, assessed_by, assessed_at,
                    housing_insecure, food_insecure, employment_unstable,
-                   healthcare_access, isolated, past_trauma_with_orgs,
+                   healthcare_access, transportation_needed,
+                   mental_health_crisis, substance_issues, disability_accommodation,
+                   childcare_needed, eldercare_needed,
+                   isolated, past_trauma_with_orgs,
                    trust_issues, being_paid_to_sabotage, law_enforcement,
                    resources_connected
             FROM needs_assessments
@@ -452,12 +464,18 @@ class CareOutreachRepository:
             food_insecure=bool(row[4]),
             employment_unstable=bool(row[5]),
             healthcare_access=bool(row[6]),
-            isolated=bool(row[7]),
-            past_trauma_with_orgs=bool(row[8]),
-            trust_issues=bool(row[9]),
-            being_paid_to_sabotage=row[10],
-            law_enforcement=row[11],
-            resources_connected=json.loads(row[12]) if row[12] else [],
+            transportation_needed=bool(row[7]),
+            mental_health_crisis=bool(row[8]),
+            substance_issues=bool(row[9]),
+            disability_accommodation=bool(row[10]),
+            childcare_needed=bool(row[11]),
+            eldercare_needed=bool(row[12]),
+            isolated=bool(row[13]),
+            past_trauma_with_orgs=bool(row[14]),
+            trust_issues=bool(row[15]),
+            being_paid_to_sabotage=row[16],
+            law_enforcement=row[17],
+            resources_connected=json.loads(row[18]) if row[18] else [],
         )
 
     # --- Metrics Methods ---

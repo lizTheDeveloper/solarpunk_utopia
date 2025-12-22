@@ -241,12 +241,10 @@ class CareOutreachService:
         import sys
 
         # Import VF components
-        vf_path = Path(__file__).parent.parent.parent / "valueflows_node"
-        sys.path.insert(0, str(vf_path))
-
-        from app.models.vf.listing import Listing, ListingType
-        from app.repositories.vf.listing_repo import ListingRepository
-        from app.repositories.vf.resource_spec_repo import ResourceSpecRepository
+        from valueflows_node.app.models.vf.listing import Listing, ListingType
+        from valueflows_node.app.models.vf.resource_spec import ResourceCategory
+        from valueflows_node.app.repositories.vf.listing_repo import ListingRepository
+        from valueflows_node.app.repositories.vf.resource_spec_repo import ResourceSpecRepository
 
         # Connect to ValueFlows database
         vf_db_path = str(Path(__file__).parent.parent.parent / "valueflows_node" / "app" / "database" / "valueflows.db")
@@ -261,7 +259,7 @@ class CareOutreachService:
             # Create needs based on assessment
             if assessment.housing_insecure:
                 # Find or create housing resource spec
-                specs = resource_spec_repo.find_by_category("housing")
+                specs = resource_spec_repo.find_by_category(ResourceCategory.HOUSING)
                 if specs:
                     spec_id = specs[0].id
                 else:
@@ -285,7 +283,7 @@ class CareOutreachService:
                 resources_connected.append("housing")
 
             if assessment.food_insecure:
-                specs = resource_spec_repo.find_by_category("food")
+                specs = resource_spec_repo.find_by_category(ResourceCategory.FOOD)
                 spec_id = specs[0].id if specs else "food-general"
 
                 listing = Listing(
@@ -305,7 +303,7 @@ class CareOutreachService:
                 resources_connected.append("food")
 
             if assessment.employment_unstable:
-                specs = resource_spec_repo.find_by_category("work")
+                specs = resource_spec_repo.find_by_category(ResourceCategory.LABOR)
                 spec_id = specs[0].id if specs else "work-general"
 
                 listing = Listing(

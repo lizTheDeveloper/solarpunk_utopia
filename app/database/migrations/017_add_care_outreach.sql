@@ -133,34 +133,41 @@ CREATE INDEX IF NOT EXISTS idx_conversion_experiences_public ON conversion_exper
 
 -- Create needs_assessments table (what does this person need?)
 CREATE TABLE IF NOT EXISTS needs_assessments (
-    id TEXT PRIMARY KEY,
+    user_id TEXT PRIMARY KEY,
+    assessed_by TEXT NOT NULL,
+    assessed_at TEXT NOT NULL,
 
-    -- Which assignment
-    assignment_id TEXT NOT NULL,
+    -- Material needs (boolean flags)
+    housing_insecure INTEGER DEFAULT 0,
+    food_insecure INTEGER DEFAULT 0,
+    employment_unstable INTEGER DEFAULT 0,
+    healthcare_access INTEGER DEFAULT 0,
+    transportation_needed INTEGER DEFAULT 0,
 
-    -- Assessment
-    housing_status TEXT,  -- 'stable', 'precarious', 'housing_insecure', 'unhoused'
-    employment_status TEXT,  -- 'full_time', 'part_time', 'gig_work', 'unemployed', 'disabled'
-    care_responsibilities TEXT,  -- 'children', 'elderly_parents', 'disabled_family', 'none'
+    -- Care needs
+    mental_health_crisis INTEGER DEFAULT 0,
+    substance_issues INTEGER DEFAULT 0,
+    disability_accommodation INTEGER DEFAULT 0,
+    childcare_needed INTEGER DEFAULT 0,
+    eldercare_needed INTEGER DEFAULT 0,
 
-    -- Immediate needs (JSON array)
-    immediate_needs TEXT,  -- ["food", "housing", "healthcare", "childcare"]
+    -- Social/emotional needs
+    isolated INTEGER DEFAULT 0,
+    past_trauma_with_orgs INTEGER DEFAULT 0,
+    trust_issues INTEGER DEFAULT 0,
+
+    -- Special cases
+    being_paid_to_sabotage TEXT,  -- "suspected", "confirmed", or NULL
+    law_enforcement TEXT,  -- "suspected", "confirmed", or NULL
 
     -- Resources connected to (JSON array)
     resources_connected TEXT,  -- ["mutual_aid_food", "housing_cell", "childcare_collective"]
 
-    -- Notes
-    assessment_notes TEXT,
-
-    -- Metadata
-    assessed_at TEXT NOT NULL,
-    assessed_by TEXT NOT NULL,
-
-    FOREIGN KEY (assignment_id) REFERENCES outreach_assignments(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (assessed_by) REFERENCES care_volunteers(user_id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_needs_assessments_assignment ON needs_assessments(assignment_id);
+CREATE INDEX IF NOT EXISTS idx_needs_assessments_user ON needs_assessments(user_id);
 
 -- Create care_outreach_metrics table (success tracking - not surveillance)
 CREATE TABLE IF NOT EXISTS care_outreach_metrics (

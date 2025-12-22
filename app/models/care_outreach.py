@@ -170,6 +170,14 @@ class NeedsAssessment:
     food_insecure: bool = False
     employment_unstable: bool = False
     healthcare_access: bool = False
+    transportation_needed: bool = False
+
+    # Care needs
+    mental_health_crisis: bool = False
+    substance_issues: bool = False
+    disability_accommodation: bool = False
+    childcare_needed: bool = False
+    eldercare_needed: bool = False
 
     # Social/emotional needs
     isolated: bool = False
