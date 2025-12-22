@@ -20,14 +20,24 @@ from ..services import (
     ResponseBuilder,
     SpeculativeCacheManager,
 )
-from ..database import init_discovery_db, close_discovery_db, IndexCacheDB
+from ..database import init_discovery_db, close_discovery_db, IndexCacheDB, get_discovery_db
 
 
 @pytest.fixture
 async def discovery_db():
     """Initialize test database"""
     await init_discovery_db()
+
+    # Clear any existing data before each test
+    db = await get_discovery_db()
+    await db.execute("DELETE FROM index_cache")
+    await db.commit()
+
     yield
+
+    # Clean up after test
+    await db.execute("DELETE FROM index_cache")
+    await db.commit()
     await close_discovery_db()
 
 
@@ -75,6 +85,7 @@ class MockBundleService:
 class TestCacheManager:
     """Test speculative cache manager"""
 
+    @pytest.mark.asyncio
     async def test_cache_index(self, discovery_db, node_info):
         """Test caching an index"""
         cache_manager = SpeculativeCacheManager(max_cache_mb=10)
@@ -123,6 +134,7 @@ class TestCacheManager:
         assert cached is not None
         assert cached["node_id"] == "peer-node-456"
 
+    @pytest.mark.asyncio
     async def test_cache_eviction(self, discovery_db):
         """Test cache eviction"""
         cache_manager = SpeculativeCacheManager(max_cache_mb=10)
@@ -162,6 +174,7 @@ class TestCacheManager:
 
         assert not success  # Should not cache expired index
 
+    @pytest.mark.asyncio
     async def test_cache_stats(self, discovery_db, node_info):
         """Test cache statistics"""
         cache_manager = SpeculativeCacheManager(max_cache_mb=10)
@@ -209,6 +222,7 @@ class TestCacheManager:
 class TestQueryResponse:
     """Test query and response flow"""
 
+    @pytest.mark.asyncio
     async def test_query_without_results(self, discovery_db, node_info):
         """Test query that finds no results"""
         query_handler = QueryHandler(
@@ -231,6 +245,7 @@ class TestQueryResponse:
 
         assert len(results) == 0
 
+    @pytest.mark.asyncio
     async def test_query_with_cached_results(self, discovery_db, node_info):
         """Test query that finds results in cache"""
         cache_manager = SpeculativeCacheManager(max_cache_mb=10)
@@ -289,6 +304,7 @@ class TestQueryResponse:
         assert results[0].is_cached is True
         assert "tomatoes" in results[0].title.lower()
 
+    @pytest.mark.asyncio
     async def test_response_builder(self, discovery_db, node_info):
         """Test building and publishing response"""
         bundle_service = MockBundleService()
@@ -339,6 +355,7 @@ class TestQueryResponse:
 class TestEndToEnd:
     """End-to-end integration tests"""
 
+    @pytest.mark.asyncio
     async def test_full_discovery_flow(self, discovery_db, node_info):
         """Test complete discovery flow from cache to query to response"""
         # Setup services
