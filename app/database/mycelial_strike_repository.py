@@ -106,15 +106,23 @@ class MycelialStrikeRepository:
         return [self._row_to_alert(row) for row in rows]
 
     def cancel_alert(self, alert_id: str, cancelled_by: str, reason: str) -> None:
-        """Cancel an alert."""
+        """Cancel an alert and deactivate associated strikes."""
         conn = self._get_connection()
         cursor = conn.cursor()
 
+        # Cancel the alert
         cursor.execute("""
             UPDATE warlord_alerts
             SET cancelled = 1, cancelled_by = ?, cancellation_reason = ?, cancelled_at = ?
             WHERE id = ?
         """, (cancelled_by, reason, datetime.utcnow().isoformat(), alert_id))
+
+        # Deactivate any strikes associated with this alert
+        cursor.execute("""
+            UPDATE local_strikes
+            SET status = 'deactivated', deactivated_at = ?
+            WHERE alert_id = ? AND status = 'active'
+        """, (datetime.utcnow().isoformat(), alert_id))
 
         conn.commit()
         conn.close()
@@ -195,6 +203,28 @@ class MycelialStrikeRepository:
             SET current_behavior_score = ?
             WHERE id = ?
         """, (new_score, strike_id))
+
+        conn.commit()
+        conn.close()
+
+    def update_strike_throttle_level(self, strike_id: str, new_level: ThrottleLevel, new_actions: ThrottleActions) -> None:
+        """Update throttle level and actions for a strike."""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        throttle_actions_json = json.dumps({
+            'deprioritize_matching': new_actions.deprioritize_matching,
+            'add_message_latency': new_actions.add_message_latency,
+            'reduce_proposal_visibility': new_actions.reduce_proposal_visibility,
+            'show_warning_indicator': new_actions.show_warning_indicator,
+            'block_high_value_exchanges': new_actions.block_high_value_exchanges,
+        })
+
+        cursor.execute("""
+            UPDATE local_strikes
+            SET throttle_level = ?, throttle_actions = ?
+            WHERE id = ?
+        """, (new_level.value, throttle_actions_json, strike_id))
 
         conn.commit()
         conn.close()
@@ -348,6 +378,38 @@ class MycelialStrikeRepository:
         conn.close()
         return log
 
+    def get_override_logs_for_strike(self, strike_id: str) -> List[StrikeOverrideLog]:
+        """Get all override logs for a strike."""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT * FROM strike_override_log
+            WHERE strike_id = ?
+            ORDER BY overridden_at DESC
+        """, (strike_id,))
+
+        rows = cursor.fetchall()
+        conn.close()
+
+        return [self._row_to_override_log(row) for row in rows]
+
+    def get_deescalation_logs_for_strike(self, strike_id: str) -> List[StrikeDeescalationLog]:
+        """Get all de-escalation logs for a strike."""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT * FROM strike_deescalation_log
+            WHERE strike_id = ?
+            ORDER BY deescalated_at DESC
+        """, (strike_id,))
+
+        rows = cursor.fetchall()
+        conn.close()
+
+        return [self._row_to_deescalation_log(row) for row in rows]
+
     # ===== Whitelist =====
 
     def create_whitelist_entry(
@@ -463,4 +525,30 @@ class MycelialStrikeRepository:
             period_start=datetime.fromisoformat(row['period_start']),
             period_end=datetime.fromisoformat(row['period_end']),
             last_updated=datetime.fromisoformat(row['last_updated']),
+        )
+
+    def _row_to_override_log(self, row: sqlite3.Row) -> StrikeOverrideLog:
+        """Convert database row to StrikeOverrideLog."""
+        return StrikeOverrideLog(
+            id=row['id'],
+            strike_id=row['strike_id'],
+            alert_id=row['alert_id'],
+            action=OverrideAction(row['action']),
+            override_by=row['override_by'],
+            reason=row['reason'],
+            before_state=json.loads(row['before_state']) if row['before_state'] else None,
+            after_state=json.loads(row['after_state']) if row['after_state'] else None,
+            overridden_at=datetime.fromisoformat(row['overridden_at']),
+        )
+
+    def _row_to_deescalation_log(self, row: sqlite3.Row) -> StrikeDeescalationLog:
+        """Convert database row to StrikeDeescalationLog."""
+        return StrikeDeescalationLog(
+            id=row['id'],
+            strike_id=row['strike_id'],
+            previous_level=ThrottleLevel(row['previous_level']),
+            new_level=ThrottleLevel(row['new_level']),
+            trigger_reason=DeescalationReason(row['trigger_reason']),
+            behavior_score=row['behavior_score'],
+            deescalated_at=datetime.fromisoformat(row['deescalated_at']),
         )

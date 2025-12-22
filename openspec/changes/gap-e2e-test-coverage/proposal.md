@@ -311,8 +311,8 @@ Predefined trust networks:
 
 ### Phase 2: Trust & Coordination (P2)
 4. [x] Web of Trust vouch chain E2E test - `tests/e2e/test_web_of_trust_e2e.py` (10 test scenarios, all passing)
-5. [ ] Mycelial Strike defense E2E test (in progress - test file created, needs service method fixes)
-6. [ ] Blocking with silent failure E2E test
+5. [x] Mycelial Strike defense E2E test - `tests/e2e/test_mycelial_strike_e2e.py` (10 test scenarios, all passing)
+6. [x] Blocking with silent failure E2E test - `tests/e2e/test_blocking_silent_failure_e2e.py` (10 test scenarios, all passing)
 
 ### Phase 3: Multi-Node (P3)
 7. [ ] DTN Mesh Sync E2E test (requires multi-node harness)

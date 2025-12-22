@@ -314,17 +314,19 @@ class MycelialStrikeService:
             if new_level is None:
                 # Fully de-escalate - deactivate strike
                 self.repo.deactivate_strike(strike.id)
+                log_level = ThrottleLevel.LOW  # For logging purposes
             else:
                 # Partial de-escalation - reduce throttle level
-                # (Would need to add method to update throttle level)
-                pass
+                new_actions = self._get_throttle_actions_for_level(new_level)
+                self.repo.update_strike_throttle_level(strike.id, new_level, new_actions)
+                log_level = new_level
 
             # Log de-escalation
             log = StrikeDeescalationLog(
                 id=str(uuid.uuid4()),
                 strike_id=strike.id,
                 previous_level=strike.throttle_level,
-                new_level=new_level or ThrottleLevel.LOW,  # Placeholder
+                new_level=log_level,
                 trigger_reason=DeescalationReason.BEHAVIOR_IMPROVED,
                 behavior_score=current_behavior_score,
                 deescalated_at=datetime.utcnow(),
@@ -348,6 +350,37 @@ class MycelialStrikeService:
             return ThrottleLevel.LOW
         else:  # LOW
             return None  # Deactivate completely
+
+    def _get_throttle_actions_for_level(self, level: ThrottleLevel) -> ThrottleActions:
+        """
+        Get appropriate throttle actions for a given throttle level.
+        """
+        if level == ThrottleLevel.LOW:
+            return ThrottleActions(
+                deprioritize_matching=True,
+                show_warning_indicator=True,
+            )
+        elif level == ThrottleLevel.MEDIUM:
+            return ThrottleActions(
+                deprioritize_matching=True,
+                add_message_latency=5000,  # 5 seconds
+                show_warning_indicator=True,
+            )
+        elif level == ThrottleLevel.HIGH:
+            return ThrottleActions(
+                deprioritize_matching=True,
+                add_message_latency=15000,  # 15 seconds
+                reduce_proposal_visibility=True,
+                show_warning_indicator=True,
+            )
+        else:  # CRITICAL
+            return ThrottleActions(
+                deprioritize_matching=True,
+                add_message_latency=30000,  # 30 seconds
+                reduce_proposal_visibility=True,
+                show_warning_indicator=True,
+                block_high_value_exchanges=True,
+            )
 
     def _calculate_behavior_score(
         self,
