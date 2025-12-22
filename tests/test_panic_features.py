@@ -10,7 +10,7 @@ Tests:
 import os
 import tempfile
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 from app.models.panic import BurnNoticeStatus
 from app.services.panic_service import PanicService
@@ -138,7 +138,7 @@ def test_dead_mans_switch_configuration(panic_service):
     assert config.triggered is False
 
     # Check trigger time is calculated correctly
-    expected_trigger = datetime.utcnow() + timedelta(hours=48)
+    expected_trigger = datetime.now(datetime.UTC) + timedelta(hours=48)
     trigger_time = config.calculate_trigger_time()
     # Allow 1 second difference
     assert abs((trigger_time - expected_trigger).total_seconds()) < 1
@@ -287,8 +287,8 @@ async def test_overdue_dead_mans_switches(panic_service):
     conn = sqlite3.connect(panic_service.db_path)
     cursor = conn.cursor()
 
-    past_time = (datetime.utcnow() - timedelta(hours=2)).isoformat()
-    trigger_time = (datetime.utcnow() - timedelta(hours=1)).isoformat()
+    past_time = (datetime.now(datetime.UTC) - timedelta(hours=2)).isoformat()
+    trigger_time = (datetime.now(datetime.UTC) - timedelta(hours=1)).isoformat()
 
     cursor.execute("""
         UPDATE dead_mans_switch_configs

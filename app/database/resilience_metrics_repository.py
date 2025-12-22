@@ -5,7 +5,7 @@ All metrics are AGGREGATES - no individual visibility (privacy by design).
 """
 import sqlite3
 from typing import List, Optional, Dict, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import uuid
 import json
 from app.models.resilience_metrics import (
@@ -228,7 +228,7 @@ class ResilienceMetricsRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        since = (datetime.utcnow() - timedelta(days=days)).isoformat()
+        since = (datetime.now(datetime.UTC) - timedelta(days=days)).isoformat()
 
         cursor.execute("""
             SELECT * FROM network_health_snapshots
@@ -606,7 +606,7 @@ class ResilienceMetricsRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        since = (datetime.utcnow() - timedelta(days=days)).isoformat()
+        since = (datetime.now(datetime.UTC) - timedelta(days=days)).isoformat()
 
         if cell_id:
             cursor.execute("""

@@ -165,7 +165,7 @@ async def revoke_vouch(
         raise HTTPException(status_code=400, detail="Vouch already revoked")
 
     # GAP-105: Check cooloff period
-    hours_since_vouch = (datetime.utcnow() - vouch.created_at).total_seconds() / 3600
+    hours_since_vouch = (datetime.now(datetime.UTC) - vouch.created_at).total_seconds() / 3600
 
     if hours_since_vouch <= VOUCH_COOLOFF_HOURS:
         # Within cooloff - revoke without cascade, no reason required

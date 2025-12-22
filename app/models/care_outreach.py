@@ -11,7 +11,7 @@ Models for:
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import List, Literal, Optional
 from enum import Enum
 
@@ -86,7 +86,7 @@ class CareVolunteer:
         """Has it been more than a week since supervision check-in?"""
         if not self.last_supervision:
             return True
-        days_since = (datetime.utcnow() - self.last_supervision).days
+        days_since = (datetime.now(datetime.UTC) - self.last_supervision).days
         return days_since > 7
 
 
@@ -143,14 +143,14 @@ class OutreachAssignment:
 
     def __post_init__(self):
         if self.started_at is None:
-            self.started_at = datetime.utcnow()
+            self.started_at = datetime.now(datetime.UTC)
         if self.notes is None:
             self.notes = []
 
     @property
     def duration_days(self) -> int:
         """How long has this outreach been active?"""
-        end = self.ended_at or datetime.utcnow()
+        end = self.ended_at or datetime.now(datetime.UTC)
         return (end - self.started_at).days
 
     @property

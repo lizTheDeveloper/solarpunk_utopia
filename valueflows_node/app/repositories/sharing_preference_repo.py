@@ -1,7 +1,7 @@
 """Repository for Sharing Preference data access"""
 import sqlite3
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, UTC
 from valueflows_node.app.models.sharing_preference import (
     SharingPreference,
     SharingPreferenceCreate,
@@ -56,7 +56,7 @@ class SharingPreferenceRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        updated_at = datetime.utcnow().isoformat()
+        updated_at = datetime.now(datetime.UTC).isoformat()
 
         cursor.execute("""
             INSERT OR REPLACE INTO sharing_preferences

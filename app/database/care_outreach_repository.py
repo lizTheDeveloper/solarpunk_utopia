@@ -6,7 +6,7 @@ Handles persistence for saboteur conversion through care.
 import sqlite3
 import json
 from typing import List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from app.models.care_outreach import (
     CareVolunteer,
     OutreachAssignment,
@@ -292,7 +292,7 @@ class CareOutreachRepository:
         conversion_story: Optional[str] = None
     ):
         """Update assignment status"""
-        now = datetime.utcnow()
+        now = datetime.now(datetime.UTC)
 
         if status in [OutreachStatus.CONVERTED, OutreachStatus.CHOSE_TO_LEAVE]:
             # Mark as ended
@@ -494,7 +494,7 @@ class CareOutreachRepository:
             counts[OutreachStatus(status)] = count
 
         # Get conversions this month
-        one_month_ago = (datetime.utcnow() - timedelta(days=30)).isoformat()
+        one_month_ago = (datetime.now(datetime.UTC) - timedelta(days=30)).isoformat()
         converted_this_month = self.conn.execute("""
             SELECT COUNT(*)
             FROM outreach_assignments

@@ -4,7 +4,7 @@ Ensures sanctuary resources require 2+ independent steward verifications
 before becoming available for matching.
 """
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import uuid
 
 from app.models.sanctuary import (
@@ -139,7 +139,7 @@ class TestTwoStewardVerificationSucceeds:
 
     def test_verification_metadata_updated(self, sanctuary_service, sample_resource):
         """Verification sets first_verified_at, last_check, expires_at."""
-        before = datetime.utcnow()
+        before = datetime.now(datetime.UTC)
 
         # Two stewards verify
         sanctuary_service.add_verification(
@@ -153,7 +153,7 @@ class TestTwoStewardVerificationSucceeds:
             verification_method=VerificationMethod.IN_PERSON
         )
 
-        after = datetime.utcnow()
+        after = datetime.now(datetime.UTC)
 
         # Check verification status
         verification = sanctuary_service.get_verification_status(sample_resource.id)
@@ -409,7 +409,7 @@ class TestVerificationModels:
                     verification_method=VerificationMethod.IN_PERSON
                 )
             ],
-            expires_at=datetime.utcnow() + timedelta(days=30)
+            expires_at=datetime.now(datetime.UTC) + timedelta(days=30)
         )
 
         assert verification.is_valid is True
@@ -427,7 +427,7 @@ class TestVerificationModels:
                     verification_method=VerificationMethod.IN_PERSON
                 )
             ],
-            expires_at=datetime.utcnow() + timedelta(days=30)
+            expires_at=datetime.now(datetime.UTC) + timedelta(days=30)
         )
 
         assert verification.is_valid is False
@@ -450,7 +450,7 @@ class TestVerificationModels:
                     verification_method=VerificationMethod.IN_PERSON
                 )
             ],
-            expires_at=datetime.utcnow() - timedelta(days=1)  # Expired yesterday
+            expires_at=datetime.now(datetime.UTC) - timedelta(days=1)  # Expired yesterday
         )
 
         assert verification.is_valid is False
@@ -473,7 +473,7 @@ class TestVerificationModels:
                     verification_method=VerificationMethod.IN_PERSON
                 )
             ],
-            expires_at=datetime.utcnow() + timedelta(days=30),
+            expires_at=datetime.now(datetime.UTC) + timedelta(days=30),
             successful_uses=3
         )
 
@@ -497,7 +497,7 @@ class TestVerificationModels:
                     verification_method=VerificationMethod.IN_PERSON
                 )
             ],
-            expires_at=datetime.utcnow() + timedelta(days=30),
+            expires_at=datetime.now(datetime.UTC) + timedelta(days=30),
             successful_uses=2  # Only 2 uses
         )
 

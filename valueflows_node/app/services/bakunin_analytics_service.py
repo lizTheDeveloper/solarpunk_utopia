@@ -15,7 +15,7 @@ Alerts the community to:
 
 from typing import List, Dict, Optional, Tuple
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 
 class PowerAlert:
@@ -44,7 +44,7 @@ class PowerAlert:
         self.analysis = analysis
         self.suggestions = suggestions
         self.criticality_category = criticality_category
-        self.detected_at = datetime.utcnow().isoformat()
+        self.detected_at = datetime.now(datetime.UTC).isoformat()
 
     def to_dict(self) -> Dict:
         return {
@@ -338,7 +338,7 @@ class BakuninAnalyticsService:
         alerts = []
 
         try:
-            cutoff_date = (datetime.utcnow() - timedelta(days=days)).isoformat()
+            cutoff_date = (datetime.now(datetime.UTC) - timedelta(days=days)).isoformat()
 
             # Count exchanges coordinated (where someone is the provider in many exchanges)
             coordination_query = """

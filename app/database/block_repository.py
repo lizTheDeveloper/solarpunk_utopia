@@ -3,7 +3,7 @@ Block Repository - Database operations for block list (GAP-107)
 """
 
 import sqlite3
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import List, Optional
 from app.models.block import BlockEntry
 
@@ -51,7 +51,7 @@ class BlockRepository:
         import uuid
 
         block_id = f"block:{uuid.uuid4()}"
-        created_at = datetime.utcnow()
+        created_at = datetime.now(datetime.UTC)
 
         entry = BlockEntry(
             id=block_id,

@@ -5,6 +5,7 @@ Fractal group formation with physical key exchange, nesting, and fission/fusion.
 """
 
 import logging
+from datetime import UTC
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -363,4 +364,4 @@ async def split_group(request: SplitGroupRequest):
 
 
 # Helper method to add to service (for timestamp)
-GroupFormationService._get_current_timestamp = lambda self: __import__('datetime').datetime.utcnow().isoformat()
+GroupFormationService._get_current_timestamp = lambda self: __import__('datetime').datetime.now(datetime.UTC).isoformat()

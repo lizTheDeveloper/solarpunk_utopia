@@ -7,7 +7,7 @@ extractive corporations to regenerative community systems.
 """
 import pytest
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from pathlib import Path
 
 from app.services.economic_withdrawal_service import EconomicWithdrawalService
@@ -53,9 +53,9 @@ def test_create_campaign(service):
         cell_id="cell-001",
         network_wide=False,
         threshold_participants=100,
-        pledge_deadline=datetime.utcnow() + timedelta(days=30),
-        campaign_start=datetime.utcnow() + timedelta(days=31),
-        campaign_end=datetime.utcnow() + timedelta(days=61),
+        pledge_deadline=datetime.now(datetime.UTC) + timedelta(days=30),
+        campaign_start=datetime.now(datetime.UTC) + timedelta(days=31),
+        campaign_end=datetime.now(datetime.UTC) + timedelta(days=61),
     )
 
     assert campaign.id is not None
@@ -78,9 +78,9 @@ def test_pledge_to_campaign(service):
         cell_id="cell-001",
         network_wide=False,
         threshold_participants=2,
-        pledge_deadline=datetime.utcnow() + timedelta(days=30),
-        campaign_start=datetime.utcnow() + timedelta(days=31),
-        campaign_end=datetime.utcnow() + timedelta(days=61),
+        pledge_deadline=datetime.now(datetime.UTC) + timedelta(days=30),
+        campaign_start=datetime.now(datetime.UTC) + timedelta(days=31),
+        campaign_end=datetime.now(datetime.UTC) + timedelta(days=61),
     )
 
     # Create pledge
@@ -115,9 +115,9 @@ def test_campaign_activation(service):
         cell_id="cell-001",
         network_wide=False,
         threshold_participants=2,
-        pledge_deadline=datetime.utcnow() + timedelta(days=30),
-        campaign_start=datetime.utcnow() + timedelta(days=31),
-        campaign_end=datetime.utcnow() + timedelta(days=61),
+        pledge_deadline=datetime.now(datetime.UTC) + timedelta(days=30),
+        campaign_start=datetime.now(datetime.UTC) + timedelta(days=31),
+        campaign_end=datetime.now(datetime.UTC) + timedelta(days=61),
     )
 
     # Add first pledge
@@ -157,9 +157,9 @@ def test_mark_avoided_target(service):
         cell_id="cell-001",
         network_wide=False,
         threshold_participants=100,
-        pledge_deadline=datetime.utcnow() + timedelta(days=30),
-        campaign_start=datetime.utcnow() + timedelta(days=31),
-        campaign_end=datetime.utcnow() + timedelta(days=61),
+        pledge_deadline=datetime.now(datetime.UTC) + timedelta(days=30),
+        campaign_start=datetime.now(datetime.UTC) + timedelta(days=31),
+        campaign_end=datetime.now(datetime.UTC) + timedelta(days=61),
     )
 
     pledge = service.create_pledge(
@@ -223,8 +223,8 @@ def test_bulk_buy_creation(service):
         retail_price_per_unit=3.50,
         wholesale_price_per_unit=2.00,
         minimum_units=500,
-        commitment_deadline=datetime.utcnow() + timedelta(days=14),
-        delivery_date=datetime.utcnow() + timedelta(days=21),
+        commitment_deadline=datetime.now(datetime.UTC) + timedelta(days=14),
+        delivery_date=datetime.now(datetime.UTC) + timedelta(days=21),
         distribution_location="Community Center",
         supplier="Valley View Organic Farm"
     )
@@ -248,8 +248,8 @@ def test_bulk_buy_commitment(service):
         retail_price_per_unit=3.50,
         wholesale_price_per_unit=2.00,
         minimum_units=100,
-        commitment_deadline=datetime.utcnow() + timedelta(days=14),
-        delivery_date=datetime.utcnow() + timedelta(days=21),
+        commitment_deadline=datetime.now(datetime.UTC) + timedelta(days=14),
+        delivery_date=datetime.now(datetime.UTC) + timedelta(days=21),
     )
 
     # Commit to buy

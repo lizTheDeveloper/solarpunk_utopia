@@ -1,7 +1,7 @@
 """Event Onboarding Repository - Database operations for event and batch invites"""
 import sqlite3
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import List, Optional
 import secrets
 
@@ -110,7 +110,7 @@ class EventOnboardingRepository:
 
             event_id = f"event-{uuid.uuid4()}"
             invite_code = self._generate_invite_code()
-            created_at = datetime.utcnow()
+            created_at = datetime.now(datetime.UTC)
             # Event invite expires 1 day after event ends
             expires_at = event_end + timedelta(days=1)
 
@@ -197,7 +197,7 @@ class EventOnboardingRepository:
             if not event.active:
                 return None
 
-            if datetime.fromisoformat(event.expires_at.isoformat()) < datetime.utcnow():
+            if datetime.fromisoformat(event.expires_at.isoformat()) < datetime.now(datetime.UTC):
                 return None
 
             if event.max_attendees and event.attendee_count >= event.max_attendees:
@@ -213,7 +213,7 @@ class EventOnboardingRepository:
 
             # Create attendee record
             attendee_id = f"attendee-{uuid.uuid4()}"
-            joined_at = datetime.utcnow()
+            joined_at = datetime.now(datetime.UTC)
 
             cursor.execute("""
                 INSERT INTO event_attendees (id, event_id, user_id, joined_at, upgraded_to_member)
@@ -249,7 +249,7 @@ class EventOnboardingRepository:
 
             batch_id = f"batch-{uuid.uuid4()}"
             invite_link = f"BATCH-{self._generate_invite_code()}"
-            created_at = datetime.utcnow()
+            created_at = datetime.now(datetime.UTC)
             expires_at = created_at + timedelta(days=days_valid)
 
             cursor.execute("""
@@ -294,7 +294,7 @@ class EventOnboardingRepository:
             if not batch.active:
                 return False
 
-            if datetime.fromisoformat(batch.expires_at.isoformat()) < datetime.utcnow():
+            if datetime.fromisoformat(batch.expires_at.isoformat()) < datetime.now(datetime.UTC):
                 return False
 
             if batch.used_count >= batch.max_uses:
@@ -310,7 +310,7 @@ class EventOnboardingRepository:
 
             # Record use
             use_id = f"use-{uuid.uuid4()}"
-            used_at = datetime.utcnow()
+            used_at = datetime.now(datetime.UTC)
 
             cursor.execute("""
                 INSERT INTO batch_invite_uses (id, batch_id, user_id, used_at)

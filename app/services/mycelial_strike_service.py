@@ -6,7 +6,7 @@ Automated solidarity defense against extractive behavior.
 No committee meeting required. Instant, collective response.
 """
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import List, Optional, Dict, Any
 
 from app.models.mycelial_strike import (
@@ -56,7 +56,7 @@ class MycelialStrikeService:
         if len(evidence) == 0:
             raise ValueError("At least one piece of evidence is required")
 
-        now = datetime.utcnow()
+        now = datetime.now(datetime.UTC)
         expires_at = now + timedelta(days=7)  # 7 day alert window
 
         alert = WarlordAlert(
@@ -169,7 +169,7 @@ class MycelialStrikeService:
             automatic=True,
             behavior_score_at_start=current_behavior_score,
             current_behavior_score=current_behavior_score,
-            activated_at=datetime.utcnow(),
+            activated_at=datetime.now(datetime.UTC),
         )
 
         return self.repo.create_strike(strike)
@@ -243,7 +243,7 @@ class MycelialStrikeService:
         Called when user completes exchanges, posts offers/needs.
         Automatically checks if behavior has improved enough for de-escalation.
         """
-        now = datetime.utcnow()
+        now = datetime.now(datetime.UTC)
         period_start = now - timedelta(days=30)  # 30-day rolling window
 
         # Get existing tracking
@@ -329,7 +329,7 @@ class MycelialStrikeService:
                 new_level=log_level,
                 trigger_reason=DeescalationReason.BEHAVIOR_IMPROVED,
                 behavior_score=current_behavior_score,
-                deescalated_at=datetime.utcnow(),
+                deescalated_at=datetime.now(datetime.UTC),
             )
             self.repo.create_deescalation_log(log)
 
@@ -470,7 +470,7 @@ class MycelialStrikeService:
             reason=reason,
             before_state=before_state,
             after_state=after_state,
-            overridden_at=datetime.utcnow(),
+            overridden_at=datetime.now(datetime.UTC),
         )
         self.repo.create_override_log(log)
 
@@ -489,7 +489,7 @@ class MycelialStrikeService:
 
         Used for false positives or special cases.
         """
-        now = datetime.utcnow()
+        now = datetime.now(datetime.UTC)
         expires_at = None if is_permanent else now + timedelta(days=duration_days or 30)
 
         entry = UserStrikeWhitelist(

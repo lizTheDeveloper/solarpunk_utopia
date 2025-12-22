@@ -5,7 +5,7 @@ CRITICAL: This handles sensitive data. Auto-purge is MANDATORY.
 import sqlite3
 import json
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, UTC
 import uuid
 
 from app.models.sanctuary import (
@@ -248,7 +248,7 @@ class SanctuaryRepository:
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        verified_at = datetime.utcnow().isoformat()
+        verified_at = datetime.now(datetime.UTC).isoformat()
 
         cursor.execute("""
             UPDATE sanctuary_resources
@@ -323,7 +323,7 @@ class SanctuaryRepository:
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        completed_at = datetime.utcnow().isoformat()
+        completed_at = datetime.now(datetime.UTC).isoformat()
 
         cursor.execute("""
             UPDATE sanctuary_requests
@@ -368,7 +368,7 @@ class SanctuaryRepository:
         cursor = conn.cursor()
 
         from datetime import timedelta
-        completed_at = datetime.utcnow()
+        completed_at = datetime.now(datetime.UTC)
         purge_at = completed_at + timedelta(hours=24)
 
         cursor.execute("""
@@ -422,7 +422,7 @@ class SanctuaryRepository:
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(datetime.UTC).isoformat()
 
         cursor.execute("""
             SELECT id, alert_type, severity, reported_by, cell_id, location_hint,
@@ -448,7 +448,7 @@ class SanctuaryRepository:
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(datetime.UTC).isoformat()
 
         # Purge old matches
         cursor.execute("DELETE FROM sanctuary_matches WHERE purge_at <= ?", (now,))
@@ -664,7 +664,7 @@ class SanctuaryRepository:
                 first_verified_at.isoformat(),
                 last_check.isoformat(),
                 expires_at.isoformat(),
-                datetime.utcnow().isoformat(),
+                datetime.now(datetime.UTC).isoformat(),
                 resource_id
             ))
         else:
@@ -678,7 +678,7 @@ class SanctuaryRepository:
             """, (
                 last_check.isoformat(),
                 expires_at.isoformat(),
-                datetime.utcnow().isoformat(),
+                datetime.now(datetime.UTC).isoformat(),
                 resource_id
             ))
 
@@ -699,7 +699,7 @@ class SanctuaryRepository:
             SET verification_status = ?,
                 updated_at = ?
             WHERE id = ?
-        """, (status.value, datetime.utcnow().isoformat(), resource_id))
+        """, (status.value, datetime.now(datetime.UTC).isoformat(), resource_id))
 
         conn.commit()
         conn.close()
@@ -739,7 +739,7 @@ class SanctuaryRepository:
             SET successful_uses = successful_uses + 1,
                 updated_at = ?
             WHERE id = ?
-        """, (datetime.utcnow().isoformat(), resource_id))
+        """, (datetime.now(datetime.UTC).isoformat(), resource_id))
 
         conn.commit()
         conn.close()
@@ -797,7 +797,7 @@ class SanctuaryRepository:
         pending_rows = cursor.fetchall()
 
         # Get resources expiring in next 14 days
-        expires_soon = datetime.utcnow() + timedelta(days=14)
+        expires_soon = datetime.now(datetime.UTC) + timedelta(days=14)
         cursor.execute("""
             SELECT id, resource_type, sensitivity, offered_by, cell_id, description,
                    capacity, duration_days, verification_status, verified_by, verified_at,
@@ -810,7 +810,7 @@ class SanctuaryRepository:
               AND expires_at <= ?
               AND expires_at > ?
             ORDER BY expires_at ASC
-        """, (cell_id, expires_soon.isoformat(), datetime.utcnow().isoformat()))
+        """, (cell_id, expires_soon.isoformat(), datetime.now(datetime.UTC).isoformat()))
 
         expiring_rows = cursor.fetchall()
 

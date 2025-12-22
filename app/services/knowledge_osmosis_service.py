@@ -3,7 +3,7 @@
 'Knowledge emerges only through invention and re-invention.' - Paulo Freire
 """
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import List
 
 from app.models.knowledge_osmosis import (
@@ -41,7 +41,7 @@ class KnowledgeOsmosisService:
             member_count=1,
             status=CircleStatus.FORMING,
             artifact_commitment=artifact_commitment,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(datetime.UTC),
             created_by=created_by
         )
         return self.repo.create_study_circle(circle)
@@ -72,7 +72,7 @@ class KnowledgeOsmosisService:
             tags=tags,
             difficulty=difficulty,
             builds_on_artifact_id=builds_on_artifact_id,
-            published_at=datetime.utcnow()
+            published_at=datetime.now(datetime.UTC)
         )
         return self.repo.create_artifact(artifact)
 
@@ -95,6 +95,6 @@ class KnowledgeOsmosisService:
             question=question,
             context=context,
             status=QuestionStatus.OPEN,
-            asked_at=datetime.utcnow()
+            asked_at=datetime.now(datetime.UTC)
         )
         return self.repo.create_unanswered_question(q)

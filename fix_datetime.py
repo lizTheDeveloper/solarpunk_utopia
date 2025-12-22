@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Script to fix deprecated datetime.utcnow() calls.
+Script to fix deprecated datetime.now(datetime.UTC) calls.
 
-Replaces datetime.utcnow() with datetime.now(timezone.utc)
+Replaces datetime.now(datetime.UTC) with datetime.now(timezone.utc)
 and ensures timezone is imported.
 """
 
@@ -13,7 +13,7 @@ from pathlib import Path
 
 def fix_file(filepath: Path) -> bool:
     """
-    Fix datetime.utcnow() calls in a single file.
+    Fix datetime.now(datetime.UTC) calls in a single file.
 
     Returns:
         True if file was modified
@@ -24,8 +24,8 @@ def fix_file(filepath: Path) -> bool:
 
         original_content = content
 
-        # Check if file uses datetime.utcnow()
-        if 'datetime.utcnow()' not in content:
+        # Check if file uses datetime.now(datetime.UTC)
+        if 'datetime.now(datetime.UTC)' not in content:
             return False
 
         # Check if timezone is already imported
@@ -33,7 +33,7 @@ def fix_file(filepath: Path) -> bool:
         has_datetime_import = 'from datetime import datetime' in content or 'import datetime' in content
 
         # Add timezone import if needed
-        if not has_timezone_import and 'datetime.utcnow()' in content:
+        if not has_timezone_import and 'datetime.now(datetime.UTC)' in content:
             # Find existing datetime import
             import_pattern = r'from datetime import ([^\n]+)'
             match = re.search(import_pattern, content)
@@ -45,8 +45,8 @@ def fix_file(filepath: Path) -> bool:
                     new_imports = imports.rstrip() + ', timezone'
                     content = content.replace(match.group(0), f'from datetime import {new_imports}')
 
-        # Replace datetime.utcnow() with datetime.now(timezone.utc)
-        content = content.replace('datetime.utcnow()', 'datetime.now(timezone.utc)')
+        # Replace datetime.now(datetime.UTC) with datetime.now(timezone.utc)
+        content = content.replace('datetime.now(datetime.UTC)', 'datetime.now(timezone.utc)')
 
         # Only write if changed
         if content != original_content:

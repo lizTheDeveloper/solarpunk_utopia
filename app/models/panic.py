@@ -11,7 +11,7 @@ Features:
 - Burn Notice: Signal to network that user is compromised
 - Seed Phrase Recovery: Restore identity after wipe
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Optional
 from pydantic import BaseModel, Field
 from enum import Enum
@@ -113,11 +113,11 @@ class DeadMansSwitchConfig(BaseModel):
 
     def is_overdue(self) -> bool:
         """Check if dead man's switch is overdue to trigger."""
-        return datetime.utcnow() >= self.calculate_trigger_time()
+        return datetime.now(datetime.UTC) >= self.calculate_trigger_time()
 
     def checkin(self):
         """User checks in, resets the timer."""
-        self.last_checkin = datetime.utcnow()
+        self.last_checkin = datetime.now(datetime.UTC)
         self.trigger_time = self.calculate_trigger_time()
         self.triggered = False
 

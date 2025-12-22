@@ -6,7 +6,7 @@ All location data, responder info, and media purged 24 hours after resolution.
 import sqlite3
 import json
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, UTC
 import uuid
 
 from app.models.rapid_response import (
@@ -132,7 +132,7 @@ class RapidResponseRepository:
 
     def update_alert(self, alert: RapidAlert) -> RapidAlert:
         """Update an existing alert."""
-        alert.updated_at = datetime.utcnow()
+        alert.updated_at = datetime.now(datetime.UTC)
 
         conn = self._get_connection()
         cursor = conn.cursor()
@@ -481,7 +481,7 @@ class RapidResponseRepository:
         """
         conn = self._get_connection()
         cursor = conn.cursor()
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(datetime.UTC).isoformat()
 
         # Purge media first (foreign key cascade handles)
         cursor.execute("DELETE FROM alert_media WHERE purge_at <= ?", (now,))
@@ -503,7 +503,7 @@ class RapidResponseRepository:
         """Get CRITICAL alerts that need auto-downgrade (unconfirmed past 5 min)."""
         conn = self._get_connection()
         cursor = conn.cursor()
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(datetime.UTC).isoformat()
 
         cursor.execute("""
             SELECT * FROM rapid_alerts

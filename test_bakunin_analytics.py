@@ -83,44 +83,44 @@ def test_detect_battery_warlord(test_db):
     bob_id = "agent:bob"
 
     cursor.execute("INSERT INTO agents (id, name, agent_type, created_at) VALUES (?, ?, ?, ?)",
-                   (dave_id, "Dave", "person", datetime.utcnow().isoformat()))
+                   (dave_id, "Dave", "person", datetime.now(datetime.UTC).isoformat()))
     cursor.execute("INSERT INTO agents (id, name, agent_type, created_at) VALUES (?, ?, ?, ?)",
-                   (alice_id, "Alice", "person", datetime.utcnow().isoformat()))
+                   (alice_id, "Alice", "person", datetime.now(datetime.UTC).isoformat()))
     cursor.execute("INSERT INTO agents (id, name, agent_type, created_at) VALUES (?, ?, ?, ?)",
-                   (bob_id, "Bob", "person", datetime.utcnow().isoformat()))
+                   (bob_id, "Bob", "person", datetime.now(datetime.UTC).isoformat()))
 
     # Create critical resource (battery charging)
     battery_id = "resource:battery-charging"
     cursor.execute("""
         INSERT INTO resource_specs (id, name, category, critical, criticality_reason, criticality_category, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (battery_id, "Battery Charging", "tools", True, "Only power source", "power", datetime.utcnow().isoformat()))
+    """, (battery_id, "Battery Charging", "tools", True, "Only power source", "power", datetime.now(datetime.UTC).isoformat()))
 
     # Dave offers 8 battery charging sessions (80% of total 10)
     for i in range(8):
         cursor.execute("""
             INSERT INTO listings (id, listing_type, resource_spec_id, agent_id, status, created_at)
             VALUES (?, ?, ?, ?, ?, ?)
-        """, (f"listing:dave-battery-{i}", "offer", battery_id, dave_id, "active", datetime.utcnow().isoformat()))
+        """, (f"listing:dave-battery-{i}", "offer", battery_id, dave_id, "active", datetime.now(datetime.UTC).isoformat()))
 
     # Alice offers 1
     cursor.execute("""
         INSERT INTO listings (id, listing_type, resource_spec_id, agent_id, status, created_at)
         VALUES (?, ?, ?, ?, ?, ?)
-    """, ("listing:alice-battery", "offer", battery_id, alice_id, "active", datetime.utcnow().isoformat()))
+    """, ("listing:alice-battery", "offer", battery_id, alice_id, "active", datetime.now(datetime.UTC).isoformat()))
 
     # Bob offers 1
     cursor.execute("""
         INSERT INTO listings (id, listing_type, resource_spec_id, agent_id, status, created_at)
         VALUES (?, ?, ?, ?, ?, ?)
-    """, ("listing:bob-battery", "offer", battery_id, bob_id, "active", datetime.utcnow().isoformat()))
+    """, ("listing:bob-battery", "offer", battery_id, bob_id, "active", datetime.now(datetime.UTC).isoformat()))
 
     # Create exchanges showing 5 people depend on Dave
     for i in range(5):
         cursor.execute("""
             INSERT INTO exchanges (id, provider_id, receiver_id, resource_spec_id, status, created_at)
             VALUES (?, ?, ?, ?, ?, ?)
-        """, (f"exchange:dave-{i}", dave_id, f"agent:person-{i}", battery_id, "completed", datetime.utcnow().isoformat()))
+        """, (f"exchange:dave-{i}", dave_id, f"agent:person-{i}", battery_id, "completed", datetime.now(datetime.UTC).isoformat()))
 
     test_db.commit()
 
@@ -184,27 +184,27 @@ def test_detect_battery_warlord(test_db):
 
     # Re-insert data
     cursor2.execute("INSERT INTO agents VALUES (?, ?, ?, ?, ?)",
-                    (dave_id, "Dave", "person", "active", datetime.utcnow().isoformat()))
+                    (dave_id, "Dave", "person", "active", datetime.now(datetime.UTC).isoformat()))
     cursor2.execute("INSERT INTO agents VALUES (?, ?, ?, ?, ?)",
-                    (alice_id, "Alice", "person", "active", datetime.utcnow().isoformat()))
+                    (alice_id, "Alice", "person", "active", datetime.now(datetime.UTC).isoformat()))
     cursor2.execute("INSERT INTO agents VALUES (?, ?, ?, ?, ?)",
-                    (bob_id, "Bob", "person", "active", datetime.utcnow().isoformat()))
+                    (bob_id, "Bob", "person", "active", datetime.now(datetime.UTC).isoformat()))
 
     cursor2.execute("INSERT INTO resource_specs VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    (battery_id, "Battery Charging", "tools", True, "Only power source", "power", datetime.utcnow().isoformat()))
+                    (battery_id, "Battery Charging", "tools", True, "Only power source", "power", datetime.now(datetime.UTC).isoformat()))
 
     for i in range(8):
         cursor2.execute("INSERT INTO listings VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                        (f"listing:dave-battery-{i}", "offer", battery_id, dave_id, 0, "active", None, datetime.utcnow().isoformat()))
+                        (f"listing:dave-battery-{i}", "offer", battery_id, dave_id, 0, "active", None, datetime.now(datetime.UTC).isoformat()))
 
     cursor2.execute("INSERT INTO listings VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    ("listing:alice-battery", "offer", battery_id, alice_id, 0, "active", None, datetime.utcnow().isoformat()))
+                    ("listing:alice-battery", "offer", battery_id, alice_id, 0, "active", None, datetime.now(datetime.UTC).isoformat()))
     cursor2.execute("INSERT INTO listings VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    ("listing:bob-battery", "offer", battery_id, bob_id, 0, "active", None, datetime.utcnow().isoformat()))
+                    ("listing:bob-battery", "offer", battery_id, bob_id, 0, "active", None, datetime.now(datetime.UTC).isoformat()))
 
     for i in range(5):
         cursor2.execute("INSERT INTO exchanges VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        (f"exchange:dave-{i}", dave_id, f"agent:person-{i}", battery_id, "completed", None, datetime.utcnow().isoformat()))
+                        (f"exchange:dave-{i}", dave_id, f"agent:person-{i}", battery_id, "completed", None, datetime.now(datetime.UTC).isoformat()))
 
     conn2.commit()
 
@@ -244,27 +244,27 @@ def test_detect_skill_gatekeeper(test_db):
     # Create agents
     alice_id = "agent:alice"
     cursor.execute("INSERT INTO agents (id, name, agent_type, created_at) VALUES (?, ?, ?, ?)",
-                   (alice_id, "Alice", "person", datetime.utcnow().isoformat()))
+                   (alice_id, "Alice", "person", datetime.now(datetime.UTC).isoformat()))
 
     # Create critical skill (bike repair)
     bike_repair_id = "resource:bike-repair"
     cursor.execute("""
         INSERT INTO resource_specs (id, name, category, critical, criticality_reason, criticality_category, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (bike_repair_id, "Bike Repair", "skills", True, "Only mechanic", "skills", datetime.utcnow().isoformat()))
+    """, (bike_repair_id, "Bike Repair", "skills", True, "Only mechanic", "skills", datetime.now(datetime.UTC).isoformat()))
 
     # Alice is the ONLY person offering bike repair
     cursor.execute("""
         INSERT INTO listings (id, listing_type, resource_spec_id, agent_id, status, created_at)
         VALUES (?, ?, ?, ?, ?, ?)
-    """, ("listing:alice-bike", "offer", bike_repair_id, alice_id, "active", datetime.utcnow().isoformat()))
+    """, ("listing:alice-bike", "offer", bike_repair_id, alice_id, "active", datetime.now(datetime.UTC).isoformat()))
 
     # 10 people have depended on Alice for bike repair
     for i in range(10):
         cursor.execute("""
             INSERT INTO exchanges (id, provider_id, receiver_id, resource_spec_id, status, created_at)
             VALUES (?, ?, ?, ?, ?, ?)
-        """, (f"exchange:alice-bike-{i}", alice_id, f"agent:person-{i}", bike_repair_id, "completed", datetime.utcnow().isoformat()))
+        """, (f"exchange:alice-bike-{i}", alice_id, f"agent:person-{i}", bike_repair_id, "completed", datetime.now(datetime.UTC).isoformat()))
 
     test_db.commit()
 

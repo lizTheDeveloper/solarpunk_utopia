@@ -7,7 +7,7 @@ Data access layer for algorithmic transparency features.
 import logging
 import sqlite3
 from typing import Optional, List, Dict, Any
-from datetime import datetime
+from datetime import datetime, UTC
 import json
 
 from app.models.algorithmic_transparency import (
@@ -69,7 +69,7 @@ class TransparencyRepository:
                     explanation.category_match_type.value if explanation.category_match_type else None,
                     explanation.time_buffer_hours,
                     explanation.quantity_ratio,
-                    explanation.created_at.isoformat() if explanation.created_at else datetime.utcnow().isoformat(),
+                    explanation.created_at.isoformat() if explanation.created_at else datetime.now(datetime.UTC).isoformat(),
                 ),
             )
             conn.commit()
@@ -110,7 +110,7 @@ class TransparencyRepository:
                     SET is_active = FALSE, updated_at = ?
                     WHERE community_id IS ? AND is_active = TRUE
                     """,
-                    (datetime.utcnow().isoformat(), weights.community_id)
+                    (datetime.now(datetime.UTC).isoformat(), weights.community_id)
                 )
 
             conn.execute(
@@ -131,8 +131,8 @@ class TransparencyRepository:
                     weights.name,
                     weights.description,
                     weights.is_active,
-                    weights.created_at.isoformat() if weights.created_at else datetime.utcnow().isoformat(),
-                    weights.updated_at.isoformat() if weights.updated_at else datetime.utcnow().isoformat(),
+                    weights.created_at.isoformat() if weights.created_at else datetime.now(datetime.UTC).isoformat(),
+                    weights.updated_at.isoformat() if weights.updated_at else datetime.now(datetime.UTC).isoformat(),
                     weights.created_by,
                 ),
             )
@@ -208,7 +208,7 @@ class TransparencyRepository:
                     SET is_active = FALSE, updated_at = ?
                     WHERE community_id IS ? AND id != ? AND is_active = TRUE
                     """,
-                    (datetime.utcnow().isoformat(), weights.community_id, weights.id)
+                    (datetime.now(datetime.UTC).isoformat(), weights.community_id, weights.id)
                 )
 
             conn.execute(
@@ -227,7 +227,7 @@ class TransparencyRepository:
                     weights.name,
                     weights.description,
                     weights.is_active,
-                    datetime.utcnow().isoformat(),
+                    datetime.now(datetime.UTC).isoformat(),
                     weights.id,
                 ),
             )
@@ -266,7 +266,7 @@ class TransparencyRepository:
                     log.receiver_zone,
                     log.offer_category,
                     log.need_category,
-                    log.created_at.isoformat() if log.created_at else datetime.utcnow().isoformat(),
+                    log.created_at.isoformat() if log.created_at else datetime.now(datetime.UTC).isoformat(),
                     log.agent_version,
                 ),
             )
@@ -342,7 +342,7 @@ class TransparencyRepository:
                     report.overall_bias_score,
                     report.bias_detected,
                     report.recommendations,
-                    report.created_at.isoformat() if report.created_at else datetime.utcnow().isoformat(),
+                    report.created_at.isoformat() if report.created_at else datetime.now(datetime.UTC).isoformat(),
                     report.created_by,
                     report.status.value,
                     report.community_reviewed,
@@ -450,8 +450,8 @@ class TransparencyRepository:
                     prefs.show_weights,
                     prefs.show_rejection_reasons,
                     prefs.receive_bias_reports,
-                    prefs.created_at.isoformat() if prefs.created_at else datetime.utcnow().isoformat(),
-                    datetime.utcnow().isoformat(),
+                    prefs.created_at.isoformat() if prefs.created_at else datetime.now(datetime.UTC).isoformat(),
+                    datetime.now(datetime.UTC).isoformat(),
                 ),
             )
             conn.commit()

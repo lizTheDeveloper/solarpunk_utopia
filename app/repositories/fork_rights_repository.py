@@ -5,7 +5,7 @@ All data stored in local SQLite, synced via DTN mesh.
 """
 import sqlite3
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Optional, List
 from app.models.fork_rights import (
     DataExportRequest,
@@ -166,7 +166,7 @@ class ForkRightsRepository:
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        completed_at = datetime.utcnow().isoformat() if status == "complete" else None
+        completed_at = datetime.now(datetime.UTC).isoformat() if status == "complete" else None
 
         cursor.execute("""
             UPDATE data_export_requests
@@ -208,7 +208,7 @@ class ForkRightsRepository:
             UPDATE connection_export_consents
             SET response = ?, responded_at = ?
             WHERE id = ?
-        """, (response, datetime.utcnow().isoformat(), consent_id))
+        """, (response, datetime.now(datetime.UTC).isoformat(), consent_id))
 
         conn.commit()
         conn.close()
@@ -288,8 +288,8 @@ class ForkRightsRepository:
                 fork.forked_by,
                 invitee_id,
                 "pending",
-                datetime.utcnow().isoformat(),
-                (datetime.utcnow() + timedelta(days=30)).isoformat()
+                datetime.now(datetime.UTC).isoformat(),
+                (datetime.now(datetime.UTC) + timedelta(days=30)).isoformat()
             ))
 
         conn.commit()
@@ -328,7 +328,7 @@ class ForkRightsRepository:
             UPDATE fork_invitations
             SET status = ?, responded_at = ?
             WHERE id = ?
-        """, (status, datetime.utcnow().isoformat(), invitation_id))
+        """, (status, datetime.now(datetime.UTC).isoformat(), invitation_id))
 
         conn.commit()
         conn.close()
@@ -370,7 +370,7 @@ class ForkRightsRepository:
         cursor.execute("""
             DELETE FROM fork_invitations
             WHERE status = 'declined' AND expires_at < ?
-        """, (datetime.utcnow().isoformat(),))
+        """, (datetime.now(datetime.UTC).isoformat(),))
 
         deleted_count = cursor.rowcount
         conn.commit()

@@ -11,7 +11,7 @@ import logging
 import hashlib
 import json
 from typing import Dict, Any, List, Optional, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from collections import defaultdict
 import uuid
 
@@ -184,7 +184,7 @@ class TransparencyService:
         - Category bias (certain categories matched less)
         - Demographic bias (if anonymized data available)
         """
-        end_time = datetime.utcnow()
+        end_time = datetime.now(datetime.UTC)
         start_time = end_time - timedelta(days=days_back)
 
         # Get audit logs

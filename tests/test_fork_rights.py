@@ -5,7 +5,7 @@ Tests the Bakunin principle: Freedom includes freedom to exit.
 import pytest
 import os
 import sqlite3
-from datetime import datetime
+from datetime import datetime, UTC
 
 from app.services.fork_rights_service import ForkRightsService
 from app.models.fork_rights import DataExportRequest, ConnectionExportConsent
@@ -178,8 +178,8 @@ def test_connection_consent_request(service):
         id="consent-1",
         requester_id="maria-pk",
         connection_id="bob-pk",
-        asked_at=datetime.utcnow(),
-        expires_at=datetime.utcnow()
+        asked_at=datetime.now(datetime.UTC),
+        expires_at=datetime.now(datetime.UTC)
     )
 
     result = service.repo.create_consent_request(consent)
@@ -194,8 +194,8 @@ def test_respond_to_consent(service):
         id="consent-1",
         requester_id="maria-pk",
         connection_id="bob-pk",
-        asked_at=datetime.utcnow(),
-        expires_at=datetime.utcnow()
+        asked_at=datetime.now(datetime.UTC),
+        expires_at=datetime.now(datetime.UTC)
     )
     service.repo.create_consent_request(consent)
 
@@ -294,8 +294,8 @@ def test_connection_export_with_consent(service, setup_test_data):
         id="consent-1",
         requester_id="maria-pk",
         connection_id="bob-pk",
-        asked_at=datetime.utcnow(),
-        expires_at=datetime.utcnow()
+        asked_at=datetime.now(datetime.UTC),
+        expires_at=datetime.now(datetime.UTC)
     )
     service.repo.create_consent_request(consent)
     service.respond_to_connection_consent("consent-1", "allow")

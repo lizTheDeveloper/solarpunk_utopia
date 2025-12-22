@@ -8,7 +8,7 @@ CRITICAL OPSEC:
 - No permanent records of who helped whom
 - Steward verification required
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Optional, List
 from pydantic import BaseModel, Field
 from enum import Enum
@@ -242,7 +242,7 @@ class SanctuaryMatch(BaseModel):
 
     def mark_completed(self):
         """Mark match as completed and set purge timer."""
-        self.completed_at = datetime.utcnow()
+        self.completed_at = datetime.now(datetime.UTC)
         self.status = "completed"
         # Purge 24 hours after completion
         self.purge_at = self.completed_at + timedelta(hours=24)
@@ -503,7 +503,7 @@ class SanctuaryVerification(BaseModel):
             return False
 
         # Must not be expired
-        if self.expires_at and datetime.utcnow() > self.expires_at:
+        if self.expires_at and datetime.now(datetime.UTC) > self.expires_at:
             return False
 
         return True
@@ -524,7 +524,7 @@ class SanctuaryVerification(BaseModel):
         """Check if resource needs re-verification (expiring soon)."""
         if not self.expires_at:
             return False
-        days_until_expiry = (self.expires_at - datetime.utcnow()).days
+        days_until_expiry = (self.expires_at - datetime.now(datetime.UTC)).days
         return 0 < days_until_expiry <= 14  # Expiring in next 14 days
 
     def can_add_verification(self, steward_id: str) -> bool:

@@ -111,7 +111,7 @@ async def test_ttl_enforcement():
     bundle_service = BundleService(crypto)
 
     # Create expired bundle (expires 1 hour ago)
-    now = datetime.utcnow()
+    now = datetime.now(datetime.UTC)
     expired_time = now - timedelta(hours=1)
 
     bundle_create = BundleCreate(

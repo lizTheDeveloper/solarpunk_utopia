@@ -4,7 +4,7 @@ Accessibility Service
 Business logic for accessibility features.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import List, Optional, Dict, Any
 
 from app.database.accessibility_repository import AccessibilityRepository
@@ -99,7 +99,7 @@ class AccessibilityService:
 
     async def get_metrics(self, days_back: int = 30) -> AccessibilityMetrics:
         """Get accessibility metrics"""
-        period_end = datetime.utcnow()
+        period_end = datetime.now(datetime.UTC)
         period_start = period_end - timedelta(days=days_back)
 
         return await self.repo.calculate_accessibility_metrics(period_start, period_end)

@@ -83,7 +83,7 @@ def test_power_outage_detection():
 
     # Create mock reports of nodes on battery
     from datetime import datetime
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(datetime.UTC).isoformat()
 
     node_reports = [
         {

@@ -10,7 +10,7 @@ This isn't a security system. It's a care system.
 
 import uuid
 from typing import List, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, UTC
 
 from app.models.care_outreach import (
     CareVolunteer,
@@ -67,7 +67,7 @@ class CareOutreachService:
             currently_supporting=0,
             max_capacity=max_capacity,
             supervision_partner_id=supervision_partner_id,
-            joined_at=datetime.utcnow(),
+            joined_at=datetime.now(datetime.UTC),
         )
 
         return self.outreach_repo.add_volunteer(volunteer)
@@ -123,7 +123,7 @@ class CareOutreachService:
             detection_reason=reason,
             detection_details=details,
             status=OutreachStatus.ACTIVE,
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(datetime.UTC),
         )
 
         return self.outreach_repo.create_assignment(assignment)
@@ -154,7 +154,7 @@ class CareOutreachService:
             id=str(uuid.uuid4()),
             assignment_id=assignment_id,
             volunteer_id=volunteer_id,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(datetime.UTC),
             note=note_text,
             needs_identified=needs_identified,
             resources_connected=resources_connected,
@@ -214,7 +214,7 @@ class CareOutreachService:
         assessment = NeedsAssessment(
             user_id=user_id,
             assessed_by=volunteer_id,
-            assessed_at=datetime.utcnow(),
+            assessed_at=datetime.now(datetime.UTC),
             **needs
         )
 

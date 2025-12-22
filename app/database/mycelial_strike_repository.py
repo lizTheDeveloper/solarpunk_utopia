@@ -7,7 +7,7 @@ Automated solidarity defense against extractive behavior.
 import sqlite3
 import json
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, UTC
 import uuid
 
 from app.models.mycelial_strike import (
@@ -91,7 +91,7 @@ class MycelialStrikeRepository:
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(datetime.UTC).isoformat()
         cursor.execute("""
             SELECT * FROM warlord_alerts
             WHERE target_user_id = ?
@@ -115,14 +115,14 @@ class MycelialStrikeRepository:
             UPDATE warlord_alerts
             SET cancelled = 1, cancelled_by = ?, cancellation_reason = ?, cancelled_at = ?
             WHERE id = ?
-        """, (cancelled_by, reason, datetime.utcnow().isoformat(), alert_id))
+        """, (cancelled_by, reason, datetime.now(datetime.UTC).isoformat(), alert_id))
 
         # Deactivate any strikes associated with this alert
         cursor.execute("""
             UPDATE local_strikes
             SET status = 'deactivated', deactivated_at = ?
             WHERE alert_id = ? AND status = 'active'
-        """, (datetime.utcnow().isoformat(), alert_id))
+        """, (datetime.now(datetime.UTC).isoformat(), alert_id))
 
         conn.commit()
         conn.close()
@@ -238,7 +238,7 @@ class MycelialStrikeRepository:
             UPDATE local_strikes
             SET status = 'deactivated', deactivated_at = ?
             WHERE id = ?
-        """, (datetime.utcnow().isoformat(), strike_id))
+        """, (datetime.now(datetime.UTC).isoformat(), strike_id))
 
         conn.commit()
         conn.close()
@@ -257,7 +257,7 @@ class MycelialStrikeRepository:
             UPDATE local_strikes
             SET status = 'overridden', overridden_by = ?, override_reason = ?, overridden_at = ?
             WHERE id = ?
-        """, (overridden_by, reason, datetime.utcnow().isoformat(), strike_id))
+        """, (overridden_by, reason, datetime.now(datetime.UTC).isoformat(), strike_id))
 
         conn.commit()
         conn.close()
@@ -443,7 +443,7 @@ class MycelialStrikeRepository:
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(datetime.UTC).isoformat()
 
         if abuse_type:
             cursor.execute("""

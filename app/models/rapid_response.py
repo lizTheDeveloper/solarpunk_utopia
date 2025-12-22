@@ -10,7 +10,7 @@ CRITICAL DESIGN PRINCIPLES:
 - High trust required to trigger CRITICAL alerts
 - Coordinator manages response (first steward online)
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Optional, List
 from pydantic import BaseModel, Field
 from enum import Enum
@@ -168,26 +168,26 @@ class RapidAlert(BaseModel):
     def mark_resolved(self, resolution_notes: str):
         """Mark alert as resolved and set purge timer."""
         self.status = AlertStatus.RESOLVED
-        self.resolved_at = datetime.utcnow()
+        self.resolved_at = datetime.now(datetime.UTC)
         self.resolution_notes = resolution_notes
         # Purge 24 hours after resolution
         self.purge_at = self.resolved_at + timedelta(hours=24)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(datetime.UTC)
 
     def confirm_alert(self, user_id: str):
         """Confirm alert (prevents auto-downgrade)."""
         self.confirmed = True
         self.confirmed_by = user_id
-        self.confirmed_at = datetime.utcnow()
+        self.confirmed_at = datetime.now(datetime.UTC)
         self.auto_downgrade_at = None  # Cancel auto-downgrade
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(datetime.UTC)
 
     def claim_coordinator(self, steward_id: str):
         """Claim coordinator role (first steward to respond)."""
         if not self.coordinator_id:
             self.coordinator_id = steward_id
-            self.coordinator_claimed_at = datetime.utcnow()
-            self.updated_at = datetime.utcnow()
+            self.coordinator_claimed_at = datetime.now(datetime.UTC)
+            self.updated_at = datetime.now(datetime.UTC)
 
     class Config:
         json_schema_extra = {
@@ -246,11 +246,11 @@ class AlertResponder(BaseModel):
 
     def mark_arrived(self):
         """Mark responder as arrived on scene."""
-        self.arrived_at = datetime.utcnow()
+        self.arrived_at = datetime.now(datetime.UTC)
 
     def mark_departed(self):
         """Mark responder as departed from scene."""
-        self.departed_at = datetime.utcnow()
+        self.departed_at = datetime.now(datetime.UTC)
 
     class Config:
         json_schema_extra = {

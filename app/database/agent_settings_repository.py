@@ -1,6 +1,6 @@
 """Repository for agent settings persistence"""
 import aiosqlite
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Optional, Dict
 import json
 
@@ -48,7 +48,7 @@ class AgentSettingsRepository:
             settings: Settings dictionary to save
         """
         db = await self._get_db()
-        updated_at = datetime.utcnow().isoformat()
+        updated_at = datetime.now(datetime.UTC).isoformat()
         settings_json = json.dumps(settings)
 
         await db.execute(

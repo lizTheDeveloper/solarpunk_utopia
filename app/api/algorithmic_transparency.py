@@ -11,7 +11,7 @@ Provides transparency into AI matching decisions:
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Optional, List
 from pydantic import BaseModel
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 from app.models.algorithmic_transparency import (
     MatchExplanation,
@@ -367,7 +367,7 @@ async def get_transparency_stats(
     - Average match scores
     - Most recent bias detection results
     """
-    end_time = datetime.utcnow()
+    end_time = datetime.now(datetime.UTC)
     start_time = end_time - timedelta(days=days_back)
 
     # Get audit logs

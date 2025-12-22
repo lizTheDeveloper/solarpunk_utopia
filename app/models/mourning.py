@@ -3,7 +3,7 @@
 Creating space for grief in the community.
 "The moment we choose to love we begin to move against domination, against oppression." - bell hooks
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Optional, List, Literal
 from pydantic import BaseModel, Field
 
@@ -59,7 +59,7 @@ class MourningPeriod(BaseModel):
 
     def __init__(self, **data):
         if 'ends_at' not in data:
-            data['ends_at'] = data.get('started_at', datetime.utcnow()) + timedelta(days=data.get('duration_days', 7))
+            data['ends_at'] = data.get('started_at', datetime.now(datetime.UTC)) + timedelta(days=data.get('duration_days', 7))
         super().__init__(**data)
 
     class Config:

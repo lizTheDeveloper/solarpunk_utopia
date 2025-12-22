@@ -15,7 +15,7 @@ import sqlite3
 import secrets
 import base64
 from typing import List, Dict, Tuple, Optional
-from datetime import datetime
+from datetime import datetime, UTC
 
 from app.models.panic import (
     DuressPIN,
@@ -289,7 +289,7 @@ class PanicService:
                 "user_id": notice.user_id,
                 "original_reason": notice.reason,
                 "created_at": notice.created_at.isoformat(),
-                "resolved_at": datetime.utcnow().isoformat(),
+                "resolved_at": datetime.now(datetime.UTC).isoformat(),
             },
             payloadType="trust:BurnNoticeResolved",
             priority=Priority.NORMAL,  # Not emergency, just informational
@@ -494,7 +494,7 @@ class PanicService:
                 "enabled": (config := self.repo.get_dead_mans_switch(user_id)) and config.enabled,
                 "config": config,
                 "time_remaining": (
-                    config.calculate_trigger_time() - datetime.utcnow()
+                    config.calculate_trigger_time() - datetime.now(datetime.UTC)
                     if config and config.enabled
                     else None
                 )

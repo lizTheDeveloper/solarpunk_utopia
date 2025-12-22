@@ -14,7 +14,7 @@ import pytest
 import pytest_asyncio
 import os
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from freezegun import freeze_time
 
 from app.models.temporal_justice import (
@@ -452,7 +452,7 @@ class TestTemporalJusticeE2E:
         This complements the governance silence weight system.
         """
 
-        proposal_created = datetime.utcnow() - timedelta(days=2)
+        proposal_created = datetime.now(datetime.UTC) - timedelta(days=2)
 
         # User votes 2 days after proposal
         vote = await self.service.record_vote(

@@ -1,6 +1,6 @@
 """Repository for agent statistics tracking"""
 import aiosqlite
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Optional, List, Dict
 from uuid import uuid4
 import json
@@ -71,7 +71,7 @@ class AgentStatsRepository:
         """
         db = await self._get_db()
         run_id = str(uuid4())
-        run_at = datetime.utcnow().isoformat()
+        run_at = datetime.now(datetime.UTC).isoformat()
 
         await db.execute(
             """
@@ -204,7 +204,7 @@ class AgentStatsRepository:
         """
         db = await self._get_db()
 
-        cutoff_date = (datetime.utcnow() - timedelta(days=days_to_keep)).isoformat()
+        cutoff_date = (datetime.now(datetime.UTC) - timedelta(days=days_to_keep)).isoformat()
 
         cursor = await db.execute(
             """

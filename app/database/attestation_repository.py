@@ -10,7 +10,7 @@ import sqlite3
 import json
 import hashlib
 from typing import List, Optional, Dict
-from datetime import datetime
+from datetime import datetime, UTC
 import uuid
 
 from app.models.attestation import (
@@ -117,7 +117,7 @@ class AttestationRepository:
     ) -> Attestation:
         """Create a new attestation with threshold signatures."""
         attestation_id = f"attestation-{uuid.uuid4()}"
-        created_at = datetime.utcnow()
+        created_at = datetime.now(datetime.UTC)
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -219,7 +219,7 @@ class AttestationRepository:
     ) -> AttestationClaim:
         """Create a new attestation claim."""
         claim_id = f"claim-{uuid.uuid4()}"
-        verified_at = datetime.utcnow()
+        verified_at = datetime.now(datetime.UTC)
         status = "pending"
 
         conn = sqlite3.connect(self.db_path)
@@ -365,7 +365,7 @@ class AttestationRepository:
     ) -> ChallengeQuestion:
         """Create a challenge question for an attestation."""
         challenge_id = f"challenge-{uuid.uuid4()}"
-        created_at = datetime.utcnow()
+        created_at = datetime.now(datetime.UTC)
 
         # Hash the answer (lowercase, trimmed)
         answer_normalized = answer.lower().strip()
@@ -457,7 +457,7 @@ class AttestationRepository:
             return self._row_to_steward_record(row)
 
         # Create new record
-        last_review = datetime.utcnow()
+        last_review = datetime.now(datetime.UTC)
         cursor.execute("""
             INSERT INTO steward_vouch_records
             (steward_id, total_vouches, vouches_revoked, vouches_flagged,
@@ -495,7 +495,7 @@ class AttestationRepository:
         elif revocation_rate >= 0.10:
             status = "warning"
 
-        last_review = datetime.utcnow()
+        last_review = datetime.now(datetime.UTC)
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()

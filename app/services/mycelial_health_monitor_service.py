@@ -15,7 +15,7 @@ Privacy-preserving: only hardware health data, no location or usage tracking.
 import logging
 import platform
 import psutil
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Dict, List, Optional
 from pathlib import Path
 
@@ -61,7 +61,7 @@ class MycelialHealthMonitorService:
                 "percent": battery.percent,
                 "is_charging": battery.power_plugged,
                 "time_remaining_seconds": battery.secsleft if battery.secsleft != psutil.POWER_TIME_UNLIMITED else None,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(datetime.UTC).isoformat(),
             }
 
             # Android-specific: try to get charge cycles and capacity
@@ -152,7 +152,7 @@ class MycelialHealthMonitorService:
                 "used_bytes": usage.used,
                 "free_bytes": usage.free,
                 "free_percent": usage.percent / 100.0,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(datetime.UTC).isoformat(),
             }
 
             # Try to get I/O errors (Linux/Android)
@@ -219,7 +219,7 @@ class MycelialHealthMonitorService:
             temp_data = {
                 "available": True,
                 "sensors": {},
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(datetime.UTC).isoformat(),
             }
 
             max_temp = 0.0
@@ -254,7 +254,7 @@ class MycelialHealthMonitorService:
             health = {
                 "available": True,
                 "interfaces": {},
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(datetime.UTC).isoformat(),
             }
 
             for interface, counters in stats.items():
@@ -284,7 +284,7 @@ class MycelialHealthMonitorService:
         """
         report = {
             "node_id": self._get_node_id(),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(datetime.UTC).isoformat(),
             "platform": self.platform,
             "is_android": self.is_android,
             "battery": self.get_battery_health(),
@@ -417,7 +417,7 @@ class MycelialHealthMonitorService:
             dict with outage info if detected, None otherwise
         """
         # Look for nodes that switched to battery in last 5 minutes
-        now = datetime.utcnow()
+        now = datetime.now(datetime.UTC)
         recent_battery_switches = []
 
         for report in node_health_reports:

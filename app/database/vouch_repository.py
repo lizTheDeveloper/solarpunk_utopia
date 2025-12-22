@@ -1,7 +1,7 @@
 """Repository for Vouch and Trust Score data access"""
 import sqlite3
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, UTC
 import uuid
 from app.models.vouch import Vouch, TrustScore
 
@@ -68,7 +68,7 @@ class VouchRepository:
     def create_vouch(self, voucher_id: str, vouchee_id: str, context: str) -> Vouch:
         """Create a new vouch."""
         vouch_id = f"vouch-{uuid.uuid4()}"
-        created_at = datetime.utcnow().isoformat()
+        created_at = datetime.now(datetime.UTC).isoformat()
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -186,7 +186,7 @@ class VouchRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        revoked_at = datetime.utcnow().isoformat()
+        revoked_at = datetime.now(datetime.UTC).isoformat()
         cursor.execute("""
             UPDATE vouches
             SET revoked = 1, revoked_at = ?, revoked_reason = ?
@@ -204,7 +204,7 @@ class VouchRepository:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        added_at = datetime.utcnow().isoformat()
+        added_at = datetime.now(datetime.UTC).isoformat()
 
         try:
             cursor.execute("""

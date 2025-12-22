@@ -7,7 +7,7 @@ time contributions, chunk offers, and async voting.
 
 import pytest
 import pytest_asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import aiosqlite
 
 from app.database.temporal_justice_repository import TemporalJusticeRepository
@@ -146,7 +146,7 @@ async def db():
     """)
 
     # Create test users
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(datetime.UTC).isoformat()
     await conn.execute(
         "INSERT INTO users (id, name, email, created_at) VALUES (?, ?, ?, ?)",
         ("user1", "Test User 1", "user1@test.com", now),
