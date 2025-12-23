@@ -350,6 +350,9 @@ class TestCrossCommunityDiscoveryE2E:
         bob_id = "user:bob"
         carol_id = "user:carol"
 
+        # Create Alice as genesis node so her vouches create valid trust chains
+        await self._create_genesis_node(alice_id)
+
         # Alice sets NETWORK_WIDE visibility
         await self._set_sharing_preference(alice_id, VisibilityLevel.NETWORK_WIDE)
 
