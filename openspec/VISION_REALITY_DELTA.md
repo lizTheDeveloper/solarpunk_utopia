@@ -11,7 +11,8 @@ This document identifies gaps between what the codebase claims to implement and 
 ## Executive Summary
 
 **Total Gaps Found**: 61 (8 CRITICAL, 16 HIGH, 28 MEDIUM, 9 LOW)
-**Session 13 Update**: 27 gaps VERIFIED FIXED total
+**Session 14 Update**: Core security VERIFIED WORKING; auth gaps remain in bundles/governance/group_formation APIs
+- Session 14: Verified encryption, key wipe, burn notices all working; documented GAP-183/184/185/186
 - Session 13: Confirmed GAP-131, GAP-141 still fixed; found GAP-177, GAP-179 (auth issues)
 - Session 12: Confirmed GAP-164/145 fixed (Forwarding Service fully implemented)
 - Session 11: GAP-164, GAP-145 (2 newly verified - Forwarding Service implemented)
@@ -20,7 +21,8 @@ This document identifies gaps between what the codebase claims to implement and 
 - Session 8: GAP-114, GAP-117, GAP-134, GAP-135, GAP-136, GAP-148, GAP-149, GAP-150
 - Prior sessions: GAP-65, GAP-69, GAP-72, GAP-116
 
-**New Gaps Found (Session 13)**: GAP-177 (Bundles API auth), GAP-178 (Sync API auth), GAP-179 (Governance stubbed auth), GAP-180 (improved), GAP-181 (consolidated frontend fallback), GAP-182 (verified fixed)
+**New Gaps Found (Session 14)**: GAP-183 (consolidated agent mock data), GAP-184 (match auth), GAP-185 (resilience graph), GAP-186 (temporal justice)
+**Still Open - HIGH**: GAP-177 (Bundles API), GAP-179 (Governance stubs), GAP-160 (Group Formation), GAP-154 (hardcoded cell_id)
 
 ### Session 8 Progress (2025-12-20)
 
@@ -2618,6 +2620,178 @@ Frontend hardcoded IDs:       5 occurrences (view pages, acceptable)
 
 ---
 
+---
+
+## Session 14 Gaps: Autonomous Verification (2025-12-22)
+
+### VERIFIED STATUS OF PREVIOUS GAPS
+
+| GAP | Description | Status |
+|-----|-------------|--------|
+| GAP-131 | Steward dashboard offers/needs | ✅ VERIFIED STILL FIXED - Queries ValueFlows `listings` table at `steward_dashboard.py:150-165` |
+| GAP-141 | Rapid response statistics | ✅ VERIFIED STILL FIXED - Real computation at `rapid_response_service.py:407-468` |
+| GAP-177 | Bundles API auth | ❌ STILL OPEN - Confirmed no `require_auth` import in `app/api/bundles.py` |
+| GAP-179 | Governance stubbed auth | ❌ STILL OPEN - Confirmed stubbed `get_current_user()` returns `"current-user-id"` at line 26-28 |
+| GAP-160 | Group Formation API auth | ❌ STILL OPEN - Confirmed no `require_auth` import in `app/api/group_formation.py` |
+
+### KEY VERIFICATION: What's Working
+
+**Core Security (VERIFIED FIXED):**
+1. **Message encryption** - Real NaCl X25519+XSalsa20-Poly1305 at `app/crypto/encryption.py:26-67`
+2. **Secure key wipe** - Multi-pass overwrite at `app/crypto/encryption.py:148-170`
+3. **Burn notice propagation** - DTN bundles created via `bundle_service.create_bundle()` at `panic_service.py:221-240`
+4. **"All clear" propagation** - DTN bundle at `panic_service.py:284-305`
+5. **Steward verification** - `require_steward` middleware checks trust >= 0.9
+
+**ValueFlows Integration (VERIFIED FIXED):**
+1. **Base agent queries** - `query_vf_data()` now uses VFClient at `base_agent.py:180-224`
+2. **Steward dashboard** - Queries actual `listings` table from ValueFlows DB
+3. **Rapid response stats** - Computes from actual alert repository
+
+### STILL OPEN GAPS (Confirmed)
+
+---
+
+### GAP-183: Agent Analysis Methods Return Mock Data (Comprehensive)
+**Severity**: MEDIUM
+**Location**: 12+ agent files
+**Status**: CONFIRMED STILL OPEN
+**Evidence Summary**:
+| Agent | Mock Data Methods |
+|-------|------------------|
+| conscientization.py | 4 methods (lines 95, 122, 156, 182) |
+| counter_power.py | 4 methods (lines 103, 122, 143, 163) |
+| governance_circle.py | 3 methods (lines 88, 108, 127) |
+| education_pathfinder.py | 2 methods (lines 89, 121) |
+| radical_inclusion.py | 4 methods (lines 84, 166, 184, 277) |
+| gift_flow.py | 3 methods (lines 101, 212, 245) |
+| insurrectionary_joy.py | 2 methods (lines 96, 120) |
+| conquest_of_bread.py | 1 method (line 94) |
+| commons_router.py | 1 method (line 84) |
+
+**Pattern**: Each has `# TODO: Query...` then `# For now, return mock data`
+**Impact**: Agent-driven proposals use fake data, not actual network activity
+**Fix**: Implement VFClient queries in each agent's analysis methods
+
+---
+
+### GAP-184: ValueFlows Match Accept/Reject No Auth Verification
+**Severity**: MEDIUM
+**Location**: `valueflows_node/app/api/vf/matches.py:154-191`
+**Evidence**:
+```python
+# Line 154: TODO: Use authenticated user to determine provider vs receiver
+match.provider_approved = True
+match.receiver_approved = True
+
+# Line 191: TODO: Use authenticated user to verify participant
+match.status = "rejected"
+```
+**Impact**: Anyone can approve/reject any match
+**Fix**: Add ownership verification using authenticated user
+
+---
+
+### GAP-185: Resilience Metrics Critical Edge Detection Incomplete
+**Severity**: MEDIUM
+**Location**: `app/services/resilience_metrics_service.py:800-817`
+**Evidence**:
+```python
+async def _find_critical_edges(...) -> List[Dict]:
+    # TODO: Implement graph analysis to find bridges
+    return []
+
+async def _find_isolated_cells(...) -> List[str]:
+    # TODO: Implement
+    return []
+```
+**Impact**: Network redundancy analysis returns empty results
+**Fix**: Implement graph algorithms (bridge detection, connectivity analysis)
+
+---
+
+### GAP-186: Temporal Justice Service Returns Empty
+**Severity**: MEDIUM
+**Location**: `app/services/temporal_justice_service.py:114-116, 267-268`
+**Evidence**: Two methods return `[]` with "for now return empty" comments
+**Impact**: Temporal justice features (async participation, slow exchanges) don't work
+**Fix**: Implement actual queries for temporal patterns
+
+---
+
+## Updated Summary Statistics (Session 14)
+
+### Total Gaps: 61 (maintained, 4 new documented consolidating existing patterns)
+
+| Severity | Count | Notes |
+|----------|-------|-------|
+| CRITICAL | 8 | All security-critical fixed ✅ |
+| HIGH | 16 | Auth gaps remain (bundles, governance, group_formation) |
+| MEDIUM | 28 | Agent mock data, incomplete queries |
+| LOW | 9 | View-page fallbacks, cosmetic |
+
+### Verified Fix Status
+
+**Session 14 Confirmations:**
+- ✅ Message encryption: Real NaCl, not Base64
+- ✅ Key wipe: Multi-pass secure overwrite
+- ✅ Burn notices: DTN propagation working
+- ✅ Steward dashboard: Queries ValueFlows
+- ✅ Rapid response stats: Computes from actual data
+- ✅ Base agent queries: VFClient integration complete
+
+**Still Open - High Priority:**
+- ❌ GAP-177: Bundles API unauthenticated (9 endpoints)
+- ❌ GAP-179: Governance API stubbed auth
+- ❌ GAP-160: Group Formation API unauthenticated
+- ❌ GAP-154: RapidResponsePage hardcoded cell_id
+
+**Still Open - Medium Priority:**
+- ❌ GAP-183: 12+ agents return mock data
+- ❌ GAP-184: Match accept/reject no ownership check
+- ❌ GAP-185: Network resilience analysis empty
+- ❌ GAP-186: Temporal justice queries empty
+- ❌ GAP-159: Saturnalia role swap is `pass`
+
+### Codebase Health Snapshot (Session 14)
+
+```
+Python TODO comments:     65 (app/ directory)
+'return []' patterns:     25 (app/ directory)
+'For now' patterns:       57 (temporary implementations)
+Agents with mock data:    12+ (consolidated as GAP-183)
+Unauthenticated APIs:     4 files (bundles, group_formation, mycelial_health, sync)
+Stubbed auth:            1 file (governance.py)
+```
+
+---
+
+### Fix Priority Update (Session 14)
+
+**P0 - CRITICAL (Before Workshop):**
+- All critical security gaps verified fixed ✅
+
+**P1 - HIGH (First Week):**
+- GAP-177: Bundles API auth review
+- GAP-179: Governance API real auth (replace stubs)
+- GAP-160: Group Formation API auth
+- GAP-154: RapidResponsePage cell_id from user context
+- GAP-169: Listings delete ownership verification
+
+**P2 - MEDIUM (First Month):**
+- GAP-183: Agent database queries (12+ agents - consolidated)
+- GAP-184: Match accept/reject ownership
+- GAP-185: Network resilience graph analysis
+- GAP-186: Temporal justice queries
+- GAP-159: Saturnalia features
+
+**P3 - LOW (Ongoing):**
+- GAP-181: Frontend demo-user fallback (acceptable)
+- GAP-155: NetworkImpactWidget community count
+- Documentation improvements
+
+---
+
 **Document Status**: Living document. Update as gaps are fixed.
-**Last Updated**: 2025-12-22 (Session 13 - Autonomous Verification)
+**Last Updated**: 2025-12-22 (Session 14 - Autonomous Verification)
 **Next Review**: After P1 gaps addressed.
