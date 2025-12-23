@@ -132,7 +132,7 @@ class BundleService:
             (success, message)
         """
         # Check if we already have this bundle in inbox or quarantine
-        # (bundles in outbox/pending can still be received from peers)
+        # (bundles in outbox/pending are locally created, receiving them is OK but will fail on enqueue)
         if await QueueManager.exists_in_queues(
             bundle.bundleId,
             [QueueName.INBOX, QueueName.QUARANTINE]
@@ -147,9 +147,36 @@ class BundleService:
             await QueueManager.enqueue(QueueName.QUARANTINE, bundle)
             return False, f"Invalid bundle: {error_msg}"
 
-        # Move to inbox
-        await QueueManager.enqueue(QueueName.INBOX, bundle)
-        return True, "Bundle received successfully"
+        # Try to add to inbox
+        # If bundle doesn't exist anywhere, enqueue will add it
+        # If bundle exists in another queue, try to move it
+        was_added = await QueueManager.enqueue(QueueName.INBOX, bundle)
+        if was_added:
+            return True, "Bundle received successfully"
+
+        # Bundle already exists - check if we can move it from another queue
+        existing_bundle = await QueueManager.get_bundle(bundle.bundleId)
+        if not existing_bundle:
+            return False, "Bundle processing failed"
+
+        # If already in INBOX or QUARANTINE, it's a duplicate
+        # (we already checked INBOX/QUARANTINE earlier, but double-check)
+        if await QueueManager.exists_in_queues(
+            bundle.bundleId,
+            [QueueName.INBOX, QueueName.QUARANTINE]
+        ):
+            return False, "Bundle already exists"
+
+        # Bundle exists in OUTBOX or PENDING - this means we created it locally
+        # Move it to INBOX since we've now received confirmation it exists in the network
+        # We need to find which queue it's in to move it
+        for queue in [QueueName.OUTBOX, QueueName.PENDING, QueueName.DELIVERED, QueueName.EXPIRED]:
+            moved = await QueueManager.move(bundle.bundleId, queue, QueueName.INBOX)
+            if moved:
+                return True, "Bundle received successfully (moved from outbox)"
+
+        # Couldn't move it (shouldn't happen)
+        return False, "Bundle exists but couldn't be moved"
 
     async def get_bundle(self, bundle_id: str) -> Optional[Bundle]:
         """Get a bundle by ID"""

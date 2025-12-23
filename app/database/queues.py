@@ -86,31 +86,35 @@ class QueueManager:
         )
 
     @classmethod
-    async def enqueue(cls, queue: QueueName, bundle: Bundle) -> None:
+    async def enqueue(cls, queue: QueueName, bundle: Bundle) -> bool:
         """
         Add bundle to queue.
 
         Uses INSERT with explicit conflict handling to prevent silent overwrites.
         If bundle already exists, it will be skipped (not replaced).
         Uses lock to prevent race conditions.
+
+        Returns:
+            True if bundle was added, False if it already existed
         """
         async with cls._get_lock():
             db = await get_db()
             row = QueueManager._bundle_to_row(bundle, queue)
 
-            # Check if bundle already exists
+            # Check if bundle already exists in ANY queue (bundleId is PRIMARY KEY)
             cursor = await db.execute("""
-                SELECT bundleId FROM bundles WHERE bundleId = ?
+                SELECT queue FROM bundles WHERE bundleId = ?
             """, (bundle.bundleId,))
             existing = await cursor.fetchone()
 
             if existing:
                 # Bundle already exists, skip (don't overwrite)
+                existing_queue = existing['queue']
                 import logging
                 logging.getLogger(__name__).debug(
-                    f"Bundle {bundle.bundleId} already exists, skipping"
+                    f"Bundle {bundle.bundleId} already exists in queue {existing_queue}, skipping enqueue to {queue.value}"
                 )
-                return
+                return False
 
             # Insert new bundle
             await db.execute("""
@@ -125,6 +129,7 @@ class QueueManager:
                 )
             """, row)
             await db.commit()
+            return True
 
     @staticmethod
     async def dequeue(
