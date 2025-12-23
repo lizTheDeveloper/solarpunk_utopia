@@ -5,6 +5,7 @@ Tests the complete query/response flow.
 """
 
 import pytest
+import pytest_asyncio
 import asyncio
 from datetime import datetime, timedelta, timezone
 
@@ -23,7 +24,7 @@ from ..services import (
 from ..database import init_discovery_db, close_discovery_db, IndexCacheDB, get_discovery_db
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def discovery_db():
     """Initialize test database"""
     await init_discovery_db()
