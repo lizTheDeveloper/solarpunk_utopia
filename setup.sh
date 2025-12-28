@@ -32,6 +32,13 @@ esac
 
 if [ "$IS_TERMUX" = true ]; then
     echo -e "${BLUE}Detected platform: Termux (Android)${NC}"
+
+    # Enable wake lock immediately to prevent sleep during installation
+    echo -e "${YELLOW}Enabling wake lock to prevent phone from sleeping during installation...${NC}"
+    termux-wake-lock 2>/dev/null || {
+        echo -e "${YELLOW}Note: Install 'Termux:API' from F-Droid for wake-lock support${NC}"
+        echo -e "${YELLOW}Installation may be interrupted if phone goes to sleep${NC}"
+    }
 else
     echo -e "${BLUE}Detected platform: ${PLATFORM}${NC}"
 fi
@@ -252,15 +259,10 @@ start_services() {
     echo -e "${BLUE}Starting services...${NC}"
 
     if [ "$IS_TERMUX" = true ]; then
-        # Termux: Enable wake lock and start services
-        echo -e "${YELLOW}Enabling wake lock to prevent CPU sleep...${NC}"
-        termux-wake-lock 2>/dev/null || {
-            echo -e "${YELLOW}Note: Install 'Termux:API' from F-Droid for wake-lock support${NC}"
-        }
-
+        # Termux: Start services with nohup (wake-lock already enabled at script start)
         echo -e "${YELLOW}Starting services in background with nohup...${NC}"
         nohup ./run_all_services.sh > /dev/null 2>&1 &
-        echo -e "${GREEN}Services started in background${NC}"
+        echo -e "${GREEN}Services started in background (wake-lock active)${NC}"
 
     elif [ "$PLATFORM" = "Linux" ] && command -v systemctl &> /dev/null; then
         sudo systemctl start solarpunk-dtn
