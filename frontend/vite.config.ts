@@ -13,6 +13,16 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
+      // Auth endpoints
+      '/auth': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      // Agent endpoints
+      '/agents': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
       // DTN Bundle System API
       '/api/dtn': {
         target: 'http://localhost:8000',
@@ -33,9 +43,28 @@ export default defineConfig({
       },
       // Fallback for any other /api requests to primary service
       '/api': {
-        target: 'http://localhost:8001',
+        target: 'http://localhost:8000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+      },
+    },
+  },
+  preview: {
+    port: 3000,
+    proxy: {
+      // Auth endpoints
+      '/auth': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      // Agent endpoints
+      '/agents': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      // Fallback for any other /api requests
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
       },
     },
   },
