@@ -92,7 +92,11 @@ setup_python() {
     if [ "$IS_TERMUX" = true ]; then
         # Termux: Install packages that need compilation from pkg
         echo -e "${BLUE}Installing binary packages from Termux repository...${NC}"
-        pkg install -y python-cryptography python-bcrypt rust 2>/dev/null || true
+        pkg install -y python-cryptography python-bcrypt 2>/dev/null || true
+
+        # Set environment to skip Rust compilation
+        export SKIP_CYTHON=1
+        export SKIP_RUST_EXTENSIONS=1
     fi
 
     if [ ! -d "venv" ]; then
