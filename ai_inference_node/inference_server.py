@@ -432,7 +432,7 @@ async def track_contribution(provider: str, requester: str, tokens: int, model: 
 if __name__ == "__main__":
     import uvicorn
 
-    port = int(os.getenv("PORT", "8003"))
+    port = int(os.getenv("PORT", "8005"))
 
     uvicorn.run(
         app,

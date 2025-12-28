@@ -159,7 +159,7 @@ Check your contributions:
 
 ```bash
 # Node status
-curl http://localhost:8003/status
+curl http://localhost:8005/status
 
 # Your gift history
 curl http://localhost:8000/vf/events?provider_id=YOUR_NODE_ID
@@ -180,7 +180,7 @@ export DEFAULT_MODEL="llama3.2:1b"
 
 ### "Port already in use"
 ```bash
-export PORT="8004"
+export PORT="8006"
 ```
 
 ## Philosophy

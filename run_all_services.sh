@@ -86,11 +86,11 @@ if [ -f "ai_inference_node/inference_server.py" ] && command -v ollama &> /dev/n
     # Set default model to lightweight version
     export DEFAULT_MODEL="${DEFAULT_MODEL:-llama3.2:1b}"
     export ENABLE_PRIORITIES="true"
-    export PORT="8003"
+    export PORT="8005"
 
     # Start inference node
     cd ai_inference_node
-    start_service "ai_inference_node" "python inference_server.py" "8003"
+    start_service "ai_inference_node" "python inference_server.py" "8005"
     cd ..
 fi
 
@@ -110,9 +110,9 @@ echo -e "  Bridge Management:      http://localhost:8002"
 echo -e "  Bridge API Docs:        http://localhost:8002/docs"
 
 if [ -f "logs/ai_inference_node.pid" ]; then
-    echo -e "  ${GREEN}AI Inference Node:      http://localhost:8003${NC}"
-    echo -e "  ${GREEN}AI Inference Docs:      http://localhost:8003/docs${NC}"
-    echo -e "  ${GREEN}AI Status:              http://localhost:8003/status${NC}"
+    echo -e "  ${GREEN}AI Inference Node:      http://localhost:8005${NC}"
+    echo -e "  ${GREEN}AI Inference Docs:      http://localhost:8005/docs${NC}"
+    echo -e "  ${GREEN}AI Status:              http://localhost:8005/status${NC}"
 fi
 echo ""
 echo -e "${YELLOW}Logs:${NC}"
@@ -148,7 +148,7 @@ check_health "DTN Bundle System" "http://localhost:8000/health"
 check_health "Bridge Management" "http://localhost:8002/bridge/health"
 
 if [ -f "logs/ai_inference_node.pid" ]; then
-    check_health "AI Inference Node" "http://localhost:8003/"
+    check_health "AI Inference Node" "http://localhost:8005/"
     echo -e "${GREEN}AI inference available with priority: Local > Community > Network${NC}"
 fi
 

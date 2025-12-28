@@ -65,7 +65,7 @@ export NODE_ID="${NODE_ID:-inference-node-$(openssl rand -hex 4)}"
 export INFERENCE_BACKEND="${INFERENCE_BACKEND:-ollama}"
 export INFERENCE_URL="${INFERENCE_URL:-http://localhost:11434}"
 export DEFAULT_MODEL="${DEFAULT_MODEL:-llama3.2:3b}"
-export PORT="${PORT:-8003}"
+export PORT="${PORT:-8005}"
 
 # Resource limits
 export MAX_CONCURRENT="${MAX_CONCURRENT:-5}"

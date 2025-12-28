@@ -57,7 +57,7 @@ class InferenceClient:
 
         except Exception as e:
             # Discovery failed - use known nodes or defaults
-            return self.node_urls or ["http://localhost:8003"]
+            return self.node_urls or ["http://localhost:8005"]
 
     async def get_node_status(self, node_url: str) -> Optional[Dict[str, Any]]:
         """Get status of a specific node"""

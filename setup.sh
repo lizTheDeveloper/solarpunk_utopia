@@ -252,7 +252,7 @@ configure_firewall() {
         sudo ufw allow 8000/tcp  # DTN API
         sudo ufw allow 8001/tcp  # ValueFlows
         sudo ufw allow 8002/tcp  # Bridge Management
-        sudo ufw allow 8003/tcp  # AI Inference
+        sudo ufw allow 8005/tcp  # AI Inference
         echo -e "${GREEN}Firewall configured (ufw)${NC}"
     # firewalld (RHEL/CentOS)
     elif command -v firewall-cmd &> /dev/null; then
@@ -262,7 +262,7 @@ configure_firewall() {
         sudo firewall-cmd --permanent --add-port=8000/tcp
         sudo firewall-cmd --permanent --add-port=8001/tcp
         sudo firewall-cmd --permanent --add-port=8002/tcp
-        sudo firewall-cmd --permanent --add-port=8003/tcp
+        sudo firewall-cmd --permanent --add-port=8005/tcp
         sudo firewall-cmd --reload
         echo -e "${GREEN}Firewall configured (firewalld)${NC}"
     fi
@@ -357,8 +357,8 @@ print_summary() {
     echo -e "  Bridge Management:  http://${EXTERNAL_IP}:8002"
 
     if command -v ollama &> /dev/null; then
-        echo -e "  ${GREEN}AI Inference:       http://${EXTERNAL_IP}:8003${NC}"
-        echo -e "  ${GREEN}AI Status:          http://${EXTERNAL_IP}:8003/status${NC}"
+        echo -e "  ${GREEN}AI Inference:       http://${EXTERNAL_IP}:8005${NC}"
+        echo -e "  ${GREEN}AI Status:          http://${EXTERNAL_IP}:8005/status${NC}"
     fi
 
     echo ""

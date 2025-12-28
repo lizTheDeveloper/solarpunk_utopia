@@ -65,7 +65,7 @@ export REGISTER_WITH_MESH="true"
 export TRACK_CONTRIBUTIONS="true"
 
 # Port
-export PORT="8003"
+export PORT="8005"
 ```
 
 ## Available Models (Ollama)
@@ -112,7 +112,7 @@ export DEFAULT_MODEL="llama"
 
 ### Check Status
 ```bash
-curl http://localhost:8003/status
+curl http://localhost:8005/status
 ```
 
 Returns:
@@ -130,7 +130,7 @@ Returns:
 
 ### Run Inference
 ```bash
-curl -X POST http://localhost:8003/inference \
+curl -X POST http://localhost:8005/inference \
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "What is a gift economy?",
@@ -200,7 +200,7 @@ export DEFAULT_MODEL="llama3.2:1b"
 
 ### Port already in use
 ```bash
-export PORT="8004"  # or any free port
+export PORT="8006"  # or any free port
 ```
 
 ## Security Notes
@@ -254,10 +254,10 @@ Run multiple inference nodes on different ports with different models:
 
 ```bash
 # Fast responses
-PORT=8003 DEFAULT_MODEL="llama3.2:1b" ./start_inference_node.sh &
+PORT=8005 DEFAULT_MODEL="llama3.2:1b" ./start_inference_node.sh &
 
 # Quality responses
-PORT=8004 DEFAULT_MODEL="llama3.1:8b" ./start_inference_node.sh &
+PORT=8006 DEFAULT_MODEL="llama3.1:8b" ./start_inference_node.sh &
 ```
 
 ## Contributing
