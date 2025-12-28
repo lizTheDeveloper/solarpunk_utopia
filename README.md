@@ -28,29 +28,90 @@ This installs everything and starts all services. Access at `http://localhost:30
 
 ### Running on Android (Termux)
 
-1. **Install Termux** from F-Droid (not Google Play - that version is outdated)
-   - Download: https://f-droid.org/en/packages/com.termux/
+#### Prerequisites
 
-2. **Open Termux and run the installer:**
+- **Android 7.0+** (Android 11+ requires extra steps below)
+- **2GB+ free storage**
+- **Stable WiFi connection**
+
+#### Installation Steps
+
+1. **Install Termux from F-Droid** (NOT Google Play - that version is broken)
+   - Install F-Droid app: https://f-droid.org/
+   - Search for "Termux" in F-Droid
+   - Install Termux (version 0.118.x recommended)
+
+2. **Grant Permissions (IMPORTANT for Android 11+)**
+   - Open Android Settings → Apps → Termux → Permissions
+   - Enable **"Files and media"** or **"Storage"**
+   - For Android 11+: Enable **"All files access"** under Special app access
+
+3. **First Launch**
+   - Open Termux
+   - Wait for bootstrap installation (2-5 minutes)
+   - **Do not touch anything** until you see a `$` prompt
+   - If you get "Permission denied" errors, see troubleshooting below
+
+4. **Run the installer:**
    ```bash
    pkg install curl -y && curl -sL https://raw.githubusercontent.com/lizTheDeveloper/solarpunk_utopia/main/setup.sh | bash
    ```
+   Installation takes 5-15 minutes depending on your device.
 
-3. **Access the app** in your phone's browser:
-   - Open browser and go to `http://localhost:3000`
+5. **Access the app** in your phone's browser:
+   ```bash
+   # Open Chrome/Firefox and go to:
+   http://localhost:3000
+   ```
 
-4. **Keep services running** after closing Termux:
+6. **Keep services running** after closing Termux:
    ```bash
    termux-wake-lock
    nohup ./run_all_services.sh &
    ```
 
-5. **Check service health:**
+7. **Check service health:**
    ```bash
    curl http://localhost:8000/health
    ```
 
-**Note:** Installation may take several minutes on older Android devices.
+#### Troubleshooting Android Installation
+
+**"Unable to install bootstrap" or "Permission denied":**
+
+1. **Clean reinstall** (this fixes 90% of issues):
+   ```bash
+   # In Android Settings:
+   Settings → Apps → Termux → Storage → Clear Data
+   Settings → Apps → Termux → Uninstall
+
+   # Then reinstall from F-Droid and grant permissions immediately
+   ```
+
+2. **Android 11+ Phantom Process Issue:**
+   - If bootstrap keeps failing, you may need to disable phantom process killer
+   - Requires ADB: `adb shell "settings put global settings_enable_monitor_phantom_procs false"`
+   - Then reboot phone and reinstall Termux
+
+3. **Change repository mirror:**
+   ```bash
+   termux-change-repo
+   # Select "All repositories" → Choose a different mirror
+   ```
+
+4. **Alternative: Use UserLAnd**
+   - If Termux won't work, install UserLAnd from Play Store/F-Droid
+   - Choose Ubuntu distribution
+   - Run the Linux installer instead
+
+**Services won't start:**
+- Make sure you have enough storage (check with `df -h`)
+- Try killing existing processes: `./stop_all_services.sh` then restart
+
+**Can't access localhost:3000:**
+- Check if services are running: `ps aux | grep python`
+- Check logs: `tail -f logs/dtn_bundle_system.log`
+- Make sure you're using `http://` not `https://`
 
 ---
 
