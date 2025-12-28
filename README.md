@@ -65,12 +65,41 @@ This installs everything and starts all services. Access at `http://localhost:30
    ```
 
 6. **Keep services running** after closing Termux:
+
+   **Prevent CPU sleep (required):**
    ```bash
    termux-wake-lock
-   nohup ./run_all_services.sh &
+   ```
+   This keeps services running even when screen is off.
+
+   **Start services in background:**
+   ```bash
+   nohup ./run_all_services.sh > /dev/null 2>&1 &
    ```
 
-7. **Check service health:**
+   **Prevent Android from killing Termux:**
+   - Settings → Apps → Termux → Battery → **Unrestricted** (or "Don't optimize")
+   - This prevents Android from killing Termux in the background
+
+   **Keep screen on while working (optional, drains battery):**
+   - Settings → Display → Screen timeout → **30 minutes** (or higher)
+   - Or use Developer Options → Stay awake (while charging)
+
+7. **Auto-start on phone boot (optional):**
+   - Install **Termux:Boot** from F-Droid
+   - Create startup script:
+     ```bash
+     mkdir -p ~/.termux/boot
+     cat > ~/.termux/boot/start-solarpunk.sh << 'EOF'
+     #!/data/data/com.termux/files/usr/bin/sh
+     termux-wake-lock
+     cd ~/solarpunk_utopia
+     ./run_all_services.sh > /dev/null 2>&1 &
+     EOF
+     chmod +x ~/.termux/boot/start-solarpunk.sh
+     ```
+
+8. **Check service health:**
    ```bash
    curl http://localhost:8000/health
    ```
