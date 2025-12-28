@@ -20,7 +20,63 @@ export function NetworkPage() {
   const activeBridges = bridgeNodes?.filter(b => b.status === 'active') || [];
 
   if (statusError) {
-    return <ErrorMessage message="Failed to load network status. Please try again later." />;
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Network Status</h1>
+          <p className="text-gray-600 mt-1">
+            Monitor network health, bridge nodes, and bundle propagation
+          </p>
+        </div>
+        <Card className="bg-blue-50 border-blue-200">
+          <div className="flex items-start gap-3">
+            <Radio className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-blue-900 mb-2">Development Mode</h3>
+              <p className="text-sm text-blue-800 mb-3">
+                The mesh network features require actual DTN/BATMAN-adv hardware to show live data.
+                You're currently running in development mode without mesh network connectivity.
+              </p>
+              <div className="space-y-2 text-sm text-blue-700">
+                <p><strong>To enable full mesh networking:</strong></p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>Deploy to Android devices with WiFi Direct</li>
+                  <li>Configure BATMAN-adv mesh protocol</li>
+                  <li>Run bridge nodes to connect islands</li>
+                </ul>
+                <p className="mt-3">
+                  <strong>Currently available:</strong> ValueFlows gift economy features, agent proposals, community management
+                </p>
+              </div>
+            </div>
+          </div>
+        </Card>
+        <Card>
+          <h3 className="font-semibold text-gray-900 mb-3">Mock Network Data</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Here's what the network page will show when connected to actual mesh hardware:
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs text-gray-600 mb-1">Mode</p>
+              <p className="text-xl font-bold text-gray-400">A / C</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs text-gray-600 mb-1">Connected Peers</p>
+              <p className="text-xl font-bold text-gray-400">0-50+</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs text-gray-600 mb-1">Active Bridges</p>
+              <p className="text-xl font-bold text-gray-400">0-10+</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs text-gray-600 mb-1">Bundles Pending</p>
+              <p className="text-xl font-bold text-gray-400">0-100+</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
   }
 
   return (
