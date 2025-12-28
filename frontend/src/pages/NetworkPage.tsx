@@ -5,6 +5,7 @@ import { ErrorMessage } from '@/components/ErrorMessage';
 import { Card } from '@/components/Card';
 import { NetworkStatus } from '@/components/NetworkStatus';
 import { BundleStatus } from '@/components/BundleStatus';
+import { PeerList } from '@/components/PeerList';
 import { Radio, Package, Map } from 'lucide-react';
 import { formatTimeAgo } from '@/utils/formatters';
 
@@ -66,7 +67,7 @@ export function NetworkPage() {
         </Card>
       )}
 
-      {/* Current Island */}
+      {/* Current Island Summary */}
       {islandLoading ? (
         <Loading text="Loading island information..." />
       ) : currentIsland ? (
@@ -75,38 +76,26 @@ export function NetworkPage() {
             <Map className="w-5 h-5 text-solarpunk-600" />
             <h2 className="text-xl font-semibold text-gray-900">Current Island</h2>
           </div>
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-600">Island ID</p>
-              <p className="font-mono text-gray-900">{currentIsland.island_id}</p>
+              <p className="font-mono text-gray-900 text-sm">{currentIsland.island_id.slice(0, 16)}...</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-2">Connected Nodes</p>
-              <p className="text-2xl font-bold text-gray-900">{currentIsland.node_count}</p>
+              <p className="text-sm text-gray-600">Connected Nodes</p>
+              <p className="text-2xl font-bold text-solarpunk-700">{currentIsland.node_count}</p>
             </div>
-            {currentIsland.access_points.length > 0 && (
-              <div>
-                <p className="text-sm text-gray-600 mb-2">Access Points</p>
-                <div className="space-y-2">
-                  {currentIsland.access_points.slice(0, 3).map((ap, index) => (
-                    <div
-                      key={index}
-                      className="bg-gray-50 rounded p-3 text-sm"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{ap.ssid}</span>
-                        <span className="text-gray-600">Signal: {ap.signal_strength}dBm</span>
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        Channel {ap.channel} • {ap.security}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </Card>
+      ) : null}
+
+      {/* Detailed Peer List */}
+      {islandLoading ? null : currentIsland ? (
+        <PeerList
+          connectedNodes={currentIsland.connected_nodes}
+          accessPoints={currentIsland.access_points}
+          showAccessPoints={true}
+        />
       ) : null}
 
       {/* Bridge Nodes */}
