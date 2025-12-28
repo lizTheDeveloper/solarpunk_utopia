@@ -43,8 +43,9 @@ export function NeedCard({ need, onFulfill, onEdit, onDelete, showActions = true
                     onClick={() => onEdit(need)}
                     className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                     title="Edit need"
+                    aria-label={`Edit need: ${need.resource_specification?.name || 'Unknown Resource'}`}
                   >
-                    <Edit className="w-4 h-4" />
+                    <Edit className="w-4 h-4" aria-hidden="true" />
                   </button>
                 )}
                 {onDelete && (
@@ -52,8 +53,9 @@ export function NeedCard({ need, onFulfill, onEdit, onDelete, showActions = true
                     onClick={handleDelete}
                     className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                     title="Delete need"
+                    aria-label={`Delete need: ${need.resource_specification?.name || 'Unknown Resource'}`}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </button>
                 )}
               </div>
