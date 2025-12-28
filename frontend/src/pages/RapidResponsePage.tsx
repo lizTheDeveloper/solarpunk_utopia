@@ -11,6 +11,7 @@
  * - Timeline of updates
  */
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -177,9 +178,9 @@ const RapidResponsePage: React.FC = () => {
       resetTriggerForm();
       await loadActiveAlerts();
 
-      alert('Alert triggered! Propagating to nearby members via mesh.');
+      toast.success('Alert triggered! Propagating to nearby members via mesh.');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to trigger alert');
+      toast.error(err instanceof Error ? err.message : 'Failed to trigger alert');
     }
   };
 
@@ -211,9 +212,9 @@ const RapidResponsePage: React.FC = () => {
       resetRespondForm();
       await loadAlertDetails(selectedAlert.id);
 
-      alert('Response recorded!');
+      toast.success('Response recorded!');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to respond');
+      toast.error(err instanceof Error ? err.message : 'Failed to respond');
     }
   };
 
@@ -237,9 +238,9 @@ const RapidResponsePage: React.FC = () => {
         await loadAlertDetails(alertId);
       }
 
-      alert('Alert confirmed!');
+      toast.success('Alert confirmed!');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to confirm alert');
+      toast.error(err instanceof Error ? err.message : 'Failed to confirm alert');
     }
   };
 
@@ -264,9 +265,9 @@ const RapidResponsePage: React.FC = () => {
         await loadAlertDetails(alertId);
       }
 
-      alert('You are now coordinating this response!');
+      toast.success('You are now coordinating this response!');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to claim coordinator');
+      toast.error(err instanceof Error ? err.message : 'Failed to claim coordinator');
     }
   };
 

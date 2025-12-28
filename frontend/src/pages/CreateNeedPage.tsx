@@ -267,8 +267,10 @@ export function CreateNeedPage() {
                 type="date"
                 value={availableFrom}
                 onChange={(e) => setAvailableFrom(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
+              <p className="text-xs text-gray-500 mt-1">When do you need this by?</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -278,8 +280,10 @@ export function CreateNeedPage() {
                 type="date"
                 value={availableUntil}
                 onChange={(e) => setAvailableUntil(e.target.value)}
+                min={availableFrom || new Date().toISOString().split('T')[0]}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
+              <p className="text-xs text-gray-500 mt-1">Deadline for this need</p>
             </div>
           </div>
 

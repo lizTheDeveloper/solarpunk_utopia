@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useOffers, useDeleteOffer } from '@/hooks/useOffers';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCommunity } from '@/contexts/CommunityContext';
@@ -47,9 +48,10 @@ export function OffersPage() {
   const handleDelete = async (offer: Intent) => {
     try {
       await deleteOffer.mutateAsync(offer.id);
+      toast.success('Offer deleted successfully');
     } catch (error) {
       console.error('Failed to delete offer:', error);
-      alert('Failed to delete offer. Please try again.');
+      toast.error('Failed to delete offer. Please try again.');
     }
   };
 
@@ -97,10 +99,17 @@ export function OffersPage() {
             Select a community to view and share offers with your neighbors.
           </p>
           <div className="flex gap-3 justify-center">
-            <Button onClick={() => navigate('/communities')}>
+            <Button
+              onClick={() => navigate('/communities')}
+              aria-label="Browse available communities to join"
+            >
               Browse Communities
             </Button>
-            <Button variant="secondary" onClick={() => navigate('/communities/create')}>
+            <Button
+              variant="secondary"
+              onClick={() => navigate('/communities/create')}
+              aria-label="Create a new community"
+            >
               Create Community
             </Button>
           </div>
@@ -217,7 +226,7 @@ export function OffersPage() {
             >
               <option value="newest">Newest First</option>
               <option value="expiring">Expiring Soon</option>
-              <option value="nearest">Nearest (coming soon)</option>
+              <option value="nearest" disabled>Nearest (coming soon)</option>
             </select>
           </div>
         </div>

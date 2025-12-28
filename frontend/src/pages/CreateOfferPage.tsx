@@ -279,8 +279,10 @@ export function CreateOfferPage() {
                 type="date"
                 value={availableFrom}
                 onChange={(e) => setAvailableFrom(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-solarpunk-500 focus:border-solarpunk-500"
               />
+              <p className="text-xs text-gray-500 mt-1">When will this be available?</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -290,8 +292,10 @@ export function CreateOfferPage() {
                 type="date"
                 value={availableUntil}
                 onChange={(e) => setAvailableUntil(e.target.value)}
+                min={availableFrom || new Date().toISOString().split('T')[0]}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-solarpunk-500 focus:border-solarpunk-500"
               />
+              <p className="text-xs text-gray-500 mt-1">When does this expire?</p>
             </div>
           </div>
 
@@ -303,6 +307,12 @@ export function CreateOfferPage() {
 
           {/* GAP-61: Anonymous Gift Toggle */}
           <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded">
+            <div className="mb-3 pb-3 border-b border-amber-200">
+              <h3 className="font-semibold text-gray-900 mb-1">🎁 What is an Anonymous Gift?</h3>
+              <p className="text-sm text-gray-700">
+                Anonymous gifts are placed on the community shelf with no tracking. Anyone can take them freely - no names, no records, no social credit. Pure giving.
+              </p>
+            </div>
             <label className="flex items-start space-x-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -314,7 +324,7 @@ export function CreateOfferPage() {
               <div className="flex-1">
                 <div className="font-medium text-gray-900">Make this an anonymous gift</div>
                 <p className="text-sm text-gray-600 mt-1">
-                  Leave it on the community shelf. No one will know it's from you.
+                  Check this box to give freely without being identified
                 </p>
                 <p className="text-xs text-gray-500 mt-2 italic">
                   "Free gifts mean I can give without the database knowing." - Emma Goldman

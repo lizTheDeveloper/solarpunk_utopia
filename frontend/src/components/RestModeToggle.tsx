@@ -8,6 +8,7 @@
  */
 
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 
 interface RestModeToggleProps {
   currentStatus: 'active' | 'resting' | 'sabbatical';
@@ -30,9 +31,10 @@ export const RestModeToggle: React.FC<RestModeToggleProps> = ({
     try {
       await onUpdate(status, note);
       setIsEditing(false);
+      toast.success('Status updated successfully');
     } catch (error) {
       console.error('Failed to update status:', error);
-      alert('Failed to update status. Please try again.');
+      toast.error('Failed to update status. Please try again.');
     } finally {
       setIsSaving(false);
     }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useNeeds, useDeleteNeed } from '@/hooks/useNeeds';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCommunity } from '@/contexts/CommunityContext';
@@ -32,9 +33,10 @@ export function NeedsPage() {
   const handleDelete = async (need: Intent) => {
     try {
       await deleteNeed.mutateAsync(need.id);
+      toast.success('Need deleted successfully');
     } catch (error) {
       console.error('Failed to delete need:', error);
-      alert('Failed to delete need. Please try again.');
+      toast.error('Failed to delete need. Please try again.');
     }
   };
 
@@ -72,10 +74,17 @@ export function NeedsPage() {
             Select a community to view and express needs within your community.
           </p>
           <div className="flex gap-3 justify-center">
-            <Button onClick={() => navigate('/communities')}>
+            <Button
+              onClick={() => navigate('/communities')}
+              aria-label="Browse available communities to join"
+            >
               Browse Communities
             </Button>
-            <Button variant="secondary" onClick={() => navigate('/communities/create')}>
+            <Button
+              variant="secondary"
+              onClick={() => navigate('/communities/create')}
+              aria-label="Create a new community"
+            >
               Create Community
             </Button>
           </div>

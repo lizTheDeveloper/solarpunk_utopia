@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { Toaster } from 'sonner'
 import { AuthProvider } from './contexts/AuthContext'
 import { CommunityProvider } from './contexts/CommunityContext'
 import { Layout } from './components/Layout'
@@ -73,9 +74,11 @@ function App() {
   }
 
   return (
-    <AuthProvider>
-      <CommunityProvider>
-        <Routes>
+    <>
+      <Toaster position="top-right" richColors />
+      <AuthProvider>
+        <CommunityProvider>
+          <Routes>
           {/* Public route - no auth needed */}
           <Route path="/login" element={<LoginPage />} />
 
@@ -125,9 +128,10 @@ function App() {
               </ProtectedRoute>
             }
           />
-        </Routes>
-      </CommunityProvider>
-    </AuthProvider>
+          </Routes>
+        </CommunityProvider>
+      </AuthProvider>
+    </>
   )
 }
 
