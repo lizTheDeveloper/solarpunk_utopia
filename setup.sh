@@ -82,6 +82,12 @@ clone_repo() {
 setup_python() {
     echo -e "${BLUE}Setting up Python virtual environment...${NC}"
 
+    if [ "$IS_TERMUX" = true ]; then
+        # Termux: Install packages that need compilation from pkg
+        echo -e "${BLUE}Installing binary packages from Termux repository...${NC}"
+        pkg install -y python-cryptography python-bcrypt rust 2>/dev/null || true
+    fi
+
     if [ ! -d "venv" ]; then
         python3 -m venv venv
     fi
@@ -93,7 +99,13 @@ setup_python() {
 
     # Install all requirements
     echo -e "${BLUE}Installing Python dependencies...${NC}"
-    pip install -r requirements.txt
+    if [ "$IS_TERMUX" = true ] && [ -f "requirements-termux.txt" ]; then
+        # Use Termux-specific requirements (skips packages installed via pkg)
+        pip install -r requirements-termux.txt
+    else
+        pip install -r requirements.txt
+    fi
+
     pip install pytest pytest-asyncio freezegun aiohttp  # Test dependencies
 
     # Install sub-project requirements
