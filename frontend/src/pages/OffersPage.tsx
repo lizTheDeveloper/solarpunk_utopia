@@ -9,7 +9,7 @@ import { ErrorMessage } from '@/components/ErrorMessage';
 import { OfferCard } from '@/components/OfferCard';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
-import { Plus, Filter, Users } from 'lucide-react';
+import { Plus, Filter, Users, Gift } from 'lucide-react';
 import { RESOURCE_CATEGORIES } from '@/utils/categories';
 import type { Intent } from '@/types/valueflows';
 
