@@ -15,7 +15,12 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { CommunitySelector } from './CommunitySelector';
-import { usePendingCount } from '@/hooks/useAgents';
+import { NotificationBadge } from './NotificationBadge';
+import { NotificationDropdown } from './NotificationDropdown';
+import { ProposalApprovalModal } from './ProposalApprovalModal';
+import { usePendingCount, useProposal, useReviewProposal } from '@/hooks/useAgents';
+import { useNotifications } from '@/hooks/useNotifications';
+import { toast } from 'sonner';
 
 const navItems = [
   { path: '/', label: 'Home', icon: Home, tooltip: 'Dashboard and overview' },
@@ -35,7 +40,35 @@ export function Navigation() {
   // Poll for pending proposals count every 30 seconds using new hook
   const { data: pendingCount } = usePendingCount();
 
+  // Notification system
+  const notifications = useNotifications();
+  const { data: selectedProposal } = useProposal(notifications.selectedProposalId || '');
+  const reviewProposal = useReviewProposal();
+
   const count = pendingCount || 0;
+
+  const handleApprove = async (proposalId: string) => {
+    try {
+      await reviewProposal.mutateAsync({ id: proposalId, action: 'approve' });
+      toast.success('Proposal approved successfully');
+      notifications.clearSelection();
+    } catch (error) {
+      console.error('Failed to approve proposal:', error);
+      toast.error('Failed to approve proposal');
+    }
+  };
+
+  const handleReject = async (proposalId: string, reason: string) => {
+    try {
+      await reviewProposal.mutateAsync({ id: proposalId, action: 'reject', note: reason });
+      toast.success('Proposal rejected');
+      notifications.clearSelection();
+    } catch (error) {
+      console.error('Failed to reject proposal:', error);
+      toast.error('Failed to reject proposal');
+    }
+  };
+
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -78,6 +111,22 @@ export function Navigation() {
 
           <div className="flex items-center gap-3">
             <CommunitySelector />
+
+            {/* Notification Badge */}
+            <div className="relative">
+              <NotificationBadge
+                count={notifications.pendingCount}
+                onClick={notifications.toggle}
+                isOpen={notifications.isOpen}
+              />
+              <NotificationDropdown
+                proposals={notifications.proposals}
+                isOpen={notifications.isOpen}
+                onClose={notifications.close}
+                onProposalClick={notifications.selectProposal}
+              />
+            </div>
+
             <NavLink
               to="/offers/create"
               className="flex items-center gap-2 bg-solarpunk-600 text-white px-4 py-2 rounded-lg hover:bg-solarpunk-700 transition-colors text-sm font-medium"
@@ -122,6 +171,16 @@ export function Navigation() {
           ))}
         </div>
       </div>
+
+      {/* Proposal Approval Modal */}
+      <ProposalApprovalModal
+        proposal={selectedProposal || null}
+        isOpen={!!notifications.selectedProposalId && !!selectedProposal}
+        onClose={notifications.clearSelection}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        isLoading={reviewProposal.isPending}
+      />
     </nav>
   );
 }
