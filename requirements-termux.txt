@@ -3,7 +3,9 @@ uvicorn==0.34.0
 # Pydantic v1 doesn't require Rust compilation
 # v2 requires Rust/Maturin which fails on Termux
 pydantic==1.10.13
-pydantic-settings==2.1.0
+# pydantic-settings v1 is compatible with pydantic v1
+# v2 requires pydantic v2
+pydantic-settings==1.0.3
 # Use Termux's pre-built cryptography package
 # Install with: pkg install python-cryptography
 # cryptography will be installed via pkg, not pip
