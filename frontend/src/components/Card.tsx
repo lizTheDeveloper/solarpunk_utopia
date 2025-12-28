@@ -12,7 +12,7 @@ export function Card({ children, className, onClick, hoverable = false }: CardPr
   return (
     <div
       className={clsx(
-        'bg-white rounded-lg shadow-md p-6 border border-gray-200',
+        'bg-white rounded-lg shadow-md p-4 sm:p-6 border border-gray-200',
         hoverable && 'hover:shadow-lg transition-shadow cursor-pointer',
         onClick && 'cursor-pointer',
         className

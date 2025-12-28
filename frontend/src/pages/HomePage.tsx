@@ -44,11 +44,11 @@ export function HomePage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">
+      <div className="text-center px-2">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
           Welcome to Solarpunk Mesh
         </h1>
-        <p className="text-lg text-gray-600">
+        <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
           A gift economy network for resilient communities
         </p>
       </div>
@@ -142,14 +142,14 @@ export function HomePage() {
       {/* Pending AI Proposals */}
       {pendingProposals.length > 0 && (
         <div>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-6 h-6 text-yellow-600" />
-              <h2 className="text-2xl font-bold text-gray-900">
+              <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 flex-shrink-0" />
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
                 AI Proposals Pending Review
               </h2>
             </div>
-            <Link to="/agents">
+            <Link to="/agents" className="self-start sm:self-auto">
               <Button variant="ghost" size="sm">View All</Button>
             </Link>
           </div>
@@ -163,8 +163,8 @@ export function HomePage() {
 
       {/* Recent Offers */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">Recent Offers</h2>
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Recent Offers</h2>
           <Link to="/offers">
             <Button variant="ghost" size="sm">View All</Button>
           </Link>
@@ -198,8 +198,8 @@ export function HomePage() {
 
       {/* Recent Needs */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">Recent Needs</h2>
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Recent Needs</h2>
           <Link to="/needs">
             <Button variant="ghost" size="sm">View All</Button>
           </Link>

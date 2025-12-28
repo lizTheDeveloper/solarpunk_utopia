@@ -68,78 +68,33 @@ export function OnboardingPage() {
   ]
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '2rem'
-    }}>
-      <div style={{
-        maxWidth: '800px',
-        width: '100%'
-      }}>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 p-4 sm:p-8">
+      <div className="max-w-3xl w-full">
         {/* Progress indicator with step info and skip button */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem',
-          marginBottom: '2rem'
-        }}>
+        <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
           {/* Step counter and skip button */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            color: 'white'
-          }}>
-            <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-white">
+            <div className="text-xs sm:text-sm opacity-90">
               Step {currentStep + 1} of {steps.length}: {stepTitles[currentStep]}
             </div>
             <button
               onClick={handleSkip}
-              style={{
-                background: 'transparent',
-                border: '1px solid rgba(255, 255, 255, 0.5)',
-                color: 'white',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
-                e.currentTarget.style.borderColor = 'white'
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = 'transparent'
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)'
-              }}
+              className="bg-transparent border border-white/50 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm transition-all hover:bg-white/10 hover:border-white"
             >
               Skip to App
             </button>
           </div>
 
           {/* Progress dots */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '0.5rem'
-          }}>
+          <div className="flex justify-center gap-1.5 sm:gap-2">
             {steps.map((_, index) => (
               <div
                 key={index}
-                style={{
-                  width: '2rem',
-                  height: '0.5rem',
-                  borderRadius: '0.25rem',
-                  background: index === currentStep
-                    ? 'white'
-                    : 'rgba(255, 255, 255, 0.3)',
-                  transition: 'all 0.3s ease'
-                }}
+                className={`w-6 sm:w-8 h-1.5 sm:h-2 rounded-sm transition-all duration-300 ${
+                  index === currentStep
+                    ? 'bg-white'
+                    : 'bg-white/30'
+                }`}
               />
             ))}
           </div>

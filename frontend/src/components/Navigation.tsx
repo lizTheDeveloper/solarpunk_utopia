@@ -74,12 +74,12 @@ export function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-solarpunk-400 to-solarpunk-600 rounded-lg flex items-center justify-center">
-              <Gift className="w-6 h-6 text-white" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-solarpunk-400 to-solarpunk-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Solarpunk Mesh</h1>
-              <p className="text-xs text-gray-600">Gift Economy Network</p>
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-xl font-bold text-gray-900 truncate">Solarpunk Mesh</h1>
+              <p className="text-xs text-gray-600 hidden sm:block">Gift Economy Network</p>
             </div>
           </div>
 
@@ -129,14 +129,14 @@ export function Navigation() {
 
             <NavLink
               to="/offers/create"
-              className="flex items-center gap-2 bg-solarpunk-600 text-white px-4 py-2 rounded-lg hover:bg-solarpunk-700 transition-colors text-sm font-medium"
+              className="flex items-center gap-1 sm:gap-2 bg-solarpunk-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-solarpunk-700 transition-colors text-xs sm:text-sm font-medium"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">New Offer</span>
             </NavLink>
             <NavLink
               to="/needs/create"
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              className="flex items-center gap-1 sm:gap-2 bg-blue-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">New Need</span>

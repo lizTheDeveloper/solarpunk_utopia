@@ -49,16 +49,16 @@ export function OfferCard({ offer, onAccept, onEdit, onDelete, showActions = tru
   return (
     <Card hoverable>
       <div className="flex flex-col gap-3">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="font-semibold text-lg text-gray-900">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <h3 className="font-semibold text-base sm:text-lg text-gray-900 break-words">
               {offer.resource_specification?.name || 'Unknown Resource'}
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-xs sm:text-sm text-gray-600">
               Offered by {offer.agent?.name || 'Unknown'}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {urgency.level && (
               <span
                 className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${
@@ -103,23 +103,23 @@ export function OfferCard({ offer, onAccept, onEdit, onDelete, showActions = tru
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-gray-600">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
           <div className="flex items-center gap-1">
-            <Package className="w-4 h-4" />
+            <Package className="w-4 h-4 flex-shrink-0" />
             <span>{formatQuantity(offer.quantity, offer.unit)}</span>
           </div>
           {offer.location && (
             <div className="flex items-center gap-1">
-              <MapPin className="w-4 h-4" />
-              <span>{offer.location}</span>
+              <MapPin className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate max-w-[150px] sm:max-w-none">{offer.location}</span>
             </div>
           )}
         </div>
 
         {(offer.available_from || offer.available_until) && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Calendar className="w-4 h-4" />
-            <span>
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
+            <Calendar className="w-4 h-4 flex-shrink-0" />
+            <span className="break-words">
               {offer.available_from && `From ${formatDate(offer.available_from)}`}
               {offer.available_from && offer.available_until && ' - '}
               {offer.available_until && `Until ${formatDate(offer.available_until)}`}
@@ -128,17 +128,17 @@ export function OfferCard({ offer, onAccept, onEdit, onDelete, showActions = tru
         )}
 
         {offer.note && (
-          <p className="text-sm text-gray-700 border-l-4 border-solarpunk-300 pl-3 italic">
+          <p className="text-xs sm:text-sm text-gray-700 border-l-4 border-solarpunk-300 pl-3 italic break-words">
             {offer.note}
           </p>
         )}
 
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-2">
           <span className="text-xs text-gray-500">
             Posted {formatTimeAgo(offer.created_at)}
           </span>
           {showActions && onAccept && offer.status === 'active' && (
-            <Button size="sm" onClick={() => onAccept(offer)}>
+            <Button size="sm" onClick={() => onAccept(offer)} className="w-full sm:w-auto">
               Accept Offer
             </Button>
           )}
