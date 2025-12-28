@@ -403,6 +403,15 @@ main() {
     fi
 
     run_tests
+
+    # Optionally setup local inference
+    if [ "$IS_TERMUX" = true ] || [ "$PLATFORM" = "Mac" ]; then
+        if [ -f "setup_local_inference.sh" ]; then
+            chmod +x setup_local_inference.sh
+            ./setup_local_inference.sh || true
+        fi
+    fi
+
     start_services
     print_summary
 }
