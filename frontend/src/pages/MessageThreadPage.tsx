@@ -6,7 +6,8 @@ import { Loading } from '@/components/Loading';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
-import { ArrowLeft, Send, Lock } from 'lucide-react';
+import { EmptyState } from '@/components/EmptyState';
+import { ArrowLeft, Send, Lock, MessageCircle } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { Message } from '@/types/message';
 
@@ -101,8 +102,12 @@ export function MessageThreadPage() {
             <div ref={messagesEndRef} />
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            No messages yet. Start the conversation!
+          <div className="flex items-center justify-center h-full">
+            <EmptyState
+              icon={<MessageCircle className="w-16 h-16" />}
+              title="Start the Conversation"
+              description="No messages yet. Send your first message to begin this thread."
+            />
           </div>
         )}
       </Card>

@@ -13,6 +13,7 @@ import { NetworkStatus } from '@/components/NetworkStatus';
 import { OfferCard } from '@/components/OfferCard';
 import { NeedCard } from '@/components/NeedCard';
 import { ProposalCard } from '@/components/ProposalCard';
+import { EmptyState } from '@/components/EmptyState';
 import { Gift, Heart, ArrowLeftRight, Package, AlertCircle } from 'lucide-react';
 
 export function HomePage() {
@@ -178,9 +179,19 @@ export function HomePage() {
           </div>
         ) : (
           <Card>
-            <p className="text-gray-600 text-center py-8">
-              No active offers yet. Be the first to share!
-            </p>
+            <EmptyState
+              icon={<Package className="w-16 h-16" />}
+              title="No Active Offers Yet"
+              description="Be the first to share resources with your community! Creating an offer helps neighbors find what they need."
+              primaryAction={{
+                label: "Create an Offer",
+                href: "/offers/create"
+              }}
+              secondaryAction={{
+                label: "Browse All Offers",
+                href: "/offers"
+              }}
+            />
           </Card>
         )}
       </div>
@@ -203,9 +214,19 @@ export function HomePage() {
           </div>
         ) : (
           <Card>
-            <p className="text-gray-600 text-center py-8">
-              No active needs yet. Express yours to get started!
-            </p>
+            <EmptyState
+              icon={<Heart className="w-16 h-16" />}
+              title="No Active Needs Yet"
+              description="Express what you need and let the community help! Creating a need helps neighbors understand how they can support you."
+              primaryAction={{
+                label: "Express a Need",
+                href: "/needs/create"
+              }}
+              secondaryAction={{
+                label: "Browse All Needs",
+                href: "/needs"
+              }}
+            />
           </Card>
         )}
       </div>

@@ -5,7 +5,8 @@ import { Loading } from '@/components/Loading';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { Card } from '@/components/Card';
 import { MatchCard } from '@/components/MatchCard';
-import { ArrowRight, CheckCircle, Clock, Check } from 'lucide-react';
+import { EmptyState } from '@/components/EmptyState';
+import { ArrowRight, CheckCircle, Clock, Check, ArrowLeftRight } from 'lucide-react';
 import { formatTimeAgo, formatQuantity, formatStatus } from '@/utils/formatters';
 
 export function ExchangesPage() {
@@ -227,16 +228,21 @@ export function ExchangesPage() {
         </div>
       ) : (
         <Card>
-          <div className="text-center py-12">
-            <p className="text-gray-600 mb-4">
-              {selectedStatus !== 'all'
-                ? `No ${selectedStatus} exchanges found.`
-                : 'No exchanges yet.'}
-            </p>
-            <p className="text-sm text-gray-500">
-              Exchanges are created when offers and needs are matched.
-            </p>
-          </div>
+          <EmptyState
+            icon={<ArrowLeftRight className="w-16 h-16" />}
+            title={selectedStatus !== 'all'
+              ? `No ${selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)} Exchanges Found`
+              : "No Exchanges Yet"}
+            description={selectedStatus !== 'all'
+              ? "Try selecting a different status filter or browse all exchanges."
+              : "Exchanges happen when offers meet needs. Create an offer or express a need to get started!"}
+            primaryAction={selectedStatus !== 'all'
+              ? { label: "Clear Filters", onClick: () => setSelectedStatus('all') }
+              : { label: "Create an Offer", href: "/offers/create" }}
+            secondaryAction={selectedStatus === 'all'
+              ? { label: "Express a Need", href: "/needs/create" }
+              : undefined}
+          />
         </Card>
       )}
     </div>

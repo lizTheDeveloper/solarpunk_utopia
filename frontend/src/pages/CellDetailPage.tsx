@@ -5,6 +5,7 @@ import { Loading } from '@/components/Loading';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
+import { EmptyState } from '@/components/EmptyState';
 import {
   Users,
   MapPin,
@@ -133,7 +134,11 @@ export function CellDetailPage() {
               </div>
             ))
           ) : (
-            <p className="text-gray-600">No stewards yet</p>
+            <EmptyState
+              icon={<Shield className="w-12 h-12" />}
+              title="No Stewards Yet"
+              description="Stewards guide and coordinate this cell. They will be designated as the community forms."
+            />
           )}
         </div>
       </Card>
@@ -169,7 +174,16 @@ export function CellDetailPage() {
               </div>
             ))
           ) : (
-            <p className="text-gray-600">No members yet</p>
+            <EmptyState
+              icon={<Users className="w-12 h-12" />}
+              title="No Members Yet"
+              description={cell.is_accepting_members
+                ? "This cell is just getting started. Invite members to help build your community!"
+                : "This cell is currently not accepting new members."}
+              primaryAction={cell.is_accepting_members
+                ? { label: "Invite Member", onClick: () => setShowInviteModal(true) }
+                : undefined}
+            />
           )}
         </div>
       </Card>
