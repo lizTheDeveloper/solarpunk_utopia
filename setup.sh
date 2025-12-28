@@ -99,7 +99,8 @@ setup_python() {
         python3 -m venv venv
     fi
 
-    source venv/bin/activate
+    # Activate venv (use . instead of source for better compatibility)
+    . venv/bin/activate
 
     # Upgrade pip
     pip install --upgrade pip
@@ -142,7 +143,7 @@ init_database() {
     mkdir -p app/data
 
     # Run initialization
-    source venv/bin/activate
+    . venv/bin/activate
     python -c "
 import asyncio
 from app.database.db import init_db
@@ -246,7 +247,7 @@ configure_firewall() {
 # Run tests
 run_tests() {
     echo -e "${BLUE}Running tests...${NC}"
-    source venv/bin/activate
+    . venv/bin/activate
 
     # Run tests (excluding integration tests that need running services)
     python -m pytest tests/ --ignore=tests/integration -q --tb=no 2>/dev/null || {
