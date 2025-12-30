@@ -402,8 +402,8 @@ class HuggingFaceBackend(LLMClient):
         # Use api_key from config or fall back to HF_TOKEN env var
         import os
         self.api_key = config.api_key or os.getenv("HF_TOKEN")
-        # Default model for HF - use a model available on serverless inference
-        self.model = config.model or "meta-llama/Llama-3.2-1B-Instruct"
+        # Default model for HF - use Qwen 72B for best quality
+        self.model = config.model or "Qwen/Qwen2.5-72B-Instruct"
         # Use new HuggingFace router endpoint (OpenAI-compatible)
         self.base_url = "https://router.huggingface.co/v1"
 
@@ -573,18 +573,33 @@ class MockBackend(LLMClient):
         return True
 
 
-def get_llm_client(config: Optional[LLMConfig] = None) -> LLMClient:
+class LLMConfigError(Exception):
+    """Raised when LLM configuration is invalid or backend unavailable"""
+    pass
+
+
+def get_llm_client(
+    config: Optional[LLMConfig] = None,
+    allow_mock: bool = False
+) -> LLMClient:
     """
     Factory function to get appropriate LLM client based on config.
 
+    GAP-70: Now fails fast if misconfigured instead of silently falling back to mock.
+
     Args:
         config: LLMConfig object (defaults to environment-based config)
+        allow_mock: If True, allows MockBackend (for testing only, default False)
 
     Returns:
         Appropriate LLMClient implementation
 
+    Raises:
+        LLMConfigError: If backend is unknown or mock not allowed
+
     Example:
-        >>> client = get_llm_client()  # Uses env vars
+        >>> client = get_llm_client()  # Uses env vars, fails if misconfigured
+        >>> client = get_llm_client(allow_mock=True)  # For testing
         >>> response = await client.generate("Hello world")
     """
     if config is None:
@@ -601,10 +616,16 @@ def get_llm_client(config: Optional[LLMConfig] = None) -> LLMClient:
     elif backend == "huggingface":
         return HuggingFaceBackend(config)
     elif backend == "mock":
+        if not allow_mock:
+            raise LLMConfigError(
+                "MockBackend not allowed in production. "
+                "Set LLM_BACKEND to one of: ollama, mlx, remote, huggingface. "
+                "If testing, pass allow_mock=True to get_llm_client()."
+            )
         return MockBackend(config)
     else:
-        logger.warning(
-            f"Unknown backend '{backend}', falling back to mock. "
-            f"Valid options: ollama, mlx, remote, huggingface, mock"
+        raise LLMConfigError(
+            f"Unknown LLM backend: '{backend}'. "
+            f"Valid options: ollama, mlx, remote, huggingface, mock. "
+            f"Check your LLM_BACKEND environment variable or config."
         )
-        return MockBackend(config)
