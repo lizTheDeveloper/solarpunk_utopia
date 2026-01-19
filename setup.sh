@@ -290,41 +290,58 @@ setup_python() {
     echo -e "${BLUE}Installing Python dependencies...${NC}"
     if [ "$IS_TERMUX" = true ]; then
         # Termux: Install packages individually to handle failures gracefully
-        echo -e "${YELLOW}Installing core packages...${NC}"
+        echo -e "${YELLOW}Installing packages (trying binary wheels first)...${NC}"
 
-        # Core packages that should work without compilation
-        CORE_PACKAGES="fastapi uvicorn aiosqlite python-multipart psutil mnemonic structlog prometheus-client httpx"
+        # First, try pydantic with binary wheels (fastapi depends on this)
+        echo -ne "  Installing pydantic... "
+        if pip install --only-binary :all: pydantic pydantic-settings 2>/dev/null; then
+            echo -e "${GREEN}✓ (binary wheel)${NC}"
+            PYDANTIC_INSTALLED=true
+        else
+            echo -e "${YELLOW}no binary wheel${NC}"
+            echo -e "${YELLOW}    Would require Rust compilation (5-10 min)${NC}"
+            echo -e "${YELLOW}    Skipping pydantic - will install FastAPI without it${NC}"
+            PYDANTIC_INSTALLED=false
+        fi
 
-        for pkg in $CORE_PACKAGES; do
+        # Now install packages based on whether pydantic succeeded
+        if [ "$PYDANTIC_INSTALLED" = true ]; then
+            # Pydantic available - install full stack including FastAPI
+            PACKAGES="fastapi uvicorn aiosqlite python-multipart psutil mnemonic structlog prometheus-client httpx"
+        else
+            # No pydantic - skip FastAPI (requires pydantic)
+            echo -e "${YELLOW}    Note: Skipping fastapi (requires pydantic)${NC}"
+            PACKAGES="uvicorn aiosqlite python-multipart psutil mnemonic structlog prometheus-client httpx"
+        fi
+
+        for pkg in $PACKAGES; do
             echo -ne "  Installing $pkg... "
             if pip install --only-binary :all: "$pkg" 2>/dev/null; then
                 echo -e "${GREEN}✓${NC}"
             else
                 # Try without binary restriction
                 if pip install "$pkg" 2>/dev/null; then
-                    echo -e "${GREEN}✓ (built from source)${NC}"
+                    echo -e "${GREEN}✓${NC}"
                 else
-                    echo -e "${RED}✗ failed${NC}"
+                    echo -e "${RED}✗${NC}"
                 fi
             fi
         done
 
-        # Pydantic requires special handling (may need compilation)
-        echo -ne "  Installing pydantic... "
-        if pip install --only-binary :all: pydantic pydantic-settings 2>/dev/null; then
-            echo -e "${GREEN}✓${NC}"
+        echo ""
+        if [ "$PYDANTIC_INSTALLED" = false ]; then
+            echo -e "${YELLOW}================================================${NC}"
+            echo -e "${YELLOW}FastAPI not installed (requires pydantic)${NC}"
+            echo -e "${YELLOW}================================================${NC}"
+            echo -e "${YELLOW}To install pydantic with Rust compilation:${NC}"
+            echo -e "${YELLOW}  1. Install Rust: pkg install rust${NC}"
+            echo -e "${YELLOW}  2. Install pydantic: pip install pydantic${NC}"
+            echo -e "${YELLOW}  3. Install FastAPI: pip install fastapi${NC}"
+            echo ""
+            echo -e "${GREEN}Core functionality available without FastAPI${NC}"
         else
-            echo -e "${YELLOW}needs compilation${NC}"
-            echo -e "${YELLOW}  Attempting to build pydantic-core (may take 5-10 min)...${NC}"
-            if pip install pydantic pydantic-settings 2>&1 | grep -q "Successfully installed"; then
-                echo -e "${GREEN}  ✓ pydantic installed${NC}"
-            else
-                echo -e "${RED}  ✗ pydantic installation failed${NC}"
-                echo -e "${YELLOW}  Continuing without pydantic (some features may not work)${NC}"
-            fi
+            echo -e "${GREEN}All packages installed successfully!${NC}"
         fi
-
-        echo -e "${GREEN}Core packages installed${NC}"
     else
         # Non-Termux: Try bulk install first, fall back to individual
         if pip install -r requirements.txt 2>/dev/null; then
