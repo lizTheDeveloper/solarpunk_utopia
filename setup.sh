@@ -267,20 +267,19 @@ setup_python() {
     # Install all requirements
     echo -e "${BLUE}Installing Python dependencies...${NC}"
     if [ "$IS_TERMUX" = true ]; then
-        # Termux-specific installation
-        echo -e "${YELLOW}Installing Termux-optimized requirements (no Rust/maturin packages)...${NC}"
+        # Termux: Try binary wheels first, fall back to source build if needed
+        echo -e "${YELLOW}Trying binary wheels (fast)...${NC}"
 
-        if [ -f "requirements-termux.txt" ]; then
-            pip install -r requirements-termux.txt
+        if pip install --only-binary :all: -r requirements-termux.txt 2>/dev/null; then
+            echo -e "${GREEN}✓ Installed from binary wheels${NC}"
         else
-            # Fallback if requirements-termux.txt doesn't exist
-            pip install fastapi uvicorn pydantic pydantic-settings aiosqlite python-multipart psutil mnemonic structlog prometheus-client httpx
+            echo -e "${YELLOW}Some packages need compilation, installing normally...${NC}"
+            pip install -r requirements-termux.txt
         fi
 
-        echo -e "${GREEN}All LLM backends available (using httpx for API calls - no Rust needed)${NC}"
+        echo -e "${GREEN}All LLM backends available${NC}"
     else
-        # Non-Termux: Install all packages from requirements.txt
-        echo -e "${YELLOW}Installing packages...${NC}"
+        # Non-Termux: Install normally
         pip install -r requirements.txt
     fi
 

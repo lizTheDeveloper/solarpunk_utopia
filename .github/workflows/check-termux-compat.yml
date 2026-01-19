@@ -1,0 +1,47 @@
+name: Check Termux Compatibility
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'requirements.txt'
+      - 'requirements-termux.txt'
+      - 'setup.sh'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'requirements.txt'
+      - 'requirements-termux.txt'
+      - 'setup.sh'
+
+jobs:
+  check-compatibility:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Run Termux compatibility checker
+      run: |
+        python scripts/check_termux_compatibility.py
+
+    - name: Check for binary wheels (aarch64)
+      run: |
+        python scripts/find_termux_wheels.py
+
+    - name: Test installation (simulate Termux)
+      run: |
+        # Simulate Termux environment
+        export IS_TERMUX=true
+
+        # Try to install with --only-binary
+        python -m pip install --upgrade pip
+        python -m pip install --only-binary :all: -r requirements-termux.txt || echo "Some packages require source build"
+
+        # Show what got installed
+        pip list | grep -E "(pydantic|fastapi|httpx)"
