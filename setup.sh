@@ -2,7 +2,8 @@
 # Solarpunk Utopia - Complete Setup Script
 # Usage: curl -sL https://raw.githubusercontent.com/lizTheDeveloper/solarpunk_utopia/main/setup.sh | bash
 
-set -e
+# Note: Don't use 'set -e' - we want to show errors but not exit the terminal
+# This is important for new users who might be sourcing this script
 
 # Colors for output
 RED='\033[0;31m'
@@ -154,18 +155,26 @@ setup_python() {
                     sudo yum install -y python3.11
                     PYTHON_CMD="python3.11"
                 else
-                    echo -e "${RED}Cannot install Python 3.11 automatically${NC}"
-                    echo -e "${YELLOW}Please install manually and re-run this script${NC}"
-                    return 1
+                    echo -e "${RED}Cannot install Python 3.11 automatically on this system${NC}"
+                    echo -e "${YELLOW}You may need to install Python 3.11 manually${NC}"
+                    echo -e "${YELLOW}Continuing with available Python...${NC}"
+                    PYTHON_CMD="python3"
                 fi
             fi
 
             # Verify installation
             if ! command -v "$PYTHON_CMD" &> /dev/null; then
                 echo -e "${RED}Python 3.11 installation failed${NC}"
-                return 1
+                echo -e "${YELLOW}Trying to use default python3...${NC}"
+                PYTHON_CMD="python3"
+                if ! command -v "$PYTHON_CMD" &> /dev/null; then
+                    echo -e "${RED}No Python found at all!${NC}"
+                    echo -e "${YELLOW}Please install Python and try again${NC}"
+                    PYTHON_CMD=""
+                fi
+            else
+                echo -e "${GREEN}Python 3.11 installed successfully${NC}"
             fi
-            echo -e "${GREEN}Python 3.11 installed successfully${NC}"
         else
             echo -e "${YELLOW}Warning: Python $PY_VERSION detected, 3.11 recommended${NC}"
             echo -e "${BLUE}Attempting to install Python 3.11...${NC}"
@@ -213,7 +222,20 @@ setup_python() {
 
         if [ -z "$PYTHON_CMD" ]; then
             echo -e "${RED}Failed to install Python${NC}"
-            return 1
+            echo -e "${YELLOW}Cannot continue without Python${NC}"
+            echo -e "${YELLOW}Please install Python manually:${NC}"
+            if [ "$PLATFORM" = "Mac" ]; then
+                echo -e "  brew install python@3.11"
+            elif [ "$PLATFORM" = "Linux" ]; then
+                echo -e "  sudo apt-get install python3.11  # Debian/Ubuntu"
+                echo -e "  sudo dnf install python3.11      # Fedora"
+            elif [ "$IS_TERMUX" = true ]; then
+                echo -e "  pkg install python"
+            fi
+            # Don't return or exit - just skip rest of function
+            echo -e "${YELLOW}Setup incomplete - Python not available${NC}"
+            echo ""
+            return
         fi
     fi
 
