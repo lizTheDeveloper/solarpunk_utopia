@@ -289,20 +289,66 @@ setup_python() {
     # Install all requirements
     echo -e "${BLUE}Installing Python dependencies...${NC}"
     if [ "$IS_TERMUX" = true ]; then
-        # Termux: Try binary wheels first, fall back to source build if needed
-        echo -e "${YELLOW}Trying binary wheels (fast)...${NC}"
+        # Termux: Install packages individually to handle failures gracefully
+        echo -e "${YELLOW}Installing core packages...${NC}"
 
-        if pip install --only-binary :all: -r requirements-termux.txt 2>/dev/null; then
-            echo -e "${GREEN}✓ Installed from binary wheels${NC}"
+        # Core packages that should work without compilation
+        CORE_PACKAGES="fastapi uvicorn aiosqlite python-multipart psutil mnemonic structlog prometheus-client httpx"
+
+        for pkg in $CORE_PACKAGES; do
+            echo -ne "  Installing $pkg... "
+            if pip install --only-binary :all: "$pkg" 2>/dev/null; then
+                echo -e "${GREEN}✓${NC}"
+            else
+                # Try without binary restriction
+                if pip install "$pkg" 2>/dev/null; then
+                    echo -e "${GREEN}✓ (built from source)${NC}"
+                else
+                    echo -e "${RED}✗ failed${NC}"
+                fi
+            fi
+        done
+
+        # Pydantic requires special handling (may need compilation)
+        echo -ne "  Installing pydantic... "
+        if pip install --only-binary :all: pydantic pydantic-settings 2>/dev/null; then
+            echo -e "${GREEN}✓${NC}"
         else
-            echo -e "${YELLOW}Some packages need compilation, installing normally...${NC}"
-            pip install -r requirements-termux.txt
+            echo -e "${YELLOW}needs compilation${NC}"
+            echo -e "${YELLOW}  Attempting to build pydantic-core (may take 5-10 min)...${NC}"
+            if pip install pydantic pydantic-settings 2>&1 | grep -q "Successfully installed"; then
+                echo -e "${GREEN}  ✓ pydantic installed${NC}"
+            else
+                echo -e "${RED}  ✗ pydantic installation failed${NC}"
+                echo -e "${YELLOW}  Continuing without pydantic (some features may not work)${NC}"
+            fi
         fi
 
-        echo -e "${GREEN}All LLM backends available${NC}"
+        echo -e "${GREEN}Core packages installed${NC}"
     else
-        # Non-Termux: Install normally
-        pip install -r requirements.txt
+        # Non-Termux: Try bulk install first, fall back to individual
+        if pip install -r requirements.txt 2>/dev/null; then
+            echo -e "${GREEN}✓ All packages installed${NC}"
+        else
+            echo -e "${YELLOW}Bulk install failed, trying packages individually...${NC}"
+
+            # Install packages one by one from requirements.txt
+            while IFS= read -r line; do
+                # Skip comments and empty lines
+                [[ "$line" =~ ^#.*$ ]] && continue
+                [[ -z "$line" ]] && continue
+
+                # Extract package name (before ==)
+                pkg=$(echo "$line" | cut -d'=' -f1 | xargs)
+
+                echo -ne "  Installing $pkg... "
+                if pip install "$line" 2>/dev/null; then
+                    echo -e "${GREEN}✓${NC}"
+                else
+                    echo -e "${RED}✗${NC}"
+                fi
+            done < requirements.txt
+        fi
     fi
 
     # Install test dependencies (skip on Termux to save space/time)
@@ -348,16 +394,30 @@ init_database() {
 
     mkdir -p app/data
 
-    # Run initialization
+    # Check if required packages are installed
     . venv/bin/activate
+
+    echo -ne "Checking for aiosqlite... "
+    if python -c "import aiosqlite" 2>/dev/null; then
+        echo -e "${GREEN}✓${NC}"
+    else
+        echo -e "${RED}✗${NC}"
+        echo -e "${YELLOW}aiosqlite not installed - skipping database initialization${NC}"
+        echo -e "${YELLOW}Install with: pip install aiosqlite${NC}"
+        return
+    fi
+
+    # Run initialization
+    echo -ne "Creating database schema... "
     python -c "
 import asyncio
 from app.database.db import init_db
 asyncio.run(init_db())
-print('Database initialized successfully')
-" || {
-        echo -e "${YELLOW}Database initialization failed (will retry on first run)${NC}"
-        return 0  # Don't fail the whole script
+" 2>/dev/null && {
+        echo -e "${GREEN}✓${NC}"
+    } || {
+        echo -e "${YELLOW}⚠️  failed${NC}"
+        echo -e "${YELLOW}Database will be initialized on first run${NC}"
     }
 }
 
