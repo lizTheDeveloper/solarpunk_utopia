@@ -25,17 +25,17 @@ echo -e "${BLUE}Platform: $(uname -m) $(uname -s)${NC}"
 echo -e "${BLUE}Python: $(python --version 2>&1)${NC}"
 echo ""
 
-# Step 1: Install Rust
-echo -e "${BLUE}1. Installing Rust compiler...${NC}"
+# Step 1: Install Rust and build tools
+echo -e "${BLUE}1. Installing Rust compiler and build tools...${NC}"
 if command -v rustc &> /dev/null; then
     echo -e "${GREEN}✓ Rust already installed: $(rustc --version)${NC}"
 else
-    echo -ne "  Installing via pkg... "
-    if pkg install -y rust 2>&1 | grep -q "Setting up"; then
+    echo -ne "  Installing Rust and binutils via pkg... "
+    if pkg install -y rust binutils 2>&1 | grep -q "Setting up"; then
         echo -e "${GREEN}✓${NC}"
     else
         echo -e "${RED}✗ Failed${NC}"
-        echo -e "${YELLOW}Try manually: pkg install rust${NC}"
+        echo -e "${YELLOW}Try manually: pkg install rust binutils${NC}"
         return
     fi
 fi
@@ -45,6 +45,16 @@ export PATH="$HOME/.cargo/bin:$PATH"
 export CARGO_HOME="$HOME/.cargo"
 export RUSTUP_HOME="$HOME/.rustup"
 export CARGO_BUILD_JOBS=2  # Limit parallel jobs to save memory
+
+# Verify Rust is working
+echo -ne "  Verifying Rust installation... "
+if rustc --version >/dev/null 2>&1; then
+    echo -e "${GREEN}✓ $(rustc --version)${NC}"
+else
+    echo -e "${RED}✗ Rust not in PATH${NC}"
+    echo -e "${YELLOW}Check your PATH: echo \$PATH${NC}"
+    return
+fi
 
 echo ""
 echo -e "${BLUE}2. Preparing Python environment...${NC}"
@@ -63,7 +73,11 @@ pip install --upgrade pip 2>&1 | tail -1
 echo -e "${GREEN}✓${NC}"
 
 echo -ne "  Installing build tools... "
-pip install --upgrade setuptools wheel setuptools-rust 2>&1 | tail -1
+pip install --upgrade setuptools wheel 2>&1 | tail -1
+echo -e "${GREEN}✓${NC}"
+
+echo -ne "  Installing maturin (Rust build tool)... "
+pip install maturin setuptools-rust 2>&1 | tail -1
 echo -e "${GREEN}✓${NC}"
 
 echo ""
@@ -79,21 +93,24 @@ echo ""
 
 # Compile with visible output
 START_TIME=$(date +%s)
-if pip install --no-binary pydantic-core pydantic-core 2>&1 | tee /tmp/pydantic_compile.log | grep -E "(Compiling|Finished|Successfully|error)"; then
-    END_TIME=$(date +%s)
-    DURATION=$((END_TIME - START_TIME))
+
+echo -e "${BLUE}Step 1/2: Building pydantic-core (this is the slow part)...${NC}"
+if pip install --no-binary :all: pydantic-core 2>&1 | tee /tmp/pydantic_compile.log | grep -E "(Collecting|Building|Compiling|Finished|Successfully|error|ERROR)"; then
     echo ""
-    echo -e "${GREEN}✓ pydantic-core compiled successfully in ${DURATION}s${NC}"
+    echo -e "${GREEN}✓ pydantic-core built${NC}"
 
     # Now install pydantic and pydantic-settings
     echo ""
-    echo -e "${BLUE}4. Installing pydantic and pydantic-settings...${NC}"
-    if pip install pydantic pydantic-settings 2>&1 | tail -3; then
-        echo -e "${GREEN}✓ pydantic installed${NC}"
+    echo -e "${BLUE}Step 2/2: Installing pydantic and pydantic-settings...${NC}"
+    if pip install pydantic pydantic-settings 2>&1 | tail -5; then
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo ""
+        echo -e "${GREEN}✓ pydantic installed in ${DURATION}s${NC}"
 
         # Verify it works
         echo ""
-        echo -e "${BLUE}5. Verifying installation...${NC}"
+        echo -e "${BLUE}4. Verifying installation...${NC}"
         if python -c "from pydantic import BaseModel; print('✓ pydantic works!')" 2>/dev/null; then
             echo -e "${GREEN}✓ Installation verified${NC}"
             echo ""
@@ -108,17 +125,20 @@ if pip install --no-binary pydantic-core pydantic-core 2>&1 | tee /tmp/pydantic_
         else
             echo -e "${RED}✗ Import failed${NC}"
         fi
+    else
+        echo -e "${RED}✗ pydantic install failed${NC}"
     fi
 else
     echo ""
-    echo -e "${RED}✗ Compilation failed${NC}"
+    echo -e "${RED}✗ pydantic-core compilation failed${NC}"
     echo ""
     echo -e "${YELLOW}Check the log: /tmp/pydantic_compile.log${NC}"
     echo -e "${YELLOW}Common issues:${NC}"
     echo -e "  - Low memory: Close other apps"
     echo -e "  - Rust version: pkg upgrade rust"
     echo -e "  - Python version: Should be 3.11"
+    echo -e "  - Missing maturin: pip install maturin"
     echo ""
-    echo -e "${YELLOW}Last 10 lines of error:${NC}"
-    tail -10 /tmp/pydantic_compile.log
+    echo -e "${YELLOW}Last 15 lines of error:${NC}"
+    tail -15 /tmp/pydantic_compile.log | sed 's/^/  /'
 fi

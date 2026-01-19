@@ -304,37 +304,73 @@ setup_python() {
         else
             echo -e "${YELLOW}not available (expected)${NC}"
 
-            # Install Rust compiler
+            # Install Rust compiler and build tools
             echo -ne "  Installing Rust compiler... "
-            if pkg install -y rust >/dev/null 2>&1; then
+            if pkg install -y rust binutils >/dev/null 2>&1; then
                 echo -e "${GREEN}✓${NC}"
             else
                 echo -e "${RED}✗${NC}"
-            fi
-
-            # Set Rust environment
-            export PATH="$HOME/.cargo/bin:$PATH"
-            export CARGO_HOME="$HOME/.cargo"
-            export RUSTUP_HOME="$HOME/.rustup"
-            export CARGO_BUILD_JOBS=2  # Limit parallel jobs to save memory
-
-            # Compile pydantic from source
-            echo -e "${BLUE}  Compiling pydantic from source...${NC}"
-            echo -e "${YELLOW}  This takes 5-15 minutes. Phone may get warm.${NC}"
-            echo -e "${YELLOW}  Keep screen on to prevent Android from killing the process.${NC}"
-            echo ""
-
-            # Show progress during compilation
-            if pip install --no-binary pydantic-core pydantic pydantic-settings 2>&1 | tee /tmp/pydantic_build.log | grep -E "(Collecting|Building|Installing|Successfully|error|ERROR)"; then
-                echo ""
-                echo -e "${GREEN}✓ pydantic compiled and installed${NC}"
-                PYDANTIC_INSTALLED=true
-            else
-                echo ""
-                echo -e "${RED}✗ Compilation failed${NC}"
-                echo -e "${YELLOW}  See /tmp/pydantic_build.log for details${NC}"
                 echo -e "${YELLOW}  Continuing without pydantic...${NC}"
                 PYDANTIC_INSTALLED=false
+            fi
+
+            if [ "$PYDANTIC_INSTALLED" != false ]; then
+                # Set Rust environment
+                export PATH="$HOME/.cargo/bin:$PATH"
+                export CARGO_HOME="$HOME/.cargo"
+                export RUSTUP_HOME="$HOME/.rustup"
+                export CARGO_BUILD_JOBS=2  # Limit parallel jobs to save memory
+
+                # Verify Rust works
+                echo -ne "  Verifying Rust installation... "
+                if rustc --version >/dev/null 2>&1; then
+                    echo -e "${GREEN}✓ $(rustc --version)${NC}"
+                else
+                    echo -e "${RED}✗ Rust not in PATH${NC}"
+                    PYDANTIC_INSTALLED=false
+                fi
+            fi
+
+            if [ "$PYDANTIC_INSTALLED" != false ]; then
+                # Install maturin (Rust-Python build tool)
+                echo -ne "  Installing maturin (Rust build tool)... "
+                if pip install maturin setuptools-rust 2>&1 | tail -1; then
+                    echo -e "${GREEN}✓${NC}"
+                else
+                    echo -e "${RED}✗${NC}"
+                fi
+
+                # Compile pydantic from source
+                echo -e "${BLUE}  Compiling pydantic from source...${NC}"
+                echo -e "${YELLOW}  This takes 5-15 minutes. Phone may get warm.${NC}"
+                echo -e "${YELLOW}  Keep screen on to prevent Android from killing the process.${NC}"
+                echo ""
+
+                # Download source first, then build
+                echo -e "${BLUE}  Step 1/3: Downloading source...${NC}"
+                pip download --no-binary :all: pydantic-core pydantic pydantic-settings -d /tmp/pydantic_src 2>&1 | grep -E "(Downloading|Saved)" || true
+
+                echo -e "${BLUE}  Step 2/3: Building pydantic-core (slow)...${NC}"
+                if pip install --no-binary :all: pydantic-core 2>&1 | tee /tmp/pydantic_build.log | grep -E "(Collecting|Building|Compiling|Finished|Successfully|error|ERROR)"; then
+                    echo -e "${GREEN}  ✓ pydantic-core built${NC}"
+
+                    echo -e "${BLUE}  Step 3/3: Installing pydantic...${NC}"
+                    if pip install pydantic pydantic-settings 2>&1 | tail -5; then
+                        echo ""
+                        echo -e "${GREEN}✓ pydantic compiled and installed${NC}"
+                        PYDANTIC_INSTALLED=true
+                    else
+                        echo -e "${RED}✗ pydantic install failed${NC}"
+                        PYDANTIC_INSTALLED=false
+                    fi
+                else
+                    echo ""
+                    echo -e "${RED}✗ pydantic-core compilation failed${NC}"
+                    echo -e "${YELLOW}  See /tmp/pydantic_build.log for details${NC}"
+                    echo -e "${YELLOW}  Last 10 lines:${NC}"
+                    tail -10 /tmp/pydantic_build.log | sed 's/^/    /'
+                    PYDANTIC_INSTALLED=false
+                fi
             fi
         fi
 
