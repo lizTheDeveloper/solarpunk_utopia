@@ -6,7 +6,7 @@
 #
 # Usage: ./teardown_batman_adv.sh [interface]
 
-set -e
+# Note: Don't use 'set -e' - we want to show errors but not exit the terminal
 
 WLAN_INTERFACE="${1:-wlan0}"
 BATMAN_INTERFACE="bat0"
@@ -32,7 +32,7 @@ log_error() {
 check_root() {
     if [ "$EUID" -ne 0 ]; then
         log_error "This script must be run as root"
-        return 1
+        return
     fi
 }
 

@@ -2,7 +2,7 @@
 
 # Solarpunk Mesh Network - Stop All Services
 
-set -e
+# Note: Don't use 'set -e' - we want to show errors but not exit the terminal
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"

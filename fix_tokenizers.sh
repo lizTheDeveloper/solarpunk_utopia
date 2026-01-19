@@ -2,7 +2,7 @@
 # Fix for tokenizers/maturin build errors
 # This script reinstalls packages that might fail to build from source
 
-set -e
+# Note: Don't use 'set -e' - we want to show errors but not exit the terminal
 
 echo "================================================"
 echo "Fixing tokenizers/maturin build errors"
@@ -45,7 +45,7 @@ if command -v python3 &> /dev/null; then
         echo "  source venv/bin/activate"
         echo "  ./setup.sh"
         echo ""
-        return 1
+        return
     fi
 fi
 
@@ -56,7 +56,7 @@ if [ -z "$VIRTUAL_ENV" ]; then
         source venv/bin/activate
     else
         echo -e "${RED}Error: venv not found. Please run setup.sh first${NC}"
-        return 1
+        return
     fi
 fi
 

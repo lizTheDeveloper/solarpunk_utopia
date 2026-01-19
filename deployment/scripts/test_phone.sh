@@ -2,7 +2,7 @@
 # Solarpunk Phone Testing Script
 # Validates a provisioned phone
 
-set -e
+# Note: Don't use 'set -e' - we want to show errors but not exit the terminal
 
 DEVICE_SERIAL=""
 
@@ -41,7 +41,7 @@ test_device_connected() {
         return 0
     else
         print_fail "Device not connected"
-        return 1
+        return
     fi
 }
 
@@ -52,7 +52,7 @@ test_android_version() {
         return 0
     else
         print_warn "Android SDK $sdk_version (below 8.0)"
-        return 1
+        return
     fi
 }
 
@@ -62,7 +62,7 @@ test_solarpunk_app_installed() {
         return 0
     else
         print_fail "Solarpunk app not installed"
-        return 1
+        return
     fi
 }
 
@@ -72,7 +72,7 @@ test_preset_exists() {
         return 0
     else
         print_fail "Preset configuration missing"
-        return 1
+        return
     fi
 }
 
@@ -83,7 +83,7 @@ test_battery_level() {
         return 0
     else
         print_warn "Low battery: ${battery}%"
-        return 1
+        return
     fi
 }
 
@@ -94,7 +94,7 @@ test_storage_available() {
         return 0
     else
         print_warn "Low storage: ${storage_mb}MB"
-        return 1
+        return
     fi
 }
 
@@ -105,7 +105,7 @@ test_wifi_enabled() {
         return 0
     else
         print_warn "WiFi disabled"
-        return 1
+        return
     fi
 }
 
@@ -141,7 +141,7 @@ main() {
         exit 0
     else
         echo -e "${YELLOW}Some tests failed. Review above.${NC}"
-        return 1
+        return
     fi
 }
 

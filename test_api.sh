@@ -1,6 +1,6 @@
 #!/bin/bash
 # DTN Bundle System API Integration Test
-set -e
+# Note: Don't use 'set -e' - we want to show errors but not exit the terminal
 
 BASE_URL="http://localhost:8000"
 

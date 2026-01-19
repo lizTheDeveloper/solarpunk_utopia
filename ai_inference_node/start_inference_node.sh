@@ -1,7 +1,7 @@
 #!/bin/bash
 # Start AI Inference Node - Share your compute with the mesh!
 
-set -e
+# Note: Don't use 'set -e' - we want to show errors but not exit the terminal
 
 echo "🤖 Solarpunk AI Inference Node"
 echo "=============================="
@@ -26,7 +26,7 @@ if ! command -v ollama &> /dev/null; then
     read -p "Continue without Ollama? (you'll need another backend) [y/N] " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        return 1
+        return
     fi
 fi
 

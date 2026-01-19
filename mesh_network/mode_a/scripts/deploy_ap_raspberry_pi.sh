@@ -9,7 +9,7 @@
 #
 # Example: ./deploy_ap_raspberry_pi.sh ../../ap_configs/garden_ap.json
 
-set -e
+# Note: Don't use 'set -e' - we want to show errors but not exit the terminal
 
 CONFIG_FILE="$1"
 
@@ -34,7 +34,7 @@ log_error() {
 check_root() {
     if [ "$EUID" -ne 0 ]; then
         log_error "This script must be run as root"
-        return 1
+        return
     fi
 }
 
@@ -42,18 +42,18 @@ check_config() {
     if [ -z "$CONFIG_FILE" ]; then
         log_error "Usage: $0 <config_file>"
         log_error "Example: $0 ../../ap_configs/garden_ap.json"
-        return 1
+        return
     fi
 
     if [ ! -f "$CONFIG_FILE" ]; then
         log_error "Config file not found: $CONFIG_FILE"
-        return 1
+        return
     fi
 
     if ! command -v jq &> /dev/null; then
         log_error "jq is required but not installed"
         log_error "Install with: sudo apt-get install jq"
-        return 1
+        return
     fi
 
     log_info "Using config file: $CONFIG_FILE"

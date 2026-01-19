@@ -2,7 +2,7 @@
 # Test script for Agent API endpoints
 # Tests the REST API endpoints exposed by the DTN Bundle System
 
-set -e
+# Note: Don't use 'set -e' - we want to show errors but not exit the terminal
 
 API_URL="http://localhost:8000"
 AGENT_API="$API_URL/agents"
@@ -16,7 +16,7 @@ echo ""
 if ! curl -s "$API_URL/health" > /dev/null 2>&1; then
     echo "❌ Server is not running at $API_URL"
     echo "Start the server with: python -m uvicorn app.main:app --reload"
-    return 1
+    return
 fi
 
 echo "✓ Server is running"

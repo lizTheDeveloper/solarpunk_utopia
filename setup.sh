@@ -292,45 +292,36 @@ setup_python() {
         # Termux: Install packages individually to handle failures gracefully
         echo -e "${YELLOW}Installing packages (trying binary wheels first)...${NC}"
 
-        # First, try pydantic with binary wheels (fastapi depends on this)
-        # Use specific versions with known ARM binary wheels
-        echo -ne "  Installing pydantic (trying versions with ARM wheels)... "
+        # Skip pydantic/FastAPI by default on Termux (Rust compilation issues)
+        # Core functionality (DTN, ValueFlows, mesh) works without FastAPI
+        echo -e "${YELLOW}Skipping pydantic/FastAPI on Termux (use --install-fastapi to enable)${NC}"
+        PYDANTIC_INSTALLED=false
 
-        # Try pydantic 2.9.2 which has confirmed ARM binary wheels
-        if pip install --only-binary :all: pydantic==2.9.2 pydantic-core==2.9.0 pydantic-settings 2>/dev/null; then
-            echo -e "${GREEN}✓ (binary wheel v2.9.2)${NC}"
-            PYDANTIC_INSTALLED=true
-        # Try latest version as fallback
-        elif pip install --only-binary :all: pydantic pydantic-settings 2>/dev/null; then
-            echo -e "${GREEN}✓ (binary wheel latest)${NC}"
-            PYDANTIC_INSTALLED=true
-        else
-            echo -e "${YELLOW}no binary wheel available${NC}"
-            echo -e "${YELLOW}    Installing Rust compiler...${NC}"
+        # Check if user wants to try installing FastAPI anyway
+        if [[ "$*" == *"--install-fastapi"* ]]; then
+            echo -ne "  Installing pydantic (trying binary wheels)... "
 
-            # Install Rust on Termux
-            if pkg install -y rust 2>/dev/null; then
-                echo -e "${GREEN}    ✓ Rust installed via pkg${NC}"
-
-                # Set Rust PATH
-                export PATH="$HOME/.cargo/bin:$PATH"
-                export CARGO_HOME="$HOME/.cargo"
-                export RUSTUP_HOME="$HOME/.rustup"
-
-                # Retry pydantic with Rust available
-                echo -ne "    Compiling pydantic with Rust (this may take 5-10 min)... "
-                if pip install pydantic pydantic-settings 2>&1 | tee /tmp/pydantic_build.log; then
-                    echo -e "${GREEN}✓${NC}"
-                    PYDANTIC_INSTALLED=true
+            # Try specific version with ARM wheels
+            if pip install --only-binary :all: pydantic==2.9.2 pydantic-core==2.9.0 pydantic-settings 2>/dev/null; then
+                echo -e "${GREEN}✓ (binary wheel v2.9.2)${NC}"
+                PYDANTIC_INSTALLED=true
+            # Try with Rust compilation
+            else
+                echo -e "${YELLOW}no binary wheel, installing Rust...${NC}"
+                if pkg install -y rust 2>/dev/null; then
+                    export PATH="$HOME/.cargo/bin:$PATH"
+                    echo -ne "    Compiling pydantic (5-10 min)... "
+                    if pip install pydantic pydantic-settings 2>&1 | tee /tmp/pydantic_build.log >/dev/null; then
+                        echo -e "${GREEN}✓${NC}"
+                        PYDANTIC_INSTALLED=true
+                    else
+                        echo -e "${RED}✗ failed${NC}"
+                        PYDANTIC_INSTALLED=false
+                    fi
                 else
-                    echo -e "${RED}✗ (build failed)${NC}"
-                    echo -e "${YELLOW}    See /tmp/pydantic_build.log for details${NC}"
+                    echo -e "${RED}✗ Rust install failed${NC}"
                     PYDANTIC_INSTALLED=false
                 fi
-            else
-                echo -e "${RED}    ✗ Rust installation failed${NC}"
-                echo -e "${YELLOW}    Skipping pydantic - will install FastAPI without it${NC}"
-                PYDANTIC_INSTALLED=false
             fi
         fi
 
@@ -360,17 +351,22 @@ setup_python() {
 
         echo ""
         if [ "$PYDANTIC_INSTALLED" = false ]; then
-            echo -e "${YELLOW}================================================${NC}"
-            echo -e "${YELLOW}FastAPI not installed (pydantic build failed)${NC}"
-            echo -e "${YELLOW}================================================${NC}"
-            echo -e "${YELLOW}Rust installation or compilation failed.${NC}"
-            echo -e "${YELLOW}Check /tmp/pydantic_build.log for details.${NC}"
+            echo -e "${GREEN}================================================${NC}"
+            echo -e "${GREEN}Termux Installation Complete${NC}"
+            echo -e "${GREEN}================================================${NC}"
+            echo -e "${GREEN}✓ Core packages installed${NC}"
+            echo -e "${YELLOW}⊘ FastAPI/pydantic skipped (intentional)${NC}"
             echo ""
-            echo -e "${YELLOW}To retry manually:${NC}"
-            echo -e "${YELLOW}  source venv/bin/activate${NC}"
-            echo -e "${YELLOW}  pip install pydantic fastapi${NC}"
+            echo -e "${GREEN}What works:${NC}"
+            echo -e "  ✓ DTN Bundle System (offline messaging)"
+            echo -e "  ✓ ValueFlows (gift economy)"
+            echo -e "  ✓ Mesh networking (BATMAN-adv)"
+            echo -e "  ✓ AI agents (LLM backends via httpx)"
+            echo -e "  ✓ Database (aiosqlite)"
             echo ""
-            echo -e "${GREEN}Core functionality available without FastAPI${NC}"
+            echo -e "${YELLOW}To install FastAPI (optional, requires Rust):${NC}"
+            echo -e "  ./setup.sh --install-fastapi"
+            echo ""
         else
             echo -e "${GREEN}All packages installed successfully!${NC}"
         fi

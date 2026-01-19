@@ -48,7 +48,7 @@ PREREQUISITES:
     - Internet connection for app downloads
 
 EOF
-    return 1
+    return
 }
 
 # Parse arguments
@@ -94,13 +94,13 @@ check_prerequisites() {
     # Check adb
     if ! command -v adb &> /dev/null; then
         print_error "adb not found. Please install Android SDK platform-tools."
-        return 1
+        return
     fi
 
     # Check preset file
     if [ ! -f "$PRESET_FILE" ]; then
         print_error "Preset file not found: $PRESET_FILE"
-        return 1
+        return
     fi
 
     print_info "Prerequisites OK"
@@ -123,13 +123,13 @@ check_device() {
         print_error "No device connected or adb not authorized"
         echo "Connected devices:"
         adb devices
-        return 1
+        return
     fi
 
     local state=$(adb_cmd get-state 2>/dev/null)
     if [ "$state" != "device" ]; then
         print_error "Device is in state '$state', expected 'device'"
-        return 1
+        return
     fi
 
     local sdk_version=$(adb_cmd shell getprop ro.build.version.sdk | tr -d '\r')
@@ -222,7 +222,7 @@ install_custom_apks() {
             cd "$SCRIPT_DIR"
         else
             print_error "Cannot build APK - gradlew not found"
-            return 1
+            return
         fi
     fi
 
@@ -232,7 +232,7 @@ install_custom_apks() {
         print_info "Solarpunk app installed successfully"
     else
         print_error "Failed to locate or build APK"
-        return 1
+        return
     fi
 }
 
@@ -326,7 +326,7 @@ validate_installation() {
     if [ "$checks_passed" -eq "$checks_total" ]; then
         return 0
     else
-        return 1
+        return
     fi
 }
 

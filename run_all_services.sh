@@ -3,7 +3,7 @@
 # Solarpunk Mesh Network - Service Orchestration Script
 # Runs all backend services in separate terminal tabs/windows
 
-set -e
+# Note: Don't use 'set -e' - we want to show errors but not exit the terminal
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
@@ -23,8 +23,15 @@ echo ""
 # Check if virtual environment exists
 if [ ! -d "venv" ]; then
     echo -e "${RED}Error: Virtual environment not found${NC}"
-    echo -e "${YELLOW}Please create venv first: python3 -m venv venv${NC}"
-    return 1
+    echo -e "${YELLOW}Creating virtual environment...${NC}"
+    if python3 -m venv venv 2>/dev/null || python -m venv venv 2>/dev/null; then
+        echo -e "${GREEN}✓ Virtual environment created${NC}"
+    else
+        echo -e "${RED}✗ Failed to create virtual environment${NC}"
+        echo -e "${YELLOW}Cannot continue without venv${NC}"
+        echo -e "${YELLOW}Please run: ./setup.sh${NC}"
+        return
+    fi
 fi
 
 # Activate virtual environment
@@ -33,10 +40,39 @@ source venv/bin/activate
 
 # Check if dependencies are installed
 echo -e "${BLUE}Checking dependencies...${NC}"
-python -c "import fastapi" 2>/dev/null || {
-    echo -e "${YELLOW}Installing dependencies...${NC}"
-    pip install -r requirements.txt
-}
+
+# Check for core dependencies
+MISSING_DEPS=false
+for module in fastapi uvicorn aiosqlite; do
+    if ! python -c "import $module" 2>/dev/null; then
+        echo -e "${YELLOW}Missing: $module${NC}"
+        MISSING_DEPS=true
+    fi
+done
+
+if [ "$MISSING_DEPS" = true ]; then
+    echo -e "${YELLOW}Installing missing dependencies...${NC}"
+
+    # Detect Termux
+    IS_TERMUX=false
+    if [ -n "$TERMUX_VERSION" ] || [ -n "$PREFIX" ] && [[ "$PREFIX" == *"com.termux"* ]]; then
+        IS_TERMUX=true
+    fi
+
+    if [ "$IS_TERMUX" = true ]; then
+        # Install individually on Termux
+        for pkg in fastapi uvicorn aiosqlite httpx python-multipart structlog; do
+            pip install "$pkg" 2>/dev/null || echo -e "${YELLOW}  Skipped: $pkg${NC}"
+        done
+    else
+        # Bulk install on other platforms
+        pip install -r requirements.txt 2>&1 | grep -v "^Requirement already satisfied" || true
+    fi
+
+    echo -e "${GREEN}✓ Dependencies checked${NC}"
+else
+    echo -e "${GREEN}✓ All dependencies installed${NC}"
+fi
 
 echo ""
 echo -e "${GREEN}Starting services...${NC}"
@@ -53,15 +89,32 @@ start_service() {
 
     echo -e "${BLUE}Starting ${name} on port ${port}...${NC}"
 
+    # Check if command can be executed
+    if ! bash -c "source venv/bin/activate && which python" > /dev/null 2>&1; then
+        echo -e "${RED}✗ ${name} - Python not available in venv${NC}"
+        return
+    fi
+
     # Run in background and save PID
     bash -c "source venv/bin/activate && $command" > "$log_file" 2>&1 &
     local pid=$!
-    echo $pid > "logs/${name}.pid"
 
-    echo -e "${GREEN}✓ ${name} started (PID: $pid, logs: $log_file)${NC}"
+    # Check if process started successfully
+    sleep 1
+    if kill -0 $pid 2>/dev/null; then
+        echo $pid > "logs/${name}.pid"
+        echo -e "${GREEN}✓ ${name} started (PID: $pid, logs: $log_file)${NC}"
+    else
+        echo -e "${RED}✗ ${name} failed to start - check $log_file${NC}"
+        # Show last few lines of log
+        if [ -f "$log_file" ]; then
+            echo -e "${YELLOW}Last error:${NC}"
+            tail -n 3 "$log_file" | sed 's/^/  /'
+        fi
+    fi
 
-    # Give it a moment to start
-    sleep 2
+    # Give it a moment to fully initialize
+    sleep 1
 }
 
 # Clean up old log files

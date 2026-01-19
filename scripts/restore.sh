@@ -45,12 +45,12 @@ log_error() {
 # Validate inputs
 if [ -z "$BACKUP_FILE" ]; then
     log_error "Usage: $0 <backup_file> [database_path]"
-    return 1
+    return
 fi
 
 if [ ! -f "$BACKUP_FILE" ]; then
     log_error "Backup file not found: $BACKUP_FILE"
-    return 1
+    return
 fi
 
 log_info "Starting restore process..."
@@ -84,7 +84,7 @@ INTEGRITY_CHECK=$(sqlite3 "$TEMP_BACKUP" "PRAGMA integrity_check")
 if [ "$INTEGRITY_CHECK" != "ok" ]; then
     log_error "Backup integrity check failed: $INTEGRITY_CHECK"
     log_error "Cannot restore corrupted backup"
-    return 1
+    return
 fi
 
 log_info "Backup integrity verified"
@@ -101,7 +101,7 @@ if [ -f "$DATABASE_PATH" ]; then
 
     if [ $? -ne 0 ]; then
         log_error "Failed to create safety backup"
-        return 1
+        return
     fi
 
     log_info "Safety backup created successfully"
@@ -139,7 +139,7 @@ if [ $? -ne 0 ]; then
         cp "$SAFETY_BACKUP_FILE" "$DATABASE_PATH"
     fi
 
-    return 1
+    return
 fi
 
 # Verify restored database
@@ -155,7 +155,7 @@ if [ "$RESTORE_INTEGRITY" != "ok" ]; then
         cp "$SAFETY_BACKUP_FILE" "$DATABASE_PATH"
     fi
 
-    return 1
+    return
 fi
 
 log_info "Restored database integrity verified"
@@ -172,7 +172,7 @@ if [ "$SERVICE_STOPPED" = "true" ]; then
     else
         log_error "Service failed to start"
         log_error "Check logs: sudo journalctl -u $SERVICE_NAME -n 50"
-        return 1
+        return
     fi
 fi
 

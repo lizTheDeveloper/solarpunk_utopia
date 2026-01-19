@@ -2,7 +2,7 @@
 # Solarpunk Batch Phone Provisioning Script
 # Provisions multiple phones in parallel
 
-set -e
+# Note: Don't use 'set -e' - we want to show errors but not exit the terminal
 
 # Default values
 ROLE="citizen"
@@ -42,7 +42,7 @@ PREREQUISITES:
     - USB debugging enabled on all phones
 
 EOF
-    return 1
+    return
 }
 
 # Parse arguments
@@ -83,7 +83,7 @@ main() {
 
     if [ "$device_count" -eq 0 ]; then
         print_error "No devices connected"
-        return 1
+        return
     fi
 
     if [ "$device_count" -lt "$COUNT" ]; then
@@ -148,7 +148,7 @@ main() {
 
     if [ "$failed_count" -gt 0 ]; then
         print_warn "Some devices failed. Check logs in $results_dir"
-        return 1
+        return
     fi
 }
 

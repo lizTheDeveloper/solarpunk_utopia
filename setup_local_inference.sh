@@ -1,7 +1,7 @@
 #!/bin/bash
 # Auto-setup AI Inference Node (called by main setup.sh)
 
-set -e
+# Note: Don't use 'set -e' - we want to show errors but not exit the terminal
 
 echo "🤖 Setting up AI Inference Node"
 echo "================================"
