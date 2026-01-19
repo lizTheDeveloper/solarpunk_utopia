@@ -48,7 +48,7 @@ PREREQUISITES:
     - Internet connection for app downloads
 
 EOF
-    exit 1
+    return 1
 }
 
 # Parse arguments
@@ -94,13 +94,13 @@ check_prerequisites() {
     # Check adb
     if ! command -v adb &> /dev/null; then
         print_error "adb not found. Please install Android SDK platform-tools."
-        exit 1
+        return 1
     fi
 
     # Check preset file
     if [ ! -f "$PRESET_FILE" ]; then
         print_error "Preset file not found: $PRESET_FILE"
-        exit 1
+        return 1
     fi
 
     print_info "Prerequisites OK"
@@ -123,13 +123,13 @@ check_device() {
         print_error "No device connected or adb not authorized"
         echo "Connected devices:"
         adb devices
-        exit 1
+        return 1
     fi
 
     local state=$(adb_cmd get-state 2>/dev/null)
     if [ "$state" != "device" ]; then
         print_error "Device is in state '$state', expected 'device'"
-        exit 1
+        return 1
     fi
 
     local sdk_version=$(adb_cmd shell getprop ro.build.version.sdk | tr -d '\r')

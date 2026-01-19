@@ -39,7 +39,7 @@ log_error() {
 check_root() {
     if [ "$EUID" -ne 0 ]; then
         log_error "This script must be run as root"
-        exit 1
+        return 1
     fi
 }
 
@@ -59,7 +59,7 @@ check_batman_module() {
         log_error "Failed to load batman-adv module"
         log_error "Your kernel may not have batman-adv support"
         log_error "On LineageOS: Kernel must be compiled with CONFIG_BATMAN_ADV=m"
-        exit 1
+        return 1
     fi
 }
 
@@ -84,7 +84,7 @@ install_batctl() {
     else
         log_error "Could not install batctl automatically"
         log_error "Please install batctl manually"
-        exit 1
+        return 1
     fi
 
     log_info "batctl installed successfully"
@@ -102,7 +102,7 @@ setup_wireless_interface() {
         log_warn "Failed to set ad-hoc mode with iw, trying iwconfig..."
         iwconfig "$WLAN_INTERFACE" mode ad-hoc || {
             log_error "Failed to set ad-hoc mode"
-            exit 1
+            return 1
         }
     fi
 
@@ -111,7 +111,7 @@ setup_wireless_interface() {
     iw dev "$WLAN_INTERFACE" ibss join "$MESH_ESSID" 2437 || {
         iwconfig "$WLAN_INTERFACE" essid "$MESH_ESSID" || {
             log_error "Failed to set ESSID"
-            exit 1
+            return 1
         }
     }
 
@@ -135,7 +135,7 @@ create_batman_interface() {
     log_info "Adding $WLAN_INTERFACE to batman-adv..."
     batctl meshif "$BATMAN_INTERFACE" interface add "$WLAN_INTERFACE" || {
         log_error "Failed to add interface to batman-adv"
-        exit 1
+        return 1
     }
 
     # Enable aggregation for better performance

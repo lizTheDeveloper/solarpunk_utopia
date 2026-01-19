@@ -53,5 +53,5 @@ if [ "$all_exist" = true ]; then
   exit 0
 else
   echo "❌ Some files missing"
-  exit 1
+  return 1
 fi

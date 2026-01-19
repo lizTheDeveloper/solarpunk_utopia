@@ -42,7 +42,7 @@ PREREQUISITES:
     - USB debugging enabled on all phones
 
 EOF
-    exit 1
+    return 1
 }
 
 # Parse arguments
@@ -83,7 +83,7 @@ main() {
 
     if [ "$device_count" -eq 0 ]; then
         print_error "No devices connected"
-        exit 1
+        return 1
     fi
 
     if [ "$device_count" -lt "$COUNT" ]; then
@@ -148,7 +148,7 @@ main() {
 
     if [ "$failed_count" -gt 0 ]; then
         print_warn "Some devices failed. Check logs in $results_dir"
-        exit 1
+        return 1
     fi
 }
 

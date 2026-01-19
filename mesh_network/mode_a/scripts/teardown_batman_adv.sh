@@ -32,7 +32,7 @@ log_error() {
 check_root() {
     if [ "$EUID" -ne 0 ]; then
         log_error "This script must be run as root"
-        exit 1
+        return 1
     fi
 }
 

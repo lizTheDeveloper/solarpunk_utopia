@@ -51,7 +51,7 @@ log_error() {
 # Check if database exists
 if [ ! -f "$DATABASE_PATH" ]; then
     log_error "Database not found: $DATABASE_PATH"
-    exit 1
+    return 1
 fi
 
 # Create backup directory if it doesn't exist
@@ -67,7 +67,7 @@ sqlite3 "$DATABASE_PATH" ".backup ${BACKUP_DIR}/${BACKUP_FILE}"
 
 if [ $? -ne 0 ]; then
     log_error "Backup failed"
-    exit 1
+    return 1
 fi
 
 # Verify backup integrity
@@ -77,7 +77,7 @@ INTEGRITY_CHECK=$(sqlite3 "${BACKUP_DIR}/${BACKUP_FILE}" "PRAGMA integrity_check
 if [ "$INTEGRITY_CHECK" != "ok" ]; then
     log_error "Backup integrity check failed: $INTEGRITY_CHECK"
     rm -f "${BACKUP_DIR}/${BACKUP_FILE}"
-    exit 1
+    return 1
 fi
 
 log_info "Backup integrity verified"
@@ -88,7 +88,7 @@ gzip "${BACKUP_DIR}/${BACKUP_FILE}"
 
 if [ $? -ne 0 ]; then
     log_error "Compression failed"
-    exit 1
+    return 1
 fi
 
 BACKUP_SIZE=$(du -h "${BACKUP_DIR}/${BACKUP_COMPRESSED}" | cut -f1)

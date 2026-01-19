@@ -129,7 +129,13 @@ setup_python() {
         # Use Termux-specific requirements (skips packages installed via pkg)
         pip install -r requirements-termux.txt
     else
-        pip install -r requirements.txt
+        # Use --only-binary for packages that might require Rust/maturin (like tokenizers)
+        # This prevents building from source which would fail without Rust compiler
+        echo -e "${YELLOW}Installing packages (preferring prebuilt wheels to avoid Rust/maturin builds)...${NC}"
+        pip install --prefer-binary -r requirements.txt || {
+            echo -e "${YELLOW}Some packages failed, retrying with --only-binary for problematic packages...${NC}"
+            pip install --only-binary tokenizers -r requirements.txt
+        }
     fi
 
     pip install pytest pytest-asyncio freezegun aiohttp  # Test dependencies

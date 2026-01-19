@@ -11,7 +11,7 @@ echo ""
 
 # Test 1: Health check
 echo "Test 1: Health check"
-curl -sf "$BASE_URL/health" > /dev/null && echo "✓ Health check passed" || (echo "✗ Health check failed" && exit 1)
+curl -sf "$BASE_URL/health" > /dev/null && echo "✓ Health check passed" || (echo "✗ Health check failed" && return 1)
 echo ""
 
 # Test 2: Node info

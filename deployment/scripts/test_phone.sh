@@ -141,7 +141,7 @@ main() {
         exit 0
     else
         echo -e "${YELLOW}Some tests failed. Review above.${NC}"
-        exit 1
+        return 1
     fi
 }
 

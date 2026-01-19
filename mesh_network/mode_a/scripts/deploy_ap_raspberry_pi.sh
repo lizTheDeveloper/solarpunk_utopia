@@ -34,7 +34,7 @@ log_error() {
 check_root() {
     if [ "$EUID" -ne 0 ]; then
         log_error "This script must be run as root"
-        exit 1
+        return 1
     fi
 }
 
@@ -42,18 +42,18 @@ check_config() {
     if [ -z "$CONFIG_FILE" ]; then
         log_error "Usage: $0 <config_file>"
         log_error "Example: $0 ../../ap_configs/garden_ap.json"
-        exit 1
+        return 1
     fi
 
     if [ ! -f "$CONFIG_FILE" ]; then
         log_error "Config file not found: $CONFIG_FILE"
-        exit 1
+        return 1
     fi
 
     if ! command -v jq &> /dev/null; then
         log_error "jq is required but not installed"
         log_error "Install with: sudo apt-get install jq"
-        exit 1
+        return 1
     fi
 
     log_info "Using config file: $CONFIG_FILE"

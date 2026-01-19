@@ -24,7 +24,7 @@ echo ""
 if [ ! -d "venv" ]; then
     echo -e "${RED}Error: Virtual environment not found${NC}"
     echo -e "${YELLOW}Please create venv first: python3 -m venv venv${NC}"
-    exit 1
+    return 1
 fi
 
 # Activate virtual environment

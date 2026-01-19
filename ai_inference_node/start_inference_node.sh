@@ -26,7 +26,7 @@ if ! command -v ollama &> /dev/null; then
     read -p "Continue without Ollama? (you'll need another backend) [y/N] " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
+        return 1
     fi
 fi
 

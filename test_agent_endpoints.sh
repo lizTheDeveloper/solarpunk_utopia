@@ -16,7 +16,7 @@ echo ""
 if ! curl -s "$API_URL/health" > /dev/null 2>&1; then
     echo "❌ Server is not running at $API_URL"
     echo "Start the server with: python -m uvicorn app.main:app --reload"
-    exit 1
+    return 1
 fi
 
 echo "✓ Server is running"
