@@ -120,7 +120,12 @@ setup_python() {
             echo -e "${YELLOW}(Python 3.12 has compatibility issues with tokenizers/Rust)${NC}"
 
             # Try to install Python 3.11 automatically
-            if [ "$PLATFORM" = "Mac" ]; then
+            if [ "$IS_TERMUX" = true ]; then
+                # Termux uses pkg, not apt, and doesn't need sudo
+                echo -e "${BLUE}Installing Python via pkg...${NC}"
+                pkg install -y python
+                PYTHON_CMD="python3"
+            elif [ "$PLATFORM" = "Mac" ]; then
                 echo -e "${BLUE}Installing Python 3.11 via Homebrew...${NC}"
                 if command -v brew &> /dev/null; then
                     brew install python@3.11
@@ -165,7 +170,9 @@ setup_python() {
             echo -e "${YELLOW}Warning: Python $PY_VERSION detected, 3.11 recommended${NC}"
             echo -e "${BLUE}Attempting to install Python 3.11...${NC}"
 
-            if [ "$PLATFORM" = "Mac" ]; then
+            if [ "$IS_TERMUX" = true ]; then
+                pkg install -y python 2>/dev/null || true
+            elif [ "$PLATFORM" = "Mac" ]; then
                 brew install python@3.11 2>/dev/null || true
                 export PATH="/opt/homebrew/opt/python@3.11/bin:$PATH"
             elif [ "$PLATFORM" = "Linux" ]; then
@@ -187,7 +194,11 @@ setup_python() {
         echo -e "${RED}Error: python3 not found${NC}"
 
         # Try to install Python
-        if [ "$PLATFORM" = "Mac" ]; then
+        if [ "$IS_TERMUX" = true ]; then
+            echo -e "${BLUE}Installing Python via pkg...${NC}"
+            pkg install -y python
+            PYTHON_CMD="python3"
+        elif [ "$PLATFORM" = "Mac" ]; then
             echo -e "${BLUE}Installing Python 3.11 via Homebrew...${NC}"
             brew install python@3.11
             export PATH="/opt/homebrew/opt/python@3.11/bin:$PATH"
