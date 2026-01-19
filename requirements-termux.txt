@@ -3,7 +3,8 @@
 
 fastapi==0.115.6
 uvicorn==0.34.0
-pydantic==2.10.5
+pydantic==2.9.2  # Specific version with confirmed ARM binary wheels
+pydantic-core==2.9.0  # Core with ARM binary wheels
 pydantic-settings==2.1.0
 # cryptography installed via: pkg install python-cryptography
 # bcrypt installed via: pkg install python-bcrypt
