@@ -111,7 +111,7 @@ setup_python() {
         PYTHON_CMD="python3.11"
         echo -e "${GREEN}Found Python 3.11${NC}"
     elif command -v python3 &> /dev/null; then
-        PY_VERSION=$(python3 --version 2>&1 | grep -oP '(?<=Python )\d+\.\d+')
+        PY_VERSION=$(python3 --version 2>&1 | sed -n 's/Python \([0-9]*\.[0-9]*\).*/\1/p')
         if [[ "$PY_VERSION" == "3.11"* ]]; then
             PYTHON_CMD="python3"
             echo -e "${GREEN}Found Python 3.11${NC}"
@@ -222,17 +222,25 @@ setup_python() {
     if [ "$IS_TERMUX" = true ]; then
         # Termux: Install packages that need compilation from pkg
         echo -e "${BLUE}Installing binary packages from Termux repository...${NC}"
-        pkg install -y python-cryptography python-bcrypt 2>/dev/null || true
+
+        # Check which packages are available and install them
+        for pkg_name in python-cryptography python-bcrypt python-numpy; do
+            if pkg search "^${pkg_name}$" 2>/dev/null | grep -q "${pkg_name}"; then
+                pkg install -y "${pkg_name}" 2>/dev/null || true
+            fi
+        done
 
         # Set environment to skip Rust compilation
         export SKIP_CYTHON=1
         export SKIP_RUST_EXTENSIONS=1
+        export CARGO_BUILD_TARGET=""
+        export CRYPTOGRAPHY_DONT_BUILD_RUST=1
     fi
 
     # Check if venv exists and was created with the wrong Python version
     if [ -d "venv" ]; then
         if [ -f "venv/bin/python" ]; then
-            VENV_VERSION=$(venv/bin/python --version 2>&1 | grep -oP '(?<=Python )\d+\.\d+' || echo "unknown")
+            VENV_VERSION=$(venv/bin/python --version 2>&1 | sed -n 's/Python \([0-9]*\.[0-9]*\).*/\1/p' || echo "unknown")
             if [[ "$VENV_VERSION" == "3.12"* ]]; then
                 echo -e "${YELLOW}Existing venv uses Python 3.12 - recreating with Python 3.11...${NC}"
                 rm -rf venv
@@ -279,7 +287,12 @@ setup_python() {
         }
     fi
 
-    pip install pytest pytest-asyncio freezegun aiohttp  # Test dependencies
+    # Install test dependencies (skip on Termux to save space/time)
+    if [ "$IS_TERMUX" != true ]; then
+        pip install pytest pytest-asyncio freezegun aiohttp
+    else
+        echo -e "${YELLOW}Skipping test dependencies on Termux (install manually if needed: pip install pytest)${NC}"
+    fi
 
     # Install sub-project requirements (skip on Termux to avoid recompiling packages)
     if [ "$IS_TERMUX" != true ]; then
@@ -295,6 +308,12 @@ setup_python() {
 
 # Setup frontend
 setup_frontend() {
+    if [ "$IS_TERMUX" = true ]; then
+        echo -e "${YELLOW}Skipping frontend setup on Termux (use Android app or run manually)${NC}"
+        echo -e "${YELLOW}To build frontend manually: cd frontend && npm install && npm run build${NC}"
+        return
+    fi
+
     echo -e "${BLUE}Setting up frontend...${NC}"
 
     if [ -d "frontend" ]; then
@@ -318,7 +337,10 @@ import asyncio
 from app.database.db import init_db
 asyncio.run(init_db())
 print('Database initialized successfully')
-"
+" || {
+        echo -e "${YELLOW}Database initialization failed (will retry on first run)${NC}"
+        return 0  # Don't fail the whole script
+    }
 }
 
 # Create systemd service files
@@ -417,6 +439,11 @@ configure_firewall() {
 
 # Run tests
 run_tests() {
+    if [ "$IS_TERMUX" = true ]; then
+        echo -e "${YELLOW}Skipping tests on Termux (run manually if needed: pytest tests/)${NC}"
+        return
+    fi
+
     echo -e "${BLUE}Running tests...${NC}"
     . venv/bin/activate
 
@@ -485,10 +512,19 @@ BOOTEOF
 
 # Print summary
 print_summary() {
-    # Get external IP
+    # Get external IP (with timeout to avoid hanging)
     EXTERNAL_IP=""
-    if command -v curl &> /dev/null; then
-        EXTERNAL_IP=$(curl -s -4 ifconfig.me 2>/dev/null || echo "unknown")
+    if [ "$IS_TERMUX" = true ]; then
+        EXTERNAL_IP="localhost"  # Termux runs locally
+    elif command -v curl &> /dev/null; then
+        # Try with timeout if available, otherwise skip
+        if command -v timeout &> /dev/null; then
+            EXTERNAL_IP=$(timeout 3 curl -s -4 ifconfig.me 2>/dev/null || echo "localhost")
+        else
+            EXTERNAL_IP="localhost"
+        fi
+    else
+        EXTERNAL_IP="localhost"
     fi
 
     echo ""
