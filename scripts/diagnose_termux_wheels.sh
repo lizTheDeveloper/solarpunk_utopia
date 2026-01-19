@@ -11,10 +11,23 @@ echo "1. Platform Information:"
 echo "   Architecture: $(uname -m)"
 echo "   Kernel: $(uname -s)"
 echo "   Python version: $(python --version 2>&1)"
+echo "   Termux version: ${TERMUX_VERSION:-not set}"
+echo ""
+
+# Show libc version
+echo "2. C Library (the critical difference):"
+if ldd --version 2>/dev/null | head -1; then
+    echo "   Type: glibc (normal Linux)"
+    echo "   ✓ Should work with manylinux wheels"
+else
+    echo "   Type: Bionic (Android)"
+    echo "   ✗ Incompatible with manylinux wheels (requires glibc)"
+    echo "   → This is why binary wheels don't work on Termux"
+fi
 echo ""
 
 # Show pip platform tags
-echo "2. Pip Platform Tags:"
+echo "3. Pip Platform Tags:"
 python -c "
 import sys
 try:
@@ -30,7 +43,7 @@ except Exception as e:
 echo ""
 
 # Check what pydantic-core versions exist with wheels
-echo "3. Checking PyPI for pydantic-core wheels..."
+echo "4. Checking PyPI for pydantic-core wheels..."
 python -c "
 import json
 import urllib.request
@@ -63,13 +76,21 @@ except Exception as e:
 echo ""
 
 # Try to install with verbose output
-echo "4. Testing pip install (dry-run):"
+echo "5. Testing pip install (dry-run):"
 pip install --dry-run --only-binary :all: pydantic-core 2>&1 | head -20
 echo ""
 
-echo "5. Recommendation:"
-echo "   If no ARM wheels found, try:"
-echo "   - Skip pydantic entirely (use httpx directly)"
-echo "   - Install from Termux pkg: pkg install python-pydantic (if available)"
-echo "   - Compile with Rust: pkg install rust && pip install pydantic"
+echo "6. Recommendation:"
+echo "   The issue: Termux uses Bionic libc (Android), not glibc (Linux)"
+echo "   PyPI wheels are built for manylinux (glibc), so they're incompatible"
+echo ""
+echo "   Solutions:"
+echo "   1. Skip pydantic entirely (recommended)"
+echo "      - Core functionality works without it"
+echo "      - Use httpx for LLM backends (already works)"
+echo ""
+echo "   2. Compile from source (advanced)"
+echo "      - Run: ./scripts/compile_pydantic_termux.sh"
+echo "      - Takes 5-15 minutes, requires Rust"
+echo "      - Phone may get warm"
 echo ""
