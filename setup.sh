@@ -292,36 +292,49 @@ setup_python() {
         # Termux: Install packages individually to handle failures gracefully
         echo -e "${YELLOW}Installing packages (trying binary wheels first)...${NC}"
 
-        # Skip pydantic/FastAPI by default on Termux (Rust compilation issues)
-        # Core functionality (DTN, ValueFlows, mesh) works without FastAPI
-        echo -e "${YELLOW}Skipping pydantic/FastAPI on Termux (use --install-fastapi to enable)${NC}"
-        PYDANTIC_INSTALLED=false
+        # Termux: Binary wheels don't work (Bionic libc vs glibc)
+        # Solution: Compile from source with Rust
+        echo -e "${BLUE}Installing pydantic (Termux requires compilation)...${NC}"
 
-        # Check if user wants to try installing FastAPI anyway
-        if [[ "$*" == *"--install-fastapi"* ]]; then
-            echo -ne "  Installing pydantic (trying binary wheels)... "
+        # Try binary wheel first (fast but will probably fail)
+        echo -ne "  Trying binary wheel... "
+        if pip install --only-binary :all: pydantic==2.9.2 pydantic-core==2.9.0 pydantic-settings 2>/dev/null; then
+            echo -e "${GREEN}✓${NC}"
+            PYDANTIC_INSTALLED=true
+        else
+            echo -e "${YELLOW}not available (expected)${NC}"
 
-            # Try specific version with ARM wheels
-            if pip install --only-binary :all: pydantic==2.9.2 pydantic-core==2.9.0 pydantic-settings 2>/dev/null; then
-                echo -e "${GREEN}✓ (binary wheel v2.9.2)${NC}"
-                PYDANTIC_INSTALLED=true
-            # Try with Rust compilation
+            # Install Rust compiler
+            echo -ne "  Installing Rust compiler... "
+            if pkg install -y rust >/dev/null 2>&1; then
+                echo -e "${GREEN}✓${NC}"
             else
-                echo -e "${YELLOW}no binary wheel, installing Rust...${NC}"
-                if pkg install -y rust 2>/dev/null; then
-                    export PATH="$HOME/.cargo/bin:$PATH"
-                    echo -ne "    Compiling pydantic (5-10 min)... "
-                    if pip install pydantic pydantic-settings 2>&1 | tee /tmp/pydantic_build.log >/dev/null; then
-                        echo -e "${GREEN}✓${NC}"
-                        PYDANTIC_INSTALLED=true
-                    else
-                        echo -e "${RED}✗ failed${NC}"
-                        PYDANTIC_INSTALLED=false
-                    fi
-                else
-                    echo -e "${RED}✗ Rust install failed${NC}"
-                    PYDANTIC_INSTALLED=false
-                fi
+                echo -e "${RED}✗${NC}"
+            fi
+
+            # Set Rust environment
+            export PATH="$HOME/.cargo/bin:$PATH"
+            export CARGO_HOME="$HOME/.cargo"
+            export RUSTUP_HOME="$HOME/.rustup"
+            export CARGO_BUILD_JOBS=2  # Limit parallel jobs to save memory
+
+            # Compile pydantic from source
+            echo -e "${BLUE}  Compiling pydantic from source...${NC}"
+            echo -e "${YELLOW}  This takes 5-15 minutes. Phone may get warm.${NC}"
+            echo -e "${YELLOW}  Keep screen on to prevent Android from killing the process.${NC}"
+            echo ""
+
+            # Show progress during compilation
+            if pip install --no-binary pydantic-core pydantic pydantic-settings 2>&1 | tee /tmp/pydantic_build.log | grep -E "(Collecting|Building|Installing|Successfully|error|ERROR)"; then
+                echo ""
+                echo -e "${GREEN}✓ pydantic compiled and installed${NC}"
+                PYDANTIC_INSTALLED=true
+            else
+                echo ""
+                echo -e "${RED}✗ Compilation failed${NC}"
+                echo -e "${YELLOW}  See /tmp/pydantic_build.log for details${NC}"
+                echo -e "${YELLOW}  Continuing without pydantic...${NC}"
+                PYDANTIC_INSTALLED=false
             fi
         fi
 
@@ -351,11 +364,11 @@ setup_python() {
 
         echo ""
         if [ "$PYDANTIC_INSTALLED" = false ]; then
-            echo -e "${GREEN}================================================${NC}"
-            echo -e "${GREEN}Termux Installation Complete${NC}"
-            echo -e "${GREEN}================================================${NC}"
+            echo -e "${YELLOW}================================================${NC}"
+            echo -e "${YELLOW}Termux Installation Complete (Partial)${NC}"
+            echo -e "${YELLOW}================================================${NC}"
             echo -e "${GREEN}✓ Core packages installed${NC}"
-            echo -e "${YELLOW}⊘ FastAPI/pydantic skipped (intentional)${NC}"
+            echo -e "${RED}✗ pydantic compilation failed${NC}"
             echo ""
             echo -e "${GREEN}What works:${NC}"
             echo -e "  ✓ DTN Bundle System (offline messaging)"
@@ -364,17 +377,20 @@ setup_python() {
             echo -e "  ✓ AI agents (LLM backends via httpx)"
             echo -e "  ✓ Database (aiosqlite)"
             echo ""
-            echo -e "${YELLOW}To install FastAPI (optional):${NC}"
-            echo -e "  Method 1 (automatic): ./setup.sh --install-fastapi"
-            echo -e "  Method 2 (manual):    ./scripts/compile_pydantic_termux.sh"
+            echo -e "${YELLOW}What doesn't work:${NC}"
+            echo -e "  ✗ FastAPI (requires pydantic)"
+            echo -e "  ✗ REST API endpoints"
             echo ""
-            echo -e "${YELLOW}Why binary wheels don't work:${NC}"
-            echo -e "  Termux uses Bionic libc (Android), not glibc (Linux)"
-            echo -e "  PyPI wheels are manylinux (glibc-only)"
-            echo -e "  Solution: Compile from source with Rust"
+            echo -e "${YELLOW}To retry pydantic compilation:${NC}"
+            echo -e "  ./scripts/compile_pydantic_termux.sh"
+            echo -e "  Or check /tmp/pydantic_build.log for errors"
             echo ""
         else
-            echo -e "${GREEN}All packages installed successfully!${NC}"
+            echo -e "${GREEN}================================================${NC}"
+            echo -e "${GREEN}Termux Installation Complete!${NC}"
+            echo -e "${GREEN}================================================${NC}"
+            echo -e "${GREEN}✓ All packages installed (including pydantic)${NC}"
+            echo ""
         fi
     else
         # Non-Termux: Try bulk install first, fall back to individual

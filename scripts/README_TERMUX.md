@@ -81,38 +81,35 @@ python scripts/find_working_pydantic.py
 
 ## Quick Start Guide
 
-### If You Don't Need FastAPI (Recommended)
+### Automatic Installation (Default)
 
 ```bash
-# Run setup normally - it will skip pydantic
+# Just run setup - it automatically compiles pydantic on Termux
 ./setup.sh
 
-# Everything works except FastAPI:
+# What happens:
+# 1. Tries binary wheel (usually fails on Termux)
+# 2. Installs Rust compiler automatically
+# 3. Compiles pydantic from source (5-15 min)
+# 4. Installs all packages including FastAPI
+```
+
+**That's it!** No flags, no extra steps. Everything is automatic.
+
+### If Compilation Fails
+
+If pydantic compilation fails, core functionality still works:
+
+```bash
+# What works without pydantic:
 # ✓ DTN Bundle System
 # ✓ ValueFlows
 # ✓ Mesh networking
 # ✓ AI agents (httpx backends)
 # ✓ Database
-```
 
-### If You Need FastAPI
-
-**Option 1: Automatic (easiest)**
-```bash
-./setup.sh --install-fastapi
-```
-
-**Option 2: Manual (more control)**
-```bash
-# 1. Diagnose first (optional)
-./scripts/diagnose_termux_wheels.sh
-
-# 2. Compile pydantic
+# To retry compilation manually:
 ./scripts/compile_pydantic_termux.sh
-
-# 3. Install FastAPI
-source venv/bin/activate
-pip install fastapi
 ```
 
 ## Common Issues

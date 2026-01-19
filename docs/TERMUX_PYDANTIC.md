@@ -9,42 +9,32 @@ Pydantic v2.x requires `pydantic-core`, which is a Rust-based extension. On Term
 
 ## Solution Strategy
 
-The `setup.sh` script uses a three-tier approach:
+The `setup.sh` script **automatically compiles pydantic** on Termux:
 
-### 1. Try Specific Version with ARM Wheels (Fast)
+### 1. Try Binary Wheel First (Fast but Usually Fails)
 
 ```bash
 pip install --only-binary :all: pydantic==2.9.2 pydantic-core==2.9.0
 ```
 
-**Why**: These versions have confirmed ARM64 (aarch64) binary wheels on PyPI. Installation is instant.
+**Result**: Usually fails on Termux (Bionic vs glibc incompatibility)
 
-**Versions with ARM wheels**:
-- pydantic-core: 2.9.0, 2.8.0, 2.7.0, and most 2.x versions
-- pydantic: Uses pure Python wheels (py3-none-any)
-
-### 2. Try Latest Version with Wheels (Fallback)
+### 2. Automatically Install Rust and Compile
 
 ```bash
-pip install --only-binary :all: pydantic pydantic-settings
-```
-
-**Why**: Newer versions may have ARM wheels. Worth trying before compiling.
-
-### 3. Install Rust and Compile (Last Resort)
-
-```bash
+# Happens automatically - no user action needed
 pkg install -y rust
 export PATH="$HOME/.cargo/bin:$PATH"
-pip install pydantic pydantic-settings
+pip install --no-binary pydantic-core pydantic pydantic-settings
 ```
 
-**Why**: If no binary wheels exist for your architecture, compile from source.
+**What to expect**:
+- Takes 5-15 minutes
+- Phone gets warm (normal)
+- Shows compilation progress
+- Creates `/tmp/pydantic_build.log` for debugging
 
-**Downsides**:
-- Takes 5-10 minutes
-- Uses significant CPU/battery
-- May fail on low-memory devices
+**No flags or manual steps required - it just works!**
 
 ## Finding Working Versions
 
