@@ -274,27 +274,14 @@ setup_python() {
             pip install -r requirements-termux.txt
         else
             # Fallback if requirements-termux.txt doesn't exist
-            pip install fastapi uvicorn pydantic pydantic-settings aiosqlite python-multipart psutil mnemonic structlog prometheus-client
+            pip install fastapi uvicorn pydantic pydantic-settings aiosqlite python-multipart psutil mnemonic structlog prometheus-client httpx
         fi
 
-        echo -e "${YELLOW}Skipping anthropic on Termux (requires Rust compilation)${NC}"
-        echo -e "${YELLOW}Agent/LLM features will not be available on this device${NC}"
+        echo -e "${GREEN}All LLM backends available (using httpx for API calls - no Rust needed)${NC}"
     else
-        # Non-Termux: Force binary-only installation for all packages to avoid Rust/maturin build issues
-        echo -e "${YELLOW}Installing packages (binary wheels only - no source builds)...${NC}"
-
-        # Install non-problematic packages first
-        pip install --only-binary :all: fastapi uvicorn pydantic pydantic-settings cryptography pynacl aiosqlite python-multipart bcrypt psutil mnemonic structlog prometheus-client || {
-            echo -e "${YELLOW}Some packages don't have binary wheels, installing normally...${NC}"
-            pip install fastapi uvicorn pydantic pydantic-settings cryptography pynacl aiosqlite python-multipart bcrypt psutil mnemonic structlog prometheus-client
-        }
-
-        # Install anthropic with strict binary-only for it and all dependencies (especially tokenizers)
-        echo -e "${YELLOW}Installing anthropic (forcing binary wheels for tokenizers)...${NC}"
-        pip install --only-binary :all: anthropic==0.18.0 || {
-            echo -e "${RED}Failed to install anthropic with binary wheels${NC}"
-            echo -e "${YELLOW}Skipping anthropic (agent features will be unavailable)${NC}"
-        }
+        # Non-Termux: Install all packages from requirements.txt
+        echo -e "${YELLOW}Installing packages...${NC}"
+        pip install -r requirements.txt
     fi
 
     # Install test dependencies (skip on Termux to save space/time)

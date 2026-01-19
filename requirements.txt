@@ -11,8 +11,7 @@ psutil==6.1.1
 mnemonic==0.21  # BIP39 seed phrase generation and derivation
 structlog==24.1.0  # Structured logging for better observability
 prometheus-client==0.19.0  # Prometheus metrics collection (GAP-54)
+httpx==0.28.1  # HTTP client for LLM API backends (Anthropic, OpenAI, HuggingFace)
 
-# Agent system dependencies
-# Use --only-binary to avoid building tokenizers from source (requires Rust/maturin)
-# Install with: pip install --only-binary :all: anthropic==0.18.0
-anthropic==0.18.0  # Claude API for LLM-powered reasoning (optional)
+# Note: anthropic package removed - we use httpx directly to avoid tokenizers/Rust dependency
+# All LLM backends (Anthropic, OpenAI, HuggingFace) use simple HTTP requests via httpx

@@ -257,28 +257,162 @@ class MLXBackend(LLMClient):
             return False
 
 
-class RemoteBackend(LLMClient):
+class AnthropicBackend(LLMClient):
     """
-    Remote API backend (OpenAI, Anthropic, etc.).
+    Anthropic Claude API backend (direct HTTP, no SDK needed).
 
-    Best for: Development, fallback when local inference unavailable
-    Requires: API key
+    Best for: Claude models without the anthropic package dependency
+    Requires: API key (ANTHROPIC_API_KEY)
+    Models: claude-3-5-sonnet-20241022, claude-3-opus-20240229, etc.
     """
 
     def __init__(self, config: LLMConfig):
         super().__init__(config)
         self.client = httpx.AsyncClient(timeout=config.timeout_seconds)
+        self.base_url = config.api_base or "https://api.anthropic.com/v1"
+        self.api_version = "2023-06-01"
 
-        # Detect provider from model name
-        if "gpt" in config.model.lower():
-            self.provider = "openai"
-            self.base_url = config.api_base or "https://api.openai.com/v1"
-        elif "claude" in config.model.lower():
-            self.provider = "anthropic"
-            self.base_url = config.api_base or "https://api.anthropic.com/v1"
-        else:
-            self.provider = "openai"  # Default to OpenAI-compatible
-            self.base_url = config.api_base or "https://api.openai.com/v1"
+    async def generate(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+    ) -> LLMResponse:
+        """Generate via Anthropic Messages API"""
+        cache_key = self._get_cache_key(prompt, system_prompt)
+        cached = self._check_cache(cache_key)
+        if cached:
+            return cached
+
+        try:
+            # Build messages (Anthropic format)
+            messages = [{"role": "user", "content": prompt}]
+
+            # Build request payload
+            payload = {
+                "model": self.config.model,
+                "messages": messages,
+                "max_tokens": max_tokens or self.config.max_tokens or 1024,
+                "temperature": temperature or self.config.temperature,
+            }
+
+            # System prompt goes in top-level field, not in messages
+            if system_prompt:
+                payload["system"] = system_prompt
+
+            headers = {
+                "x-api-key": self.config.api_key,
+                "anthropic-version": self.api_version,
+                "content-type": "application/json",
+            }
+
+            response = await self.client.post(
+                f"{self.base_url}/messages",
+                headers=headers,
+                json=payload,
+            )
+
+            response.raise_for_status()
+            data = response.json()
+
+            # Extract content from response
+            content = data["content"][0]["text"]
+
+            result = LLMResponse(
+                content=content,
+                model=self.config.model,
+                tokens_used=data.get("usage", {}).get("input_tokens", 0) + data.get("usage", {}).get("output_tokens", 0),
+            )
+
+            self._store_cache(cache_key, result)
+            return result
+
+        except Exception as e:
+            logger.error(f"Anthropic API call failed: {e}")
+            raise
+
+    async def chat(
+        self,
+        messages: List[LLMMessage],
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+    ) -> LLMResponse:
+        """Multi-turn chat via Anthropic Messages API"""
+        # Convert to Anthropic format
+        api_messages = []
+        system_prompt = None
+
+        for msg in messages:
+            if msg.role == "system":
+                # System messages go in separate field
+                system_prompt = msg.content
+            else:
+                api_messages.append({"role": msg.role, "content": msg.content})
+
+        payload = {
+            "model": self.config.model,
+            "messages": api_messages,
+            "max_tokens": max_tokens or self.config.max_tokens or 1024,
+            "temperature": temperature or self.config.temperature,
+        }
+
+        if system_prompt:
+            payload["system"] = system_prompt
+
+        headers = {
+            "x-api-key": self.config.api_key,
+            "anthropic-version": self.api_version,
+            "content-type": "application/json",
+        }
+
+        response = await self.client.post(
+            f"{self.base_url}/messages",
+            headers=headers,
+            json=payload,
+        )
+
+        response.raise_for_status()
+        data = response.json()
+
+        return LLMResponse(
+            content=data["content"][0]["text"],
+            model=self.config.model,
+            tokens_used=data.get("usage", {}).get("input_tokens", 0) + data.get("usage", {}).get("output_tokens", 0),
+        )
+
+    async def health_check(self) -> bool:
+        """Check if Anthropic API is reachable"""
+        try:
+            # Simple check - try to hit the API with minimal request
+            headers = {
+                "x-api-key": self.config.api_key,
+                "anthropic-version": self.api_version,
+            }
+            response = await self.client.get(
+                f"{self.base_url}/models",  # This may not exist, but we'll get a proper API response
+                headers=headers,
+            )
+            # Any response (even 404) means API is reachable
+            return response.status_code in [200, 401, 403, 404]
+        except Exception as e:
+            logger.debug(f"Anthropic API check failed: {e}")
+            return False
+
+
+class RemoteBackend(LLMClient):
+    """
+    Remote API backend (OpenAI and OpenAI-compatible APIs).
+
+    Best for: Development, fallback when local inference unavailable
+    Requires: API key
+    Note: For Claude/Anthropic, use AnthropicBackend instead
+    """
+
+    def __init__(self, config: LLMConfig):
+        super().__init__(config)
+        self.client = httpx.AsyncClient(timeout=config.timeout_seconds)
+        self.base_url = config.api_base or "https://api.openai.com/v1"
 
     async def generate(
         self,
@@ -611,6 +745,8 @@ def get_llm_client(
         return OllamaBackend(config)
     elif backend == "mlx":
         return MLXBackend(config)
+    elif backend == "anthropic":
+        return AnthropicBackend(config)
     elif backend == "remote":
         return RemoteBackend(config)
     elif backend == "huggingface":
@@ -619,13 +755,13 @@ def get_llm_client(
         if not allow_mock:
             raise LLMConfigError(
                 "MockBackend not allowed in production. "
-                "Set LLM_BACKEND to one of: ollama, mlx, remote, huggingface. "
+                "Set LLM_BACKEND to one of: ollama, mlx, anthropic, remote, huggingface. "
                 "If testing, pass allow_mock=True to get_llm_client()."
             )
         return MockBackend(config)
     else:
         raise LLMConfigError(
             f"Unknown LLM backend: '{backend}'. "
-            f"Valid options: ollama, mlx, remote, huggingface, mock. "
+            f"Valid options: ollama, mlx, anthropic, remote, huggingface, mock. "
             f"Check your LLM_BACKEND environment variable or config."
         )

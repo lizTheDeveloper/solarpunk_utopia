@@ -1,5 +1,4 @@
 # Termux-specific requirements
-# Excludes packages that require Rust/maturin compilation (like anthropic/tokenizers)
 # Binary packages are installed via pkg instead of pip where possible
 
 fastapi==0.115.6
@@ -14,7 +13,7 @@ psutil==6.1.1
 mnemonic==0.21
 structlog==24.1.0
 prometheus-client==0.19.0
+httpx==0.28.1  # HTTP client for LLM API backends
 
-# Skip anthropic on Termux - requires tokenizers which needs Rust/maturin
-# Agent features will not be available on Termux
-# anthropic==0.18.0  # SKIPPED on Termux
+# Note: All LLM backends (Anthropic, OpenAI, HuggingFace) work via simple HTTP requests
+# No anthropic package needed - we use httpx directly (no Rust/tokenizers dependency)
