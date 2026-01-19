@@ -103,6 +103,34 @@ clone_repo() {
 setup_python() {
     echo -e "${BLUE}Setting up Python virtual environment...${NC}"
 
+    # Check Python version - require 3.11 (3.12 has issues with tokenizers/Rust)
+    PYTHON_CMD="python3"
+    if command -v python3.11 &> /dev/null; then
+        PYTHON_CMD="python3.11"
+        echo -e "${GREEN}Found Python 3.11${NC}"
+    elif command -v python3 &> /dev/null; then
+        PY_VERSION=$(python3 --version 2>&1 | grep -oP '(?<=Python )\d+\.\d+')
+        if [[ "$PY_VERSION" == "3.11"* ]]; then
+            echo -e "${GREEN}Found Python 3.11${NC}"
+        elif [[ "$PY_VERSION" == "3.12"* ]]; then
+            echo -e "${RED}Error: Python 3.12 detected, but 3.11 is required${NC}"
+            echo -e "${YELLOW}Python 3.12 has compatibility issues with tokenizers package (requires Rust)${NC}"
+            echo -e "${YELLOW}Please install Python 3.11:${NC}"
+            if [ "$PLATFORM" = "Mac" ]; then
+                echo -e "  brew install python@3.11"
+            elif [ "$PLATFORM" = "Linux" ]; then
+                echo -e "  sudo apt-get install python3.11 python3.11-venv  # Debian/Ubuntu"
+                echo -e "  sudo dnf install python3.11                      # Fedora"
+            fi
+            return 1
+        else
+            echo -e "${YELLOW}Warning: Python $PY_VERSION detected, 3.11 recommended${NC}"
+        fi
+    else
+        echo -e "${RED}Error: python3 not found${NC}"
+        return 1
+    fi
+
     if [ "$IS_TERMUX" = true ]; then
         # Termux: Install packages that need compilation from pkg
         echo -e "${BLUE}Installing binary packages from Termux repository...${NC}"
@@ -114,7 +142,7 @@ setup_python() {
     fi
 
     if [ ! -d "venv" ]; then
-        python3 -m venv venv
+        $PYTHON_CMD -m venv venv
     fi
 
     # Activate venv (use . instead of source for better compatibility)
@@ -129,12 +157,20 @@ setup_python() {
         # Use Termux-specific requirements (skips packages installed via pkg)
         pip install -r requirements-termux.txt
     else
-        # Use --only-binary for packages that might require Rust/maturin (like tokenizers)
-        # This prevents building from source which would fail without Rust compiler
-        echo -e "${YELLOW}Installing packages (preferring prebuilt wheels to avoid Rust/maturin builds)...${NC}"
-        pip install --prefer-binary -r requirements.txt || {
-            echo -e "${YELLOW}Some packages failed, retrying with --only-binary for problematic packages...${NC}"
-            pip install --only-binary tokenizers -r requirements.txt
+        # Force binary-only installation for all packages to avoid Rust/maturin build issues
+        echo -e "${YELLOW}Installing packages (binary wheels only - no source builds)...${NC}"
+
+        # Install non-problematic packages first
+        pip install --only-binary :all: fastapi uvicorn pydantic pydantic-settings cryptography pynacl aiosqlite python-multipart bcrypt psutil mnemonic structlog prometheus-client || {
+            echo -e "${YELLOW}Some packages don't have binary wheels, installing normally...${NC}"
+            pip install fastapi uvicorn pydantic pydantic-settings cryptography pynacl aiosqlite python-multipart bcrypt psutil mnemonic structlog prometheus-client
+        }
+
+        # Install anthropic with strict binary-only for it and all dependencies (especially tokenizers)
+        echo -e "${YELLOW}Installing anthropic (forcing binary wheels for tokenizers)...${NC}"
+        pip install --only-binary :all: anthropic==0.18.0 || {
+            echo -e "${RED}Failed to install anthropic with binary wheels${NC}"
+            echo -e "${YELLOW}Skipping anthropic (agent features will be unavailable)${NC}"
         }
     fi
 
