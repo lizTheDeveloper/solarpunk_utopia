@@ -266,11 +266,21 @@ setup_python() {
 
     # Install all requirements
     echo -e "${BLUE}Installing Python dependencies...${NC}"
-    if [ "$IS_TERMUX" = true ] && [ -f "requirements-termux.txt" ]; then
-        # Use Termux-specific requirements (skips packages installed via pkg)
-        pip install -r requirements-termux.txt
+    if [ "$IS_TERMUX" = true ]; then
+        # Termux-specific installation
+        echo -e "${YELLOW}Installing Termux-optimized requirements (no Rust/maturin packages)...${NC}"
+
+        if [ -f "requirements-termux.txt" ]; then
+            pip install -r requirements-termux.txt
+        else
+            # Fallback if requirements-termux.txt doesn't exist
+            pip install fastapi uvicorn pydantic pydantic-settings aiosqlite python-multipart psutil mnemonic structlog prometheus-client
+        fi
+
+        echo -e "${YELLOW}Skipping anthropic on Termux (requires Rust compilation)${NC}"
+        echo -e "${YELLOW}Agent/LLM features will not be available on this device${NC}"
     else
-        # Force binary-only installation for all packages to avoid Rust/maturin build issues
+        # Non-Termux: Force binary-only installation for all packages to avoid Rust/maturin build issues
         echo -e "${YELLOW}Installing packages (binary wheels only - no source builds)...${NC}"
 
         # Install non-problematic packages first

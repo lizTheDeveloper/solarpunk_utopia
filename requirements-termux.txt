@@ -1,24 +1,20 @@
-# FastAPI 0.100+ requires pydantic v2
-# Use FastAPI 0.99.x for pydantic v1 compatibility
-fastapi==0.99.1
-uvicorn==0.23.2
-# Pydantic v1 doesn't require Rust compilation
-# v2 requires Rust/Maturin which fails on Termux
-pydantic==1.10.13
-# Note: pydantic-settings is not needed - settings are built into pydantic v1
-# (pydantic-settings only exists for pydantic v2)
-# Use Termux's pre-built cryptography package
-# Install with: pkg install python-cryptography
-# cryptography will be installed via pkg, not pip
-pynacl==1.5.0
+# Termux-specific requirements
+# Excludes packages that require Rust/maturin compilation (like anthropic/tokenizers)
+# Binary packages are installed via pkg instead of pip where possible
+
+fastapi==0.115.6
+uvicorn==0.34.0
+pydantic==2.10.5
+pydantic-settings==2.1.0
+# cryptography installed via: pkg install python-cryptography
+# bcrypt installed via: pkg install python-bcrypt
 aiosqlite==0.20.0
 python-multipart==0.0.20
-# bcrypt from Termux packages
-# Install with: pkg install python-bcrypt
 psutil==6.1.1
 mnemonic==0.21
 structlog==24.1.0
 prometheus-client==0.19.0
 
-# Agent system dependencies
-anthropic==0.18.0
+# Skip anthropic on Termux - requires tokenizers which needs Rust/maturin
+# Agent features will not be available on Termux
+# anthropic==0.18.0  # SKIPPED on Termux
