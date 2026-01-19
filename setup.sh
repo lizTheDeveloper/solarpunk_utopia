@@ -104,32 +104,109 @@ setup_python() {
     echo -e "${BLUE}Setting up Python virtual environment...${NC}"
 
     # Check Python version - require 3.11 (3.12 has issues with tokenizers/Rust)
-    PYTHON_CMD="python3"
+    PYTHON_CMD=""
+
+    # First, try to find python3.11
     if command -v python3.11 &> /dev/null; then
         PYTHON_CMD="python3.11"
         echo -e "${GREEN}Found Python 3.11${NC}"
     elif command -v python3 &> /dev/null; then
         PY_VERSION=$(python3 --version 2>&1 | grep -oP '(?<=Python )\d+\.\d+')
         if [[ "$PY_VERSION" == "3.11"* ]]; then
+            PYTHON_CMD="python3"
             echo -e "${GREEN}Found Python 3.11${NC}"
         elif [[ "$PY_VERSION" == "3.12"* ]]; then
-            echo -e "${RED}Error: Python 3.12 detected, but 3.11 is required${NC}"
-            echo -e "${YELLOW}Python 3.12 has compatibility issues with tokenizers package (requires Rust)${NC}"
-            echo -e "${YELLOW}Please install Python 3.11:${NC}"
+            echo -e "${YELLOW}Python 3.12 detected - need to install Python 3.11${NC}"
+            echo -e "${YELLOW}(Python 3.12 has compatibility issues with tokenizers/Rust)${NC}"
+
+            # Try to install Python 3.11 automatically
             if [ "$PLATFORM" = "Mac" ]; then
-                echo -e "  brew install python@3.11"
+                echo -e "${BLUE}Installing Python 3.11 via Homebrew...${NC}"
+                if command -v brew &> /dev/null; then
+                    brew install python@3.11
+                    # Add to PATH for this session
+                    export PATH="/opt/homebrew/opt/python@3.11/bin:$PATH"
+                    PYTHON_CMD="python3.11"
+                else
+                    echo -e "${RED}Homebrew not found. Installing Homebrew first...${NC}"
+                    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                    brew install python@3.11
+                    export PATH="/opt/homebrew/opt/python@3.11/bin:$PATH"
+                    PYTHON_CMD="python3.11"
+                fi
             elif [ "$PLATFORM" = "Linux" ]; then
-                echo -e "  sudo apt-get install python3.11 python3.11-venv  # Debian/Ubuntu"
-                echo -e "  sudo dnf install python3.11                      # Fedora"
+                if command -v apt-get &> /dev/null; then
+                    echo -e "${BLUE}Installing Python 3.11 via apt...${NC}"
+                    sudo apt-get update
+                    sudo apt-get install -y python3.11 python3.11-venv python3.11-dev
+                    PYTHON_CMD="python3.11"
+                elif command -v dnf &> /dev/null; then
+                    echo -e "${BLUE}Installing Python 3.11 via dnf...${NC}"
+                    sudo dnf install -y python3.11
+                    PYTHON_CMD="python3.11"
+                elif command -v yum &> /dev/null; then
+                    echo -e "${BLUE}Installing Python 3.11 via yum...${NC}"
+                    sudo yum install -y python3.11
+                    PYTHON_CMD="python3.11"
+                else
+                    echo -e "${RED}Cannot install Python 3.11 automatically${NC}"
+                    echo -e "${YELLOW}Please install manually and re-run this script${NC}"
+                    return 1
+                fi
             fi
-            return 1
+
+            # Verify installation
+            if ! command -v "$PYTHON_CMD" &> /dev/null; then
+                echo -e "${RED}Python 3.11 installation failed${NC}"
+                return 1
+            fi
+            echo -e "${GREEN}Python 3.11 installed successfully${NC}"
         else
             echo -e "${YELLOW}Warning: Python $PY_VERSION detected, 3.11 recommended${NC}"
+            echo -e "${BLUE}Attempting to install Python 3.11...${NC}"
+
+            if [ "$PLATFORM" = "Mac" ]; then
+                brew install python@3.11 2>/dev/null || true
+                export PATH="/opt/homebrew/opt/python@3.11/bin:$PATH"
+            elif [ "$PLATFORM" = "Linux" ]; then
+                if command -v apt-get &> /dev/null; then
+                    sudo apt-get update && sudo apt-get install -y python3.11 python3.11-venv python3.11-dev 2>/dev/null || true
+                fi
+            fi
+
+            # Check if we got 3.11 installed
+            if command -v python3.11 &> /dev/null; then
+                PYTHON_CMD="python3.11"
+                echo -e "${GREEN}Using Python 3.11${NC}"
+            else
+                PYTHON_CMD="python3"
+                echo -e "${YELLOW}Continuing with Python $PY_VERSION (may have issues)${NC}"
+            fi
         fi
     else
         echo -e "${RED}Error: python3 not found${NC}"
-        return 1
+
+        # Try to install Python
+        if [ "$PLATFORM" = "Mac" ]; then
+            echo -e "${BLUE}Installing Python 3.11 via Homebrew...${NC}"
+            brew install python@3.11
+            export PATH="/opt/homebrew/opt/python@3.11/bin:$PATH"
+            PYTHON_CMD="python3.11"
+        elif [ "$PLATFORM" = "Linux" ]; then
+            if command -v apt-get &> /dev/null; then
+                sudo apt-get update
+                sudo apt-get install -y python3.11 python3.11-venv python3.11-dev
+                PYTHON_CMD="python3.11"
+            fi
+        fi
+
+        if [ -z "$PYTHON_CMD" ]; then
+            echo -e "${RED}Failed to install Python${NC}"
+            return 1
+        fi
     fi
+
+    echo -e "${BLUE}Using: $PYTHON_CMD ($(${PYTHON_CMD} --version))${NC}"
 
     if [ "$IS_TERMUX" = true ]; then
         # Termux: Install packages that need compilation from pkg
@@ -141,7 +218,24 @@ setup_python() {
         export SKIP_RUST_EXTENSIONS=1
     fi
 
+    # Check if venv exists and was created with the wrong Python version
+    if [ -d "venv" ]; then
+        if [ -f "venv/bin/python" ]; then
+            VENV_VERSION=$(venv/bin/python --version 2>&1 | grep -oP '(?<=Python )\d+\.\d+' || echo "unknown")
+            if [[ "$VENV_VERSION" == "3.12"* ]]; then
+                echo -e "${YELLOW}Existing venv uses Python 3.12 - recreating with Python 3.11...${NC}"
+                rm -rf venv
+            elif [[ "$VENV_VERSION" != "3.11"* ]] && [[ "$VENV_VERSION" != "unknown" ]]; then
+                echo -e "${YELLOW}Existing venv uses Python $VENV_VERSION - recreating with Python 3.11...${NC}"
+                rm -rf venv
+            else
+                echo -e "${GREEN}Existing venv uses Python $VENV_VERSION - keeping it${NC}"
+            fi
+        fi
+    fi
+
     if [ ! -d "venv" ]; then
+        echo -e "${BLUE}Creating virtual environment with $PYTHON_CMD...${NC}"
         $PYTHON_CMD -m venv venv
     fi
 

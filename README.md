@@ -4,7 +4,7 @@
 
 [![Status](https://img.shields.io/badge/status-production%20ready-brightgreen)](https://github.com/yourusername/solarpunk_utopia)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 [![TypeScript](https://img.shields.io/badge/typescript-5.3+-blue.svg)](https://www.typescriptlang.org/)
 
 ## 📱 Android App
@@ -38,6 +38,8 @@ pkg install curl -y && curl -sL https://raw.githubusercontent.com/lizTheDevelope
 ```bash
 wget -qO- https://raw.githubusercontent.com/lizTheDeveloper/solarpunk_utopia/main/setup.sh | bash
 ```
+
+**Note:** Requires Python 3.11 (not 3.12). The setup script will automatically install Python 3.11 if needed. See [PYTHON_VERSION.md](PYTHON_VERSION.md) for details.
 
 This installs everything and starts all services. Access at `http://localhost:3000` when complete.
 
