@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { X, Check, XCircle } from 'lucide-react';
 import { Button } from './Button';
 import { Card } from './Card';
@@ -42,7 +43,7 @@ export function ProposalApprovalModal({
 
   const handleReject = async () => {
     if (!rejectReason.trim()) {
-      alert('Please provide a reason for rejection');
+      toast.error('Please provide a reason for rejection');
       return;
     }
     await onReject(proposal.id, rejectReason);

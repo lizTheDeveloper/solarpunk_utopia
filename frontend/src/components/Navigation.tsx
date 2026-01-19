@@ -76,7 +76,7 @@ const navSections = [
 
 // Flatten for mobile view
 const navItems = navSections.flatMap(section =>
-  section.items.length > 0 ? section.items : [{ path: section.path, label: section.label, icon: section.icon }]
+  section.items.length > 0 ? section.items : [{ path: section.path, label: section.label, icon: section.icon, tooltip: undefined, showBadge: false }]
 );
 
 export function Navigation() {
@@ -119,12 +119,12 @@ export function Navigation() {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm" role="navigation" aria-label="Main navigation">
       {/* Primary Navigation */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-solarpunk-400 to-solarpunk-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-solarpunk-400 to-solarpunk-600 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
               <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div className="min-w-0">
@@ -134,21 +134,22 @@ export function Navigation() {
           </div>
 
           {/* Primary sections */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1" role="navigation" aria-label="Primary sections">
             {navSections.map((section) => (
               <NavLink
                 key={section.id}
                 to={section.path}
+                aria-label={`Navigate to ${section.label}`}
                 className={({ isActive }) =>
                   clsx(
-                    'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                    'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-solarpunk-500 focus:ring-offset-2',
                     isActive || activeSection.id === section.id
                       ? 'bg-solarpunk-100 text-solarpunk-800'
                       : 'text-gray-700 hover:bg-gray-100'
                   )
                 }
               >
-                <section.icon className="w-4 h-4" />
+                <section.icon className="w-4 h-4" aria-hidden="true" />
                 <span>{section.label}</span>
               </NavLink>
             ))}
@@ -174,18 +175,36 @@ export function Navigation() {
               />
             </div>
 
+            {/* AI Helpers - always visible with badge */}
+            <NavLink
+              to="/agents"
+              className="relative flex items-center justify-center gap-1 sm:gap-2 bg-purple-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-xs sm:text-sm font-medium h-10 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              aria-label={`AI Helpers${count > 0 ? ` (${count} pending proposals)` : ''}`}
+              title="AI that helps match offers with needs"
+            >
+              <Bot className="w-4 h-4" aria-hidden="true" />
+              <span className="hidden sm:inline">AI</span>
+              {count > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center" aria-label={`${count} pending proposals`}>
+                  {count > 9 ? '9+' : count}
+                </span>
+              )}
+            </NavLink>
+
             <NavLink
               to="/offers/create"
-              className="flex items-center justify-center gap-1 sm:gap-2 bg-solarpunk-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-solarpunk-700 transition-colors text-xs sm:text-sm font-medium h-10"
+              className="flex items-center justify-center gap-1 sm:gap-2 bg-solarpunk-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-solarpunk-700 transition-colors text-xs sm:text-sm font-medium h-10 focus:outline-none focus:ring-2 focus:ring-solarpunk-500 focus:ring-offset-2"
+              aria-label="Create new offer"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4" aria-hidden="true" />
               <span className="hidden sm:inline">New Offer</span>
             </NavLink>
             <NavLink
               to="/needs/create"
-              className="flex items-center justify-center gap-1 sm:gap-2 bg-blue-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium h-10"
+              className="flex items-center justify-center gap-1 sm:gap-2 bg-blue-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium h-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              aria-label="Create new need"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4" aria-hidden="true" />
               <span className="hidden sm:inline">New Need</span>
             </NavLink>
           </div>

@@ -19,7 +19,7 @@ async def test_mock_backend():
     logger.info("=== Testing MockBackend ===")
 
     config = LLMConfig(backend="mock", model="mock")
-    client = get_llm_client(config)
+    client = get_llm_client(config, allow_mock=True)
 
     # Test basic generation
     response = await client.generate(
@@ -89,7 +89,7 @@ async def test_agent_with_llm():
 
     # Create LLM client
     config = LLMConfig(backend="mock", model="mock")
-    llm_client = get_llm_client(config)
+    llm_client = get_llm_client(config, allow_mock=True)
 
     # Create agent with LLM
     agent = MutualAidMatchmaker(llm_client=llm_client)

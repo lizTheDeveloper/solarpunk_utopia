@@ -83,6 +83,8 @@ class BaseAgent(ABC):
         """
         Execute agent analysis and generate proposals.
 
+        GAP-66: Now records agent runs to database for stats tracking.
+
         Returns:
             List of generated proposals
         """
@@ -91,7 +93,10 @@ class BaseAgent(ABC):
             return []
 
         logger.info(f"Running agent: {self.agent_name}")
-        self._last_run = datetime.now(timezone.utc)
+        start_time = datetime.now(timezone.utc)
+        self._last_run = start_time
+        error_msg = None
+        status = "completed"
 
         try:
             proposals = await self.analyze()
@@ -114,11 +119,62 @@ class BaseAgent(ABC):
             self._proposals_created += len(proposals)
             logger.info(f"Agent {self.agent_name} created {len(proposals)} proposals")
 
+            # Record successful run to database
+            duration = (datetime.now(timezone.utc) - start_time).total_seconds()
+            await self._record_run(
+                proposals_created=len(proposals),
+                duration_seconds=duration,
+                status=status,
+                errors=None
+            )
+
             return proposals
 
         except Exception as e:
             logger.error(f"Error in agent {self.agent_name}: {e}", exc_info=True)
+            error_msg = str(e)
+            status = "failed"
+
+            # Record failed run to database
+            duration = (datetime.now(timezone.utc) - start_time).total_seconds()
+            await self._record_run(
+                proposals_created=0,
+                duration_seconds=duration,
+                status=status,
+                errors=error_msg
+            )
+
             return []
+
+    async def _record_run(
+        self,
+        proposals_created: int,
+        duration_seconds: float,
+        status: str,
+        errors: Optional[str]
+    ):
+        """
+        Record agent run to database for statistics tracking.
+
+        Args:
+            proposals_created: Number of proposals created
+            duration_seconds: Run duration in seconds
+            status: Run status (completed, failed, partial)
+            errors: Error message if run failed
+        """
+        try:
+            from app.database.agent_stats_repository import AgentStatsRepository
+            stats_repo = AgentStatsRepository()
+            await stats_repo.record_run(
+                agent_name=self.agent_name,
+                proposals_created=proposals_created,
+                errors=errors,
+                duration_seconds=duration_seconds,
+                status=status
+            )
+        except Exception as e:
+            # Don't fail the agent run if stats recording fails
+            logger.warning(f"Failed to record agent run stats: {e}")
 
     async def publish_proposal(self, proposal: Proposal):
         """

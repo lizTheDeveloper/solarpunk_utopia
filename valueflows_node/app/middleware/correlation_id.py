@@ -18,7 +18,7 @@ import structlog
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from valueflows_node.app.logging_config import log_request
+from app.logging_config import log_request
 
 
 class CorrelationIdMiddleware(BaseHTTPMiddleware):

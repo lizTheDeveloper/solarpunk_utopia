@@ -19,6 +19,8 @@ from ...database import get_database
 from ...repositories.vf.listing_repo import ListingRepository
 from ...services.signing_service import SigningService
 from ...services.vf_bundle_publisher import VFBundlePublisher
+from ...auth.middleware import require_auth, require_steward
+from ...auth.models import User
 
 router = APIRouter(prefix="/vf/listings", tags=["listings"])
 
@@ -202,11 +204,29 @@ async def get_listing(listing_id: str):
 
 
 @router.patch("/{listing_id}", response_model=dict)
-async def update_listing(listing_id: str, updates: ListingUpdate):
+async def update_listing(
+    listing_id: str,
+    updates: ListingUpdate,
+    current_user: User = Depends(require_auth)
+):
     """
-    Update listing (e.g., mark as fulfilled).
+    Update listing (owner only).
 
     GAP-43: Now uses validated Pydantic model instead of raw dict.
+    GAP-71: Now requires authentication and ownership verification.
+
+    Args:
+        listing_id: ID of the listing to update
+        updates: Fields to update
+        current_user: Authenticated user (from require_auth dependency)
+
+    Returns:
+        Updated listing
+
+    Raises:
+        HTTPException 401: If not authenticated
+        HTTPException 403: If not authorized (not owner)
+        HTTPException 404: If listing not found
     """
     try:
         db = get_database()
@@ -215,7 +235,16 @@ async def update_listing(listing_id: str, updates: ListingUpdate):
 
         listing = listing_repo.find_by_id(listing_id)
         if not listing:
+            db.close()
             raise HTTPException(status_code=404, detail="Listing not found")
+
+        # Check ownership - only owner can edit
+        if listing.agent_id != current_user.id:
+            db.close()
+            raise HTTPException(
+                status_code=403,
+                detail="Not authorized to edit this listing. Only the owner can edit listings."
+            )
 
         # Convert validated model to dict, excluding unset fields
         update_data = updates.model_dump(exclude_unset=True)
@@ -259,12 +288,27 @@ async def update_listing(listing_id: str, updates: ListingUpdate):
 
 
 @router.delete("/{listing_id}", status_code=204)
-async def delete_listing(listing_id: str):
+async def delete_listing(
+    listing_id: str,
+    current_user: User = Depends(require_auth)
+):
     """
-    Delete a listing.
+    Delete a listing (owner or steward only).
 
-    NOTE: Ownership verification requires GAP-02 (User Identity System).
-    Currently allows deletion without auth checks.
+    GAP-71: Now requires authentication and ownership verification.
+    Only the listing owner or community stewards (trust >= 0.9) can delete listings.
+
+    Args:
+        listing_id: ID of the listing to delete
+        current_user: Authenticated user (from require_auth dependency)
+
+    Returns:
+        204 No Content on success
+
+    Raises:
+        HTTPException 401: If not authenticated
+        HTTPException 403: If not authorized (not owner and not steward)
+        HTTPException 404: If listing not found
     """
     try:
         db = get_database()
@@ -274,13 +318,29 @@ async def delete_listing(listing_id: str):
         # Check if listing exists
         listing = listing_repo.find_by_id(listing_id)
         if not listing:
+            db.close()
             raise HTTPException(status_code=404, detail="Listing not found")
 
-        # TODO (GAP-71): Add ownership verification when auth is implemented
-        # Auth system is being tracked in GAP-02
-        # Once auth is available, uncomment:
-        # if listing.agent_id != request.state.user.id:
-        #     raise HTTPException(status_code=403, detail="Not authorized to delete this listing")
+        # Check ownership
+        is_owner = listing.agent_id == current_user.id
+
+        # Check if user is a steward (trust >= 0.9)
+        # Import here to avoid circular dependencies
+        from ...services.web_of_trust_service import WebOfTrustService
+        from ...database.vouch_repository import VouchRepository
+
+        vouch_repo = VouchRepository(db_path="data/solarpunk.db")
+        trust_service = WebOfTrustService(vouch_repo)
+        trust_score = trust_service.compute_trust_score(current_user.id)
+        is_steward = trust_score.computed_trust >= 0.9
+
+        # Verify authorization
+        if not is_owner and not is_steward:
+            db.close()
+            raise HTTPException(
+                status_code=403,
+                detail="Not authorized to delete this listing. Only the owner or community stewards can delete listings."
+            )
 
         # Delete listing
         deleted = listing_repo.delete(listing_id)

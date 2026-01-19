@@ -56,7 +56,7 @@ async def test_llm_backends():
     logger.info("=== Test 1: MockBackend ===")
     try:
         config = LLMConfig(backend="mock")
-        client = get_llm_client(config)
+        client = get_llm_client(config, allow_mock=True)
 
         response = await client.generate("Hello, world!")
         assert response.content.startswith("Mock response")
@@ -92,7 +92,7 @@ async def test_llm_backends():
     logger.info("\n=== Test 3: Agent Integration ===")
     try:
         config = LLMConfig(backend="mock")
-        llm_client = get_llm_client(config)
+        llm_client = get_llm_client(config, allow_mock=True)
 
         agent = TestAgent(
             agent_name="test-agent",
@@ -112,7 +112,7 @@ async def test_llm_backends():
     logger.info("\n=== Test 4: Response Caching ===")
     try:
         config = LLMConfig(backend="mock", enable_caching=True)
-        client = get_llm_client(config)
+        client = get_llm_client(config, allow_mock=True)
 
         # First call
         response1 = await client.generate("Test prompt", system_prompt="System")

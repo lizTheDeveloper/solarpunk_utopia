@@ -12,7 +12,7 @@ export default defineConfig({
   reporter: 'html',
 
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:4444',
     trace: 'on-first-retry',
   },
 
@@ -31,11 +31,19 @@ export default defineConfig({
       },
       dependencies: ['setup'],
     },
+    // No-auth project for basic tests
+    {
+      name: 'chromium-no-auth',
+      testMatch: /test_basic_navigation\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
   ],
 
   webServer: {
-    command: 'cd frontend && npm run dev',
-    url: 'http://localhost:3000',
+    command: 'cd frontend && npm run dev -- --port 4444',
+    url: 'http://localhost:4444',
     reuseExistingServer: !process.env.CI,
   },
 });

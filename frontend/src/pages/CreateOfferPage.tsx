@@ -379,17 +379,27 @@ export function CreateOfferPage() {
                   "Free gifts mean I can give without the database knowing." - Emma Goldman
                 </p>
                 {anonymous && (
-                  <div className="anonymous-badge mt-3 px-4 py-2 bg-amber-100 border border-amber-300 rounded text-amber-900 font-medium inline-block">
-                    🎁 Anonymous Gift
-                  </div>
-                )}
-                {anonymous && (
-                  <div className="mt-3 space-y-1 text-sm text-gray-700">
-                    <p>✓ Anyone can take it</p>
-                    <p>✓ No record of who took it</p>
-                    <p>✓ Doesn't count toward your "stats"</p>
-                    <p>✓ Pure gift, no social credit</p>
-                  </div>
+                  <>
+                    <div className="anonymous-badge mt-3 px-4 py-2 bg-amber-100 border border-amber-300 rounded text-amber-900 font-medium inline-block">
+                      🎁 Anonymous Gift
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      <div className="text-sm text-gray-700 space-y-1">
+                        <p className="font-medium">How it works:</p>
+                        <p>✓ Your name will not appear on the listing</p>
+                        <p>✓ Recipients can claim without knowing who you are</p>
+                        <p>✓ No record of who takes it</p>
+                        <p>✓ Doesn't count toward your stats or reputation</p>
+                        <p>✓ You can still manage and cancel your anonymous gifts</p>
+                      </div>
+                      <div className="text-xs text-gray-600 bg-white bg-opacity-50 p-2 rounded mt-2">
+                        <p className="font-medium mb-1">Privacy & Safety:</p>
+                        <p>• Community stewards can see your identity for safety and moderation purposes</p>
+                        <p>• Anonymous gifts are always visible to your community</p>
+                        <p>• Use for giving without recognition or when you want privacy for sensitive items</p>
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
             </label>

@@ -6,12 +6,12 @@ No gatekeepers. Individuals control their own visibility.
 """
 from typing import List, Optional
 import math
-from valueflows_node.app.models.sharing_preference import (
+from app.models.sharing_preference import (
     SharingPreference,
     SharingPreferenceCreate,
     VisibilityLevel,
 )
-from valueflows_node.app.repositories.sharing_preference_repo import SharingPreferenceRepository
+from app.repositories.sharing_preference_repo import SharingPreferenceRepository
 from app.services.web_of_trust_service import WebOfTrustService
 from app.database.vouch_repository import VouchRepository
 

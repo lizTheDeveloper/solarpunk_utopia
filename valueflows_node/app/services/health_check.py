@@ -9,8 +9,8 @@ import asyncio
 from typing import Dict, Any
 from enum import Enum
 
-from valueflows_node.app.config import settings
-from valueflows_node.app.logging_config import get_logger
+from app.config import settings
+from app.logging_config import get_logger
 
 logger = get_logger(__name__)
 
@@ -34,7 +34,7 @@ class HealthCheckService:
             Dict with status and optional error
         """
         try:
-            from valueflows_node.app.database import get_database
+            from app.database import get_database
             db = get_database()
             db.connect()
             # Run a simple query

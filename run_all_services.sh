@@ -69,7 +69,7 @@ rm -rf logs/*.log logs/*.pid 2>/dev/null || true
 
 # Start services
 start_service "dtn_bundle_system" "python -m app.main" "8000"
-start_service "valueflows_node" "python -m valueflows_node.main" "8001"
+start_service "valueflows_node" "cd valueflows_node && python -m app.main" "8001"
 start_service "discovery_search" "python -m discovery_search.main" "8001"
 start_service "file_chunking" "python -m file_chunking.main" "8001"
 start_service "bridge_management" "python -m mesh_network.bridge_node.main" "8002"

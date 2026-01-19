@@ -1,6 +1,6 @@
 """Matches API Endpoints"""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 import uuid
 import sqlite3
@@ -10,6 +10,8 @@ from ...models.requests.vf_objects import MatchCreate
 from ...database import get_database
 from ...repositories.vf.match_repo import MatchRepository
 from ...services.vf_bundle_publisher import VFBundlePublisher
+from ...auth.middleware import require_auth
+from ...auth.models import User
 
 router = APIRouter(prefix="/vf/matches", tags=["matches"])
 
@@ -139,8 +141,27 @@ async def approve_match(match_id: str, agent_id: str):
 
 
 @router.post("/{match_id}/accept", response_model=dict)
-async def accept_match(match_id: str):
-    """Accept a match - frontend compatible endpoint (GAP-65)"""
+async def accept_match(
+    match_id: str,
+    current_user: User = Depends(require_auth)
+):
+    """
+    Accept a match (provider or receiver).
+
+    GAP-65: Frontend-compatible endpoint with authentication.
+
+    Args:
+        match_id: ID of the match to accept
+        current_user: Authenticated user
+
+    Returns:
+        Updated match status
+
+    Raises:
+        HTTPException 401: If not authenticated
+        HTTPException 403: If not authorized (not provider or receiver)
+        HTTPException 404: If match not found
+    """
     try:
         db = get_database()
         db.connect()
@@ -148,15 +169,31 @@ async def accept_match(match_id: str):
 
         match = match_repo.find_by_id(match_id)
         if not match:
+            db.close()
             raise HTTPException(status_code=404, detail="Match not found")
 
-        # For now, accept from both sides (no auth yet)
-        # TODO: Use authenticated user to determine provider vs receiver
-        match.provider_approved = True
-        match.receiver_approved = True
-        match.provider_approved_at = datetime.now()
-        match.receiver_approved_at = datetime.now()
-        match.status = MatchStatus.ACCEPTED
+        # Verify user is participant in this match
+        is_provider = match.provider_id == current_user.id
+        is_receiver = match.receiver_id == current_user.id
+
+        if not is_provider and not is_receiver:
+            db.close()
+            raise HTTPException(
+                status_code=403,
+                detail="Not authorized to accept this match. Only participants can accept matches."
+            )
+
+        # Mark approval from the authenticated user
+        if is_provider:
+            match.provider_approved = True
+            match.provider_approved_at = datetime.now()
+        if is_receiver:
+            match.receiver_approved = True
+            match.receiver_approved_at = datetime.now()
+
+        # Update status if both approved
+        if match.provider_approved and match.receiver_approved:
+            match.status = MatchStatus.ACCEPTED
 
         updated_match = match_repo.update(match)
 
@@ -166,9 +203,10 @@ async def accept_match(match_id: str):
         db.close()
 
         return {
-            "status": "accepted",
+            "status": "accepted" if match.status == MatchStatus.ACCEPTED else "pending_other_approval",
             "match": updated_match.to_dict(),
-            "bundle_id": bundle["bundleId"]
+            "bundle_id": bundle["bundleId"],
+            "fully_approved": match.provider_approved and match.receiver_approved
         }
     except HTTPException:
         raise
@@ -177,8 +215,29 @@ async def accept_match(match_id: str):
 
 
 @router.post("/{match_id}/reject", response_model=dict)
-async def reject_match(match_id: str, reason: str = None):
-    """Reject a match - frontend compatible endpoint (GAP-65)"""
+async def reject_match(
+    match_id: str,
+    current_user: User = Depends(require_auth),
+    reason: str = None
+):
+    """
+    Reject a match (provider or receiver).
+
+    GAP-65: Frontend-compatible endpoint with authentication.
+
+    Args:
+        match_id: ID of the match to reject
+        current_user: Authenticated user
+        reason: Optional reason for rejection
+
+    Returns:
+        Updated match status
+
+    Raises:
+        HTTPException 401: If not authenticated
+        HTTPException 403: If not authorized (not provider or receiver)
+        HTTPException 404: If match not found
+    """
     try:
         db = get_database()
         db.connect()
@@ -186,9 +245,21 @@ async def reject_match(match_id: str, reason: str = None):
 
         match = match_repo.find_by_id(match_id)
         if not match:
+            db.close()
             raise HTTPException(status_code=404, detail="Match not found")
 
-        # TODO: Use authenticated user to verify participant
+        # Verify user is participant in this match
+        is_provider = match.provider_id == current_user.id
+        is_receiver = match.receiver_id == current_user.id
+
+        if not is_provider and not is_receiver:
+            db.close()
+            raise HTTPException(
+                status_code=403,
+                detail="Not authorized to reject this match. Only participants can reject matches."
+            )
+
+        # Reject the match (one rejection is enough)
         match.status = MatchStatus.REJECTED
 
         updated_match = match_repo.update(match)
@@ -202,7 +273,8 @@ async def reject_match(match_id: str, reason: str = None):
             "status": "rejected",
             "match": updated_match.to_dict(),
             "reason": reason,
-            "bundle_id": bundle["bundleId"]
+            "bundle_id": bundle["bundleId"],
+            "rejected_by": current_user.id
         }
     except HTTPException:
         raise

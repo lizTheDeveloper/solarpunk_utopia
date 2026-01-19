@@ -1,4 +1,5 @@
 import { Intent } from '@/types/valueflows';
+import { toast } from 'sonner';
 import { Card } from './Card';
 import { Button } from './Button';
 import { MapPin, Calendar, Package, Edit, Trash2 } from 'lucide-react';
@@ -15,9 +16,17 @@ interface NeedCardProps {
 
 export function NeedCard({ need, onFulfill, onEdit, onDelete, showActions = true, isOwner = false }: NeedCardProps) {
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this need? This action cannot be undone.')) {
-      onDelete?.(need);
-    }
+    toast.warning('Are you sure you want to delete this need?', {
+      description: 'This action cannot be undone.',
+      action: {
+        label: 'Delete',
+        onClick: () => onDelete?.(need),
+      },
+      cancel: {
+        label: 'Cancel',
+        onClick: () => {}, // Dismiss toast
+      },
+    });
   };
 
   return (

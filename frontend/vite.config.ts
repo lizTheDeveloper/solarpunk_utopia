@@ -61,6 +61,24 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
       },
+      // DTN Bundle System API
+      '/api/dtn': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/dtn/, '')
+      },
+      // ValueFlows Node API
+      '/api/vf': {
+        target: 'http://localhost:8001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      },
+      // Bridge Management API
+      '/api/bridge': {
+        target: 'http://localhost:8002/bridge',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/bridge/, '')
+      },
       // Fallback for any other /api requests
       '/api': {
         target: 'http://localhost:8000',

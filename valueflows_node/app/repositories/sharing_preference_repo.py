@@ -2,7 +2,7 @@
 import sqlite3
 from typing import Optional
 from datetime import datetime, UTC
-from valueflows_node.app.models.sharing_preference import (
+from app.models.sharing_preference import (
     SharingPreference,
     SharingPreferenceCreate,
     VisibilityLevel,

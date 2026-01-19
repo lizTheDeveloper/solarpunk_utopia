@@ -11,7 +11,7 @@ import path from 'path';
 const authFile = path.join(__dirname, '../../.auth/user.json');
 
 setup('authenticate', async ({ page }) => {
-  const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+  const BASE_URL = process.env.BASE_URL || 'http://localhost:4444';
 
   // Go to login page
   await page.goto(`${BASE_URL}/login`);

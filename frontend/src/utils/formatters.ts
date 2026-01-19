@@ -12,9 +12,16 @@ export const formatDateTime = (date: string | Date): string => {
   return format(dateObj, 'MMM d, yyyy h:mm a');
 };
 
-export const formatTimeAgo = (date: string | Date): string => {
-  const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  return formatDistanceToNow(dateObj, { addSuffix: true });
+export const formatTimeAgo = (date: string | Date | undefined): string => {
+  if (!date) return 'N/A';
+  try {
+    const dateObj = typeof date === 'string' ? parseISO(date) : date;
+    // Check if the date is valid
+    if (isNaN(dateObj.getTime())) return 'N/A';
+    return formatDistanceToNow(dateObj, { addSuffix: true });
+  } catch (error) {
+    return 'N/A';
+  }
 };
 
 // Quantity formatting

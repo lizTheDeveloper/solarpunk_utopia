@@ -1,6 +1,6 @@
 """Commitments API Endpoints - GAP-69"""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 from typing import Optional, List
 import uuid
@@ -10,6 +10,8 @@ from ...models.requests.vf_objects import CommitmentCreate, CommitmentUpdate
 from ...database import get_database
 from ...repositories.vf.commitment_repo import CommitmentRepository
 from ...services.vf_bundle_publisher import VFBundlePublisher
+from ...auth.middleware import require_auth
+from ...auth.models import User
 
 router = APIRouter(prefix="/vf/commitments", tags=["commitments"])
 
@@ -148,8 +150,27 @@ async def update_commitment(commitment_id: str, updates: CommitmentUpdate):
 
 
 @router.delete("/{commitment_id}", response_model=dict)
-async def delete_commitment(commitment_id: str):
-    """Delete a commitment"""
+async def delete_commitment(
+    commitment_id: str,
+    current_user: User = Depends(require_auth)
+):
+    """
+    Delete a commitment (provider or receiver only).
+
+    Only the provider or receiver of a commitment can delete it.
+
+    Args:
+        commitment_id: ID of the commitment to delete
+        current_user: Authenticated user
+
+    Returns:
+        Status message
+
+    Raises:
+        HTTPException 401: If not authenticated
+        HTTPException 403: If not authorized (not provider or receiver)
+        HTTPException 404: If commitment not found
+    """
     try:
         db = get_database()
         db.connect()
@@ -157,9 +178,19 @@ async def delete_commitment(commitment_id: str):
 
         commitment = commitment_repo.find_by_id(commitment_id)
         if not commitment:
+            db.close()
             raise HTTPException(status_code=404, detail="Commitment not found")
 
-        # TODO: Add ownership verification when auth is implemented
+        # Check authorization - only provider or receiver can delete
+        is_provider = commitment.provider == current_user.id
+        is_receiver = commitment.receiver == current_user.id
+
+        if not is_provider and not is_receiver:
+            db.close()
+            raise HTTPException(
+                status_code=403,
+                detail="Not authorized to delete this commitment. Only the provider or receiver can delete commitments."
+            )
 
         commitment_repo.delete(commitment_id)
         db.close()

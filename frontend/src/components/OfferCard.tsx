@@ -1,4 +1,5 @@
 import { Intent } from '@/types/valueflows';
+import { toast } from 'sonner';
 import { Card } from './Card';
 import { Button } from './Button';
 import { MapPin, Calendar, Package, Edit, Trash2, Clock } from 'lucide-react';
@@ -39,9 +40,17 @@ function calculateUrgency(availableUntil?: string): { level: UrgencyLevel; hours
 
 export function OfferCard({ offer, onAccept, onEdit, onDelete, showActions = true, isOwner = false }: OfferCardProps) {
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this offer? This action cannot be undone.')) {
-      onDelete?.(offer);
-    }
+    toast.warning('Are you sure you want to delete this offer?', {
+      description: 'This action cannot be undone.',
+      action: {
+        label: 'Delete',
+        onClick: () => onDelete?.(offer),
+      },
+      cancel: {
+        label: 'Cancel',
+        onClick: () => {}, // Dismiss toast
+      },
+    });
   };
 
   const urgency = calculateUrgency(offer.available_until);
