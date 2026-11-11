@@ -14,6 +14,8 @@ import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
+READ_ONLY_TOOLS = frozenset({'read', 'research', 'document', 'knowledge.search', 'soil.inspect', 'farm.inspect', 'report.draft'})
+
 SCHEMA = """
 PRAGMA journal_mode=WAL;
 PRAGMA foreign_keys=ON;
@@ -112,6 +114,8 @@ class FamiliarStore:
             for sid, s in zip(ids, steps):
                 tool, args = s['tool'], s.get('args', {})
                 reviewer = s.get('approval_for')
+                if tool not in READ_ONLY_TOOLS and not reviewer:
+                    raise ValueError('Action tool requires an explicit human approver')
                 db.execute("""INSERT INTO familiar_steps
                     (id,plan_id,title,tool,args_json,payload_hash,dependencies,
                      available_at,requires_approval,created_at)
