@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Living Commons — Familiar Prototype</title>
+<style>
+:root{font-family:ui-sans-serif,system-ui,sans-serif;color:#233b2c;background:#f4f7ed}
+*{box-sizing:border-box}body{margin:0}button{font:inherit;cursor:pointer}button:focus-visible{outline:3px solid #e8a540;outline-offset:2px}
+header{background:#1e3d30;color:#f8f5df;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+header small{color:#bad5bd}nav{display:flex;gap:8px}nav button{background:transparent;border:1px solid #66836d;color:#fff;border-radius:12px;padding:8px 13px}
+nav button.active{background:#daeab7;color:#25432f}main{max-width:1500px;margin:auto;padding:20px}
+.hero{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.eyebrow{letter-spacing:.13em;font-size:.7rem;text-transform:uppercase;color:#6b846f;font-weight:800}
+h1{margin:3px 0;font-size:1.8rem}h2{font-size:1.05rem;margin:0 0 12px}p{line-height:1.5}
+.status{font-size:.8rem;color:#55735e} .dashboard{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,.75fr) minmax(280px,.8fr);gap:16px;margin-top:18px}
+.panel{background:white;border:1px solid #d9e5d1;border-radius:20px;padding:17px;box-shadow:0 4px 18px #284b3010}
+.map{height:440px;position:relative;overflow:hidden;border:5px solid #d4eacb;border-radius:18px;background-color:#cce6bd;background-image:repeating-linear-gradient(0deg,transparent 0 29px,#7aaf7440 30px 31px),repeating-linear-gradient(90deg,transparent 0 29px,#7aaf7440 30px 31px)}
+.path{position:absolute;background:#d8c7a1;opacity:.9;border:4px dotted #c4ad81;border-radius:40%;left:8%;top:43%;width:86%;height:19%;transform:rotate(-7deg)}
+.landmark{position:absolute;background:#f9f7e3e8;color:#254b32;border:2px solid #88b38c;border-radius:15px;padding:8px 10px;display:flex;flex-direction:column;align-items:center;gap:5px;box-shadow:0 6px 0 #587c6744;transition:transform .15s;min-width:90px}
+.landmark:hover{transform:translateY(-4px)}.landmark .emoji{font-size:2rem;line-height:1.2}.landmark span:last-child{font-weight:750;font-size:.77rem}
+.l-garden{top:9%;left:9%}.l-compost{top:9%;right:10%}.l-energy{bottom:10%;left:14%}.l-workshop{bottom:10%;right:10%}.l-square{top:37%;left:40%}
+.familiar{position:absolute;top:60%;left:46%;border:0;background:#fff1bb;border-radius:50%;width:66px;height:66px;font-size:2.4rem;box-shadow:0 7px 0 #a6a16199;animation:bob 2.5s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-7px)}}
+.note{font-size:.82rem;color:#637e6d;padding:10px 0}.metric-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.metric{background:#eff5e7;padding:12px;border-radius:14px;flex:1;min-width:110px}.metric b{display:block;font-size:1.3rem}.metric small{font-size:.72rem;color:#657769}
+.fam-card{background:linear-gradient(130deg,#e7f4db,#fff4d4);padding:15px;border-radius:16px}
+.fam-title{display:flex;gap:10px;align-items:center}.fam-face{font-size:2rem}
+.pill{border-radius:40px;padding:4px 9px;font-size:.7rem;font-weight:750;background:#def0d4;color:#386a43}
+.task{padding:12px 0;border-bottom:1px solid #e8eee3;display:flex;gap:10px;align-items:flex-start}.task:last-child{border:none}
+.task strong{display:block;font-size:.86rem}.task small{display:block;color:#68806b;margin-top:3px}.task .icon{font-size:1.4rem}
+.action{border:0;background:#2e6546;color:#fff;border-radius:11px;padding:9px 13px;font-weight:700;font-size:.83rem}
+.action.secondary{background:#e6eee0;color:#31573a}.action.warn{background:#fbe8de;color:#8d503c}
+.controls{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.approval{background:#f8f8f0;border:1px solid #e4e8d9;border-radius:14px;padding:13px;margin:8px 0}.approval strong{font-size:.88rem}.approval p{margin:7px 0;font-size:.81rem}.approval .tag{font-size:.7rem;color:#856f46}
+.feed{background:#fafcf7;border:1px solid #e3eddb;border-radius:14px;padding:9px 12px;max-height:300px;overflow:auto;font-size:.8rem}.feed p{border-left:2px solid #b7cdb1;padding-left:11px;margin:10px 0}
+.toast{position:fixed;bottom:20px;right:20px;background:#294d39;color:#fff;padding:14px 18px;border-radius:14px;box-shadow:0 8px 30px #182c2066;max-width:350px;z-index:4}
+.detail{min-height:105px;border-radius:13px;background:#f3f7eb;padding:13px;margin-top:10px;font-size:.85rem}
+.foot{font-size:.73rem;color:#768576;margin:18px 0}
+@media(max-width:1150px){.dashboard{grid-template-columns:1fr 1fr}.wide{grid-column:span 2}}@media(max-width:720px){.dashboard{grid-template-columns:1fr}.wide{grid-column:span 1}.map{height:390px}.landmark{min-width:65px}.landmark .emoji{font-size:1.3rem}header{padding:13px}}
+</style></head><body>
+<header><div><strong>🌱 THE LIVING COMMONS</strong><br><small>Wild Seeds Ranch · Prototype world</small></div><nav><button class="active" data-tab="world">World</button><button data-tab="inbox">Approvals <span id="count">2</span></button><button data-tab="work">Work in progress</button></nav></header>
+<main>
+<div class="hero"><div><div class="eyebrow">A living community, not just a game</div><h1 id="pageTitle">Good afternoon, gardener ✨</h1><p class="status">Illustrative sample data · No real member presence, environmental measurements, or approvals are connected</p></div><span class="pill" id="mode">● Familiar researching</span></div>
+<div class="metric-row"><div class="metric"><b>4</b><small>Open community quests</small></div><div class="metric"><b>3</b><small>Upcoming workshops</small></div><div class="metric"><b>12</b><small>Recorded skills in demo</small></div><div class="metric"><b id="pendingMetric">2</b><small>Decisions pending</small></div></div>
+<div class="dashboard">
+<section class="panel wide"><h2>🗺️ Wander around the commons</h2>
+<div class="map" aria-label="Illustrative campus map with clickable landmarks">
+<div class="path"></div>
+<button class="landmark l-garden" data-place="Garden beds"><span class="emoji">🥬</span><span>Garden beds</span></button>
+<button class="landmark l-compost" data-place="Compost dragon"><span class="emoji">🐉</span><span>Compost dragon</span></button>
+<button class="landmark l-energy" data-place="Solar lab"><span class="emoji">☀️</span><span>Solar lab</span></button>
+<button class="landmark l-workshop" data-place="Repair workshop"><span class="emoji">🔧</span><span>Repair workshop</span></button>
+<button class="landmark l-square" data-place="Community square"><span class="emoji">🏡</span><span>Commons</span></button>
+<button class="familiar" aria-label="Talk to the familiar" title="Talk to the little familiar" data-place="Familiar">🌿</button>
+</div>
+<div class="detail" id="detail"><strong>👋 Welcome!</strong><p>Click the garden, compost pile, solar lab, repair workshop, or little familiar to explore. Each landmark connects game-world discoveries to real-world tasks.</p></div>
+</section>
+<aside class="panel"><h2>🌿 Your familiar</h2><div class="fam-card"><div class="fam-title"><span class="fam-face">🌱</span><div><strong>Little Moss</strong><div class="status">Community steward · researching</div></div></div>
+<p id="speech">"I've been looking at what might grow next season! I found a few promising leads, but I need the gardeners to check the soil records."</p>
+<div class="controls"><button class="action" id="suggest">What have you found?</button><button class="action secondary" id="pause">Pause familiar</button></div></div>
+<h2 style="margin-top:18px">🌻 Today's opportunities</h2>
+<div class="task"><span class="icon">🥬</span><div><strong>Log this week's harvest</strong><small>Beginner friendly · 10–15 min</small></div></div>
+<div class="task"><span class="icon">📡</span><div><strong>Repair moisture sensor</strong><small>Electronics learner + mentor</small></div></div>
+<div class="task"><span class="icon">🌱</span><div><strong>Compare heirloom seeds</strong><small>Research quest · remote friendly</small></div></div>
+</aside>
+<aside class="panel"><h2>📥 Approval inbox</h2><div id="approvals"></div><h2 style="margin-top:18px">⚙️ While awaiting decisions</h2><div class="feed" id="feed"><p>09:00 · Soil research queued</p><p>09:02 · Independent seed search started</p><p>09:05 · Garden trial proposal awaiting steward</p><p>09:08 · Sensor repair guide drafted without waiting</p></div></aside>
+</div>
+<div class="foot">Prototype interface · All buttons operate on local demo state only. No messages, purchases, approvals or device commands are sent.</div>
+</main>
+<script>
+const places={
+'Garden beds':['🥬 Garden beds','Kale harvest: 24 lb recorded (sample). Last moisture reading: unknown. Moss suggests checking the bed and setting up a paired-plot trial.'],
+'Compost dragon':['🐉 Compost dragon','Pile A: temperature record last updated 3 days ago (demo). Suggested quest: take a fresh thermometer reading and record material additions.'],
+'Solar lab':['☀️ Solar lab','A reclaimed-phone camera, ESP32 field sensor and Raspberry Pi gateway are proposed workshop projects. All electrical work requires safe supervision.'],
+'Repair workshop':['🔧 Repair workshop','Community salvage library: demonstration inventory of spare sensors, cables, and old phones. Try a component identification quest.'],
+'Community square':['🏡 Community square','Gather for workshops, form parties, find mentors, discover events and celebrate real community milestones.'],
+'Familiar':['🌿 Little Moss','"I can research crops, inspect notes, propose quests, draft workshops and ask for approval when real-world action is needed. I keep working on independent tasks while approvals wait."']
+};
+const approvals=[
+{id:'trial',title:'Try a new companion-planting bed',tag:'Ecological experiment',text:'Compare locally suitable plants in one small trial plot; no planting until a steward approves.'},
+{id:'invite',title:'Invite mentors to solar workshop',tag:'Consent-based outreach',text:'Request opt-in invitations for the next low-voltage ESP32 class.'}
+];
+const el=(id)=>document.getElementById(id);
+function log(line){let p=document.createElement('p');p.textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})+' · '+line;el('feed').prepend(p)}
+function toast(message){document.querySelector('.toast')?.remove();let d=document.createElement('div');d.className='toast';d.textContent=message;document.body.append(d);setTimeout(()=>d.remove(),3000)}
+function render(){el('count').textContent=approvals.length;el('pendingMetric').textContent=approvals.length;el('approvals').innerHTML=approvals.map(a=>'<div class="approval"><strong>'+a.title+'</strong><div class="tag">'+a.tag+'</div><p>'+a.text+'</p><div class="controls"><button class="action" data-approve="'+a.id+'">Approve</button><button class="action warn" data-deny="'+a.id+'">Deny</button></div></div>').join('')||'<p class="status">All caught up! Moss can continue work independently.</p>'}
+render();
+document.addEventListener('click',(e)=>{let b=e.target.closest('button');if(!b)return;
+if(b.dataset.place){let [title,text]=places[b.dataset.place];el('detail').innerHTML='<strong>'+title+'</strong><p>'+text+'</p>';log('Explored '+b.dataset.place)}
+if(b.dataset.approve||b.dataset.deny){let id=b.dataset.approve||b.dataset.deny;let item=approvals.find(a=>a.id===id);approvals.splice(approvals.indexOf(item),1);let yes=!!b.dataset.approve;log((yes?'Approved':'Declined')+': '+item.title);render();toast((yes?'Approved in mockup: ':'Declined in mockup: ')+item.title)}
+if(b.id==='suggest'){el('speech').textContent='"I found a plausible seasonal seed trial, but it needs local soil data and a gardener\'s approval. Meanwhile I\'ll draft the workshop instructions and salvage list."';log('Familiar displayed a research summary')}
+if(b.id==='pause'){let paused=b.textContent.includes('Pause');b.textContent=paused?'Resume familiar':'Pause familiar';el('mode').textContent=paused?'◌ Familiar paused':'● Familiar researching';log(paused?'Familiar paused (demo)':'Familiar resumed (demo)')}
+if(b.dataset.tab){document.querySelectorAll('nav button').forEach(n=>n.classList.remove('active'));b.classList.add('active');if(b.dataset.tab==='inbox'){el('approvals').scrollIntoView({behavior:'smooth',block:'center'})}else if(b.dataset.tab==='work'){el('feed').scrollIntoView({behavior:'smooth',block:'center'})}else{document.querySelector('.map').scrollIntoView({behavior:'smooth',block:'center'})}}
+});
+</script></body></html>
