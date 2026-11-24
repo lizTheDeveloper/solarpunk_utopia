@@ -1,0 +1,477 @@
+<title>Commons UI Directions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: short diagnosis, then three phone frames side by side (stacked on phones). Each frame is a live prototype of one direction. */
+:root{
+  --bg:#E6EDE3; --surface:#F9FBF6; --surface-2:#E3EBDE; --ink:#13241A; --muted:#566A5C; --line:#C8D5C3;
+  --moss:#2E6A3E; --on-moss:#FFFFFF; --moss-soft:#D5E8D4;
+  --sun:#B57E00; --sun-fill:#F2B90F; --sun-soft:#FBEFC6;
+  --sky:#2A6596; --sky-soft:#D8E7F3;
+  --clay:#A94A24; --clay-soft:#F6DDD1;
+  --frame:#1B2A21;
+  --ground:#CFE0C2; --path:#E6DCC0; --bed-wet:#3F7F4C; --bed-ok:#7BA866; --bed-dry:#C9A64B; --roof:#8A6F52; --wall:#EFE6D2; --heap:#7A5A3C; --panel:#3F6E99;
+  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1611; --surface:#16211A; --surface-2:#1E2B23; --ink:#E3ECE0; --muted:#9BAE9F; --line:#2D3D33;
+  --moss:#7CC48E; --on-moss:#0E1611; --moss-soft:#203A28;
+  --sun:#F2C14E; --sun-fill:#E0A812; --sun-soft:#3A3216;
+  --sky:#86B8E2; --sky-soft:#1B2E3E; --clay:#EC9470; --clay-soft:#3D2219; --frame:#05080A;
+  --ground:#22362A; --path:#3A3A2C; --bed-wet:#4F9A60; --bed-ok:#6E8F4E; --bed-dry:#A3863A; --roof:#6B5641; --wall:#3A3B31; --heap:#5B4430; --panel:#4C80B0;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1611; --surface:#16211A; --surface-2:#1E2B23; --ink:#E3ECE0; --muted:#9BAE9F; --line:#2D3D33;
+  --moss:#7CC48E; --on-moss:#0E1611; --moss-soft:#203A28;
+  --sun:#F2C14E; --sun-fill:#E0A812; --sun-soft:#3A3216;
+  --sky:#86B8E2; --sky-soft:#1B2E3E; --clay:#EC9470; --clay-soft:#3D2219; --frame:#05080A;
+  --ground:#22362A; --path:#3A3A2C; --bed-wet:#4F9A60; --bed-ok:#6E8F4E; --bed-dry:#A3863A; --roof:#6B5641; --wall:#3A3B31; --heap:#5B4430; --panel:#4C80B0;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 48px}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--sun-fill);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+.wrap{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:28px}
+.intro{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:32px;align-items:start}
+.intro h1{font-size:clamp(30px,4.4vw,46px);font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.intro p{max-width:62ch;color:var(--muted);margin:12px 0 0}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--moss)}
+.diag{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.diag h2{font-size:17px;margin-bottom:8px}
+.diag ol{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14px}
+.diag b{color:var(--ink)}
+.diag li{color:var(--muted)}
+.jump{display:flex;flex-wrap:wrap;gap:8px}
+.jump a{font-size:13px;color:var(--ink);text-decoration:none;border:1px solid var(--line);background:var(--surface);padding:6px 12px;border-radius:999px}
+.jump a:hover{border-color:var(--moss)}
+.dirs{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:28px;align-items:start}
+.dir{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;justify-items:center;min-width:0}
+.dir-head{width:100%;max-width:372px}
+.dir-head .tag{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.dir-head h2{font-size:24px;font-weight:800;letter-spacing:-.01em}
+.dir-head p{margin:4px 0 0;font-size:14px;color:var(--muted)}
+.why{width:100%;max-width:372px;font-size:13.5px;color:var(--muted);display:grid;gap:4px;margin:0;padding-left:18px}
+.foot{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+
+/* phone frame */
+.phone{width:372px;max-width:100%;height:760px;border:10px solid var(--frame);border-radius:38px;background:var(--surface);overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 20px 40px -24px rgba(10,30,15,.45)}
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-width:thin}
+.sbar{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--muted);padding:8px 18px 2px}
+.apphead{padding:6px 16px 10px;position:sticky;top:0;background:var(--surface);z-index:3;border-bottom:1px solid var(--line)}
+.apphead .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.place{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:-.01em}
+.small{font-size:12.5px;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-size:11.5px}
+.tabs{display:flex;border-top:1px solid var(--line);background:var(--surface);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+.tabs button{flex:1;border:0;background:none;display:grid;justify-items:center;gap:2px;font-size:11px;color:var(--muted);padding:4px 0;position:relative}
+.tabs button.on{color:var(--moss);font-weight:700}
+.tabs svg{width:22px;height:22px}
+.tabs .give{align-self:start}
+.tabs .give span.plus{width:44px;height:44px;margin-top:-18px;border-radius:14px;background:var(--moss);color:var(--on-moss);display:grid;place-items:center;font-size:26px;font-weight:700;box-shadow:0 6px 14px -6px var(--moss)}
+.dot{position:absolute;top:0;right:calc(50% - 18px);background:var(--clay);color:var(--surface);font-size:10px;font-weight:700;border-radius:999px;min-width:16px;height:16px;display:grid;place-items:center;padding:0 4px}
+
+/* A: nearby feed */
+.sync{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:4px 10px 4px 8px;font-size:12px;margin-top:8px;width:100%;text-align:left}
+.sync .pip{width:8px;height:8px;border-radius:50%;background:var(--sun-fill);box-shadow:0 0 0 3px var(--sun-soft);flex:none}
+.sync.on .pip{background:var(--moss);box-shadow:0 0 0 3px var(--moss-soft)}
+.syncinfo{font-size:12.5px;color:var(--muted);background:var(--surface-2);border-radius:10px;padding:8px 10px;margin-top:8px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 16px 4px;scrollbar-width:none}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:13px;white-space:nowrap}
+.chip.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.feed{display:grid;gap:10px;padding:10px 12px 20px}
+.post{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:8px}
+.post .who{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12px;background:var(--surface-2);color:var(--ink);flex:none}
+.kind{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;padding:2px 7px;border-radius:6px;margin-left:auto}
+.kind.need{background:var(--sun-soft);color:var(--sun)}
+.kind.offer{background:var(--moss-soft);color:var(--moss)}
+.post h3{font-family:var(--f-body);font-size:16px;font-weight:700;line-height:1.3}
+.meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--muted)}
+.act{display:flex;gap:8px;align-items:center}
+.btn{border:0;border-radius:10px;padding:8px 14px;font-weight:700;font-size:14px}
+.btn.primary{background:var(--moss);color:var(--on-moss)}
+.btn.ghost{background:var(--surface-2);color:var(--ink)}
+.btn.warn{background:var(--clay-soft);color:var(--clay)}
+.btn.wide{width:100%;padding:12px}
+.done{font-size:12.5px;color:var(--moss);background:var(--moss-soft);border-radius:10px;padding:8px 10px}
+.match{background:var(--sky-soft);border:1px dashed var(--sky);border-radius:14px;padding:12px;display:grid;gap:8px}
+.match .by{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--sky);font-weight:700}
+.moss{width:26px;height:26px;flex:none}
+.sheet-bg{position:absolute;inset:0;background:rgba(10,20,14,.45);z-index:8;display:flex;align-items:flex-end}
+.sheet{background:var(--surface);width:100%;border-radius:20px 20px 0 0;padding:10px 16px 18px;display:grid;gap:12px;max-height:92%;overflow:auto}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--line);justify-self:center}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface-2);border-radius:12px;padding:4px}
+.seg button{border:0;background:none;border-radius:9px;padding:8px;font-weight:700;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+textarea,input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+textarea{min-height:84px;resize:none}
+label.lbl{font-size:12.5px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px}
+.radios{display:grid;gap:6px}
+.radios label{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:14px}
+.radios input{margin-top:4px;accent-color:var(--moss)}
+.radios small{display:block;color:var(--muted);font-size:12px}
+
+/* B: site map */
+.hello{padding:12px 16px 4px;display:flex;gap:10px;align-items:flex-start}
+.hello p{margin:0;font-size:14px}
+.bubble{background:var(--surface-2);border-radius:4px 14px 14px 14px;padding:8px 12px}
+.map{margin:8px 12px 0;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--ground)}
+.map svg{display:block;width:100%;height:auto}
+.zone{cursor:pointer}
+.zone .hl{fill:none;stroke:transparent;stroke-width:3;stroke-dasharray:5 4}
+.zone.on .hl{stroke:var(--sun-fill)}
+.zone:focus{outline:none}.zone:focus-visible .hl{stroke:var(--sun-fill)}
+.zlabel{font-family:var(--f-body);font-size:10.5px;font-weight:700;fill:var(--ink)}
+.zread{font-family:var(--f-mono);font-size:9px;fill:var(--muted)}
+.lab-bg{fill:var(--surface);opacity:.9}
+.mossbob{animation:bob 2.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-3px)}}
+@media (prefers-reduced-motion:reduce){.mossbob{animation:none}}
+.zpanel{padding:14px 16px 18px;display:grid;gap:12px}
+.zpanel h3{font-size:19px}
+.readings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.reading{background:var(--surface-2);border-radius:10px;padding:8px}
+.reading b{display:block;font-family:var(--f-display);font-size:18px;font-variant-numeric:tabular-nums}
+.reading span{font-size:11px;color:var(--muted);display:block;line-height:1.3}
+.stale{color:var(--clay)!important}
+.quest{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.quest strong{font-size:14.5px}
+.quest .small{grid-column:1}
+.quest .btn{grid-row:1 / span 2;grid-column:2;padding:7px 12px;font-size:13px}
+.people{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+.people .av{width:24px;height:24px;font-size:11px;margin-right:-10px;border:2px solid var(--surface)}
+.people .av:last-of-type{margin-right:4px}
+
+/* C: decisions */
+.dhead{padding:12px 16px;display:grid;gap:10px}
+.dhead h3{font-size:21px;letter-spacing:-.01em}
+.work{display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:12px;border-radius:999px;padding:3px 10px;background:var(--surface-2);color:var(--muted)}
+.pill.wait{background:var(--sun-soft);color:var(--sun);font-weight:700}
+.pill.run{background:var(--moss-soft);color:var(--moss);font-weight:700}
+.decs{display:grid;gap:12px;padding:0 12px 12px}
+.dec{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
+.dec .top{padding:12px;display:grid;gap:4px}
+.dec .type{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;display:flex;gap:8px;align-items:center}
+.dec .type i{font-style:normal;padding:2px 7px;border-radius:6px}
+.t-spend i{background:var(--sun-soft);color:var(--sun)}
+.t-out i{background:var(--sky-soft);color:var(--sky)}
+.t-phys i{background:var(--clay-soft);color:var(--clay)}
+.dec h4{margin:0;font-size:16px;line-height:1.3}
+.dec .reason{font-size:13px;color:var(--muted);margin:0}
+.payload{margin:0;padding:10px 12px;background:var(--surface-2);display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 12px;font-size:13px}
+.payload dt{color:var(--muted)}
+.payload dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums}
+.payload input{padding:4px 8px;border-radius:8px;font-size:13px;font-weight:700}
+.dec .foot2{padding:10px 12px;display:grid;gap:8px}
+.dec .facts{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
+.dec .act .btn{flex:1}
+.notice{font-size:12.5px;border-radius:10px;padding:8px 10px;background:var(--sun-soft);color:var(--ink)}
+.notice.lock{background:var(--surface-2);color:var(--muted)}
+.resolved{padding:12px;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.resolved .btn{margin-left:auto;padding:6px 10px;font-size:12.5px}
+.plan{margin:4px 12px 16px;border:1px solid var(--line);border-radius:14px;padding:12px}
+.plan h4{margin:0 0 2px;font-size:15px}
+.steps{list-style:none;margin:10px 0 0;padding:0;display:grid}
+.steps li{display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:start;font-size:13.5px;padding:6px 0;position:relative}
+.steps li::before{content:"";position:absolute;left:8px;top:22px;bottom:-6px;width:2px;background:var(--line)}
+.steps li:last-child::before{display:none}
+.steps .n{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);background:var(--surface);margin-top:2px;position:relative;z-index:1}
+.steps .s-done .n{background:var(--moss);border-color:var(--moss)}
+.steps .s-run .n{border-color:var(--moss);box-shadow:inset 0 0 0 3px var(--surface);background:var(--moss)}
+.steps .s-wait .n{border-color:var(--sun-fill);background:var(--sun-soft)}
+.steps .s-no .n{border-color:var(--clay);background:var(--clay-soft)}
+.steps .st{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);white-space:nowrap}
+.steps .s-wait .st{color:var(--sun)}.steps .s-run .st{color:var(--moss)}.steps .s-no .st{color:var(--clay)}
+.steps small{display:block;color:var(--muted);font-size:12px}
+
+@media (max-width:760px){.intro{grid-template-columns:1fr}}
+@media (max-width:420px){
+  .dirs{grid-template-columns:minmax(0,1fr)}
+  .phone{border-width:6px;border-radius:28px;height:720px}
+}
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <div>
+      <div class="eyebrow">Solarpunk mesh · UI prototypes · sample data</div>
+      <h1>Three ways the commons could feel on a phone</h1>
+      <p>Each frame below is clickable. They share one visual system (high-legibility type for outdoor screens, sun and moss as the only accents, mesh status always visible), so you can mix pieces from different directions.</p>
+      <div class="jump" style="margin-top:16px">
+        <a href="#nearby">A · Nearby</a><a href="#sitemap">B · Site map</a><a href="#decisions">C · Decisions</a>
+      </div>
+    </div>
+    <section class="diag" aria-labelledby="diag-h">
+      <h2 id="diag-h">What is not working today</h2>
+      <ol>
+        <li><b>Too many front doors.</b> 5 nav sections and 12 destinations; on a phone the header holds three different "+" buttons and the tab row is cut off mid-word.</li>
+        <li><b>Forms before people.</b> The Offers screen opens with a 4-field filter form; the first real offer sits below the fold.</li>
+        <li><b>Offline is hidden.</b> A DTN mesh app never tells you whether your post has left your phone yet.</li>
+        <li><b>The PR 5 map is a dashboard in costume.</b> Emoji tiles on a grid carry no state; the stat row counts demo data.</li>
+        <li><b>Approvals lack the facts.</b> "Approve / Deny" with no amount, recipients, expiry or undo. On mobile the inbox is the last thing on a 2,500px page.</li>
+      </ol>
+    </section>
+  </header>
+
+  <div class="dirs">
+    <!-- A -->
+    <section class="dir" id="nearby">
+      <div class="dir-head"><div class="tag">Direction A · the daily app</div><h2>Nearby</h2><p>One feed of needs and gifts, one button to give or ask, honest sync status.</p></div>
+      <div class="phone" id="pA"></div>
+      <ul class="why">
+        <li>4 tabs replace 12 destinations. Groups, knowledge and network move under "You".</li>
+        <li>Each card has one verb: "I can help" or "I'd use this".</li>
+        <li>The sync pill says when your words will actually reach someone.</li>
+      </ul>
+    </section>
+    <!-- B -->
+    <section class="dir" id="sitemap">
+      <div class="dir-head"><div class="tag">Direction B · the living world</div><h2>Site map</h2><p>A drawn map of the real land. Places show live readings and the jobs waiting there.</p></div>
+      <div class="phone" id="pB"></div>
+      <ul class="why">
+        <li>Bed colour is soil moisture, so the map carries state, not decoration.</li>
+        <li>Every reading shows its age; old data is flagged, matching the spec's stale-sensor rule.</li>
+        <li>Little Moss stands where it is working right now.</li>
+      </ul>
+    </section>
+    <!-- C -->
+    <section class="dir" id="decisions">
+      <div class="dir-head"><div class="tag">Direction C · the familiar</div><h2>Decisions</h2><p>What Moss needs from you, the exact action, and what it keeps doing meanwhile.</p></div>
+      <div class="phone" id="pC"></div>
+      <ul class="why">
+        <li>Each approval shows the payload: amount, fund, recipients, expiry, undo window.</li>
+        <li>Editing a payload visibly voids the approval, as the runtime requires.</li>
+        <li>Actions you are not allowed to approve show who can, instead of a dead button.</li>
+      </ul>
+    </section>
+  </div>
+  <p class="foot">Prototype only. People, places, readings and money are sample data; nothing here talks to the backend. Built for review alongside lizTheDeveloper/solarpunk_utopia PR 5.</p>
+</div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MOSS=`<svg class="moss" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="18" r="11" fill="var(--sun-fill)"/><path d="M16 8c0-5 5-7 9-6-1 4-4 7-9 6z" fill="var(--moss)"/><path d="M16 8c-1-3-4-4-7-3 1 3 3 4 7 3z" fill="var(--bed-ok)"/><circle cx="12.5" cy="18" r="1.6" fill="var(--frame)"/><circle cx="19.5" cy="18" r="1.6" fill="var(--frame)"/><path d="M13 22q3 2 6 0" stroke="var(--frame)" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>`;
+const ic={
+ home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>',
+ map:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>',
+ inbox:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></svg>',
+ you:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+};
+function statusbar(){return `<div class="sbar"><span>10:42</span><span>mesh · 61%</span></div>`}
+function tabs(active,inboxCount){
+  const t=[['home','Nearby'],['map','Site'],['give',''],['inbox','Inbox'],['you','You']];
+  return `<nav class="tabs" aria-label="Main">${t.map(([k,l])=>k==='give'
+   ?`<button class="give" data-give aria-label="Give or ask"><span class="plus">+</span>Give / ask</button>`
+   :`<button class="${k===active?'on':''}" aria-current="${k===active?'page':'false'}">${ic[k]}${l}${k==='inbox'&&inboxCount?`<span class="dot">${inboxCount}</span>`:''}</button>`).join('')}</nav>`;
+}
+
+/* ---------- A: Nearby ---------- */
+const A={filter:'all',synced:false,info:false,posts:[
+ {id:1,k:'need',who:'Amara',ini:'AM',trust:'vouched by 3',title:'Ride to the clinic Thursday morning',meta:['Needed by Thu 8:30','From the east cabins','~25 min drive'],verb:'I can help'},
+ {id:2,k:'offer',who:'Kit',ini:'KT',trust:'vouched by 5',title:'12 jars of tomato passata',meta:['On the kitchen shelf','Take what you need'],verb:"I'd use this"},
+ {id:'m',match:true},
+ {id:3,k:'need',who:'Tomás',ini:'TO',trust:'vouched by 2',title:'Someone who can resolder a USB-C port',meta:['Repair bench','Phone for the mesh relay'],verb:'I can help'},
+ {id:4,k:'offer',who:'Rosa',ini:'RO',trust:'vouched by 6',title:'Lending an 18V drill with 2 batteries',meta:['Back to Rosa within 3 days','Pickup at the tool wall'],verb:'Borrow it'},
+ {id:5,k:'need',who:'Dev',ini:'DV',trust:'new · vouched by 1',title:'Help moving straw bales to the compost',meta:['Sat morning','About 1 hour','2 people'],verb:'I can help'},
+],done:{},matchDone:null,sheet:false,mode:'have',vis:'commune',draft:''};
+function renderA(){
+  const p=A.posts.filter(x=>x.match?A.filter!=='offer'&&A.filter!=='need':A.filter==='all'||x.k===A.filter);
+  $('#pA').innerHTML=`<div class="screen">${statusbar()}
+   <div class="apphead"><div class="row"><div><div class="place">Wild Seeds Ranch</div><div class="small">38 neighbours on this mesh island</div></div>
+   <span class="av" aria-label="You">LZ</span></div>
+   <button class="sync ${A.synced?'on':''}" data-sync aria-expanded="${A.info}"><span class="pip"></span>${A.synced?'Synced just now · 3 phones in range':'Offline · last reached Dev’s phone 14 min ago'}<span class="mono" style="margin-left:auto">${A.synced?'0 queued':Object.keys(A.done).length+1+' queued'}</span></button>
+   ${A.info?`<div class="syncinfo">${A.synced?'Your posts and replies have been handed to nearby phones. They hop onward as people move around the site.':'Your replies are saved on this phone and leave with the next phone that walks by. Most posts reach the kitchen hub within an hour.'} <button class="btn ghost" data-togglesync style="padding:3px 8px;font-size:12px;margin-left:4px">${A.synced?'Simulate offline':'Simulate a phone nearby'}</button></div>`:''}
+   </div>
+   <div class="chips" role="tablist">${[['all','Everything'],['need','Needs'],['offer','Gifts & loans']].map(([k,l])=>`<button class="chip ${A.filter===k?'on':''}" data-f="${k}" role="tab" aria-selected="${A.filter===k}">${l}</button>`).join('')}<button class="chip">Walking distance</button><button class="chip">Food</button><button class="chip">Tools</button></div>
+   <div class="feed">${p.map(x=>x.match?matchCard():post(x)).join('')}</div>
+  </div>${tabs('home',2)}${A.sheet?composer():''}`;
+}
+function post(x){
+  const d=A.done[x.id];
+  return `<article class="post"><div class="who"><span class="av">${x.ini}</span><span><b style="color:var(--ink)">${x.who}</b> · ${x.trust}</span><span class="kind ${x.k}">${x.k==='need'?'NEEDS':'OFFERS'}</span></div>
+  <h3>${esc(x.title)}</h3><div class="meta">${x.meta.map(m=>`<span>${esc(m)}</span>`).join('')}</div>
+  ${d?`<div class="done">You said “${x.verb}”. ${x.who} will see it ${A.synced?'now':'when your phones next meet'}. <button class="btn ghost" data-undo="${x.id}" style="padding:2px 8px;font-size:12px">Undo</button></div>`
+     :`<div class="act"><button class="btn primary" data-do="${x.id}">${x.verb}</button><button class="btn ghost">Message</button></div>`}</article>`;
+}
+function matchCard(){
+  if(A.matchDone==='no')return '';
+  return `<article class="match"><div class="by">${MOSS}Little Moss noticed a fit</div>
+  <div style="font-size:14px">Kit’s passata and <b>Friday soup night</b> (needs sauce for 30) look like a match.</div>
+  ${A.matchDone==='yes'?`<div class="done">Introduced. Kit and the soup crew can take it from here.</div>`:`<div class="act"><button class="btn primary" data-match="yes">Introduce them</button><button class="btn ghost" data-match="no">Not now</button></div>`}</article>`;
+}
+function composer(){
+  return `<div class="sheet-bg" data-close><div class="sheet" role="dialog" aria-label="Give or ask">
+  <div class="grab"></div>
+  <div class="seg"><button class="${A.mode==='have'?'on':''}" data-mode="have">I have something</button><button class="${A.mode==='need'?'on':''}" data-mode="need">I need something</button></div>
+  <div><label class="lbl" for="a-draft">${A.mode==='have'?'What can you share?':'What do you need?'}</label>
+  <textarea id="a-draft" placeholder="${A.mode==='have'?'e.g. A box of zucchini, or two hours of bike repair':'e.g. Someone to water my beds while I’m away Fri–Sun'}">${esc(A.draft)}</textarea>
+  <div class="chips" style="padding:8px 0 0">${['Food','Tools','Rides','Skills','Space','Care'].map(c=>`<button class="chip" data-tag="${c}">${c}</button>`).join('')}</div></div>
+  <div><span class="lbl">Who sees it</span><div class="radios">
+   ${[['commune','This commune','38 people on Wild Seeds Ranch'],['trusted','Trusted neighbours','People 2 vouches away, across 3 islands'],['mesh','Whole mesh','Anyone the bundle reaches']].map(([v,l,s])=>`<label><input type="radio" name="a-vis" value="${v}" ${A.vis===v?'checked':''}><span>${l}<small>${s}</small></span></label>`).join('')}
+  </div></div>
+  <button class="btn primary wide" data-post>Post · ${A.synced?'sends now':'sends with the next phone nearby'}</button>
+  </div></div>`;
+}
+$('#pA').addEventListener('click',e=>{
+  const t=e.target.closest('button,[data-close]');if(!t)return;
+  if(t.dataset.f){A.filter=t.dataset.f}
+  else if(t.hasAttribute('data-sync')){A.info=!A.info}
+  else if(t.hasAttribute('data-togglesync')){A.synced=!A.synced}
+  else if(t.dataset.do){A.done[t.dataset.do]=1}
+  else if(t.dataset.undo){delete A.done[t.dataset.undo]}
+  else if(t.dataset.match){A.matchDone=t.dataset.match}
+  else if(t.hasAttribute('data-give')){A.sheet=true}
+  else if(t.dataset.mode){A.draft=$('#a-draft').value;A.mode=t.dataset.mode}
+  else if(t.dataset.tag){const ta=$('#a-draft');ta.value=(ta.value+' #'+t.dataset.tag.toLowerCase()).trim();A.draft=ta.value;return}
+  else if(t.hasAttribute('data-post')){
+    const txt=$('#a-draft').value.trim()||(A.mode==='have'?'A box of zucchini':'Someone to water my beds Fri–Sun');
+    A.posts.unshift({id:Date.now(),k:A.mode==='have'?'offer':'need',who:'You',ini:'LZ',trust:{commune:'this commune',trusted:'trusted neighbours',mesh:'whole mesh'}[A.vis],title:txt,meta:[A.synced?'Sent':'Queued on your phone','Just now'],verb:'Edit'});
+    A.sheet=false;A.draft='';A.filter='all';
+  }
+  else if(t.hasAttribute('data-close')&&e.target===t){A.sheet=false}
+  else return;
+  renderA();
+});
+$('#pA').addEventListener('change',e=>{if(e.target.name==='a-vis'){A.vis=e.target.value;A.draft=$('#a-draft').value;renderA()}});
+
+/* ---------- B: Site map ---------- */
+const Z={
+ beds:{name:'Garden beds',moss:true,read:[['31%','soil moisture, bed 4','6 min ago'],['11°C','soil temp','6 min ago'],['3 of 6','beds need water','']],
+  say:'Bed 4 is drying out. I drafted a watering plan and asked a water steward to approve it.',
+  quests:[['Hand-water beds 4 and 5','Beginner · 20 min · watering cans by the shed','Join'],['Log this week’s harvest','Beginner · 10 min · photos are enough','Start'],['Plant the companion trial row','Waiting on steward approval','Watch']],ppl:['AM','KT']},
+ compost:{name:'Compost heap',read:[['58°C','core temp','2 h ago',true],['Day 9','of turning cycle',''],['Low','carbon',' ']],
+  say:'The core reading is 2 hours old. I won’t suggest turning until someone takes a fresh one.',
+  quests:[['Take a fresh core temperature','Beginner · 5 min · probe hangs on the bin','Start'],['Move straw bales to the heap','Sat morning · 2 people · 1 hour','Join']],ppl:['DV']},
+ solar:{name:'Solar array',read:[['82%','battery bank','1 min ago'],['1.4 kW','producing now','1 min ago'],['3.1 kWh','spare today','']],
+  say:'There’s spare power this afternoon. Good time to run the dehydrator or charge the relay phones.',
+  quests:[['Charge relay phones at the dock','Anyone · drop off before 3pm','Join'],['Clean panel row B','Intermediate · 30 min · safety briefing','Join']],ppl:[]},
+ repair:{name:'Repair bench',read:[['4','devices waiting','today'],['2','learners signed up',''],['Thu','next open bench','']],
+  say:'Tomás’s relay phone needs a USB-C port. Two people have the skill badge; neither has replied yet.',
+  quests:[['Resolder a USB-C port','Intermediate · solder badge · 45 min','Help'],['Wipe and reflash donated phones','Learner + mentor · 1 hour','Join']],ppl:['TO','RO']},
+ kitchen:{name:'Kitchen & shelf',read:[['12','jars of passata','Kit, today'],['30','expected Fri','soup night'],['5','items on shelf','']],
+  say:'Friday soup night needs sauce for 30. Kit’s passata would cover it.',
+  quests:[['Chop for Friday soup night','Anyone · Fri 4pm · 1 hour','Join'],['Restock the shared shelf list','Beginner · 10 min','Start']],ppl:['KT','AM','DV']},
+};
+const B={z:'beds',joined:{}};
+function mapSVG(){
+  const on=k=>B.z===k?'on':'';
+  const beds=[['var(--bed-ok)'],['var(--bed-wet)'],['var(--bed-ok)'],['var(--bed-dry)'],['var(--bed-dry)'],['var(--bed-wet)']];
+  return `<svg viewBox="0 0 340 290" role="group" aria-label="Map of Wild Seeds Ranch">
+  <rect width="340" height="290" fill="var(--ground)"/>
+  <path d="M-10 250 C 80 230, 120 170, 170 150 S 260 120, 350 70" stroke="var(--path)" stroke-width="16" fill="none" stroke-linecap="round"/>
+  <g fill="var(--bed-ok)" opacity=".35"><circle cx="300" cy="250" r="14"/><circle cx="318" cy="228" r="9"/><circle cx="20" cy="150" r="11"/><circle cx="150" cy="275" r="8"/></g>
+  <g class="zone ${on('beds')}" data-z="beds" tabindex="0" role="button" aria-label="Garden beds">
+    <rect class="hl" x="12" y="12" width="128" height="104" rx="10"/>
+    ${beds.map((b,i)=>`<rect x="22" y="${22+i*13}" width="108" height="9" rx="3" fill="${b[0]}"/>`).join('')}
+    <rect class="lab-bg" x="22" y="100" width="66" height="13" rx="4"/><text class="zlabel" x="26" y="110">Garden beds</text>
+  </g>
+  <g class="zone ${on('compost')}" data-z="compost" tabindex="0" role="button" aria-label="Compost heap">
+    <rect class="hl" x="232" y="10" width="96" height="84" rx="10"/>
+    <ellipse cx="280" cy="48" rx="34" ry="24" fill="var(--heap)"/><ellipse cx="270" cy="40" rx="12" ry="6" fill="var(--bed-dry)" opacity=".6"/>
+    <rect class="lab-bg" x="246" y="76" width="68" height="13" rx="4"/><text class="zlabel" x="250" y="86">Compost 58°</text>
+  </g>
+  <g class="zone ${on('kitchen')}" data-z="kitchen" tabindex="0" role="button" aria-label="Kitchen and shared shelf">
+    <rect class="hl" x="146" y="88" width="84" height="80" rx="10"/>
+    <rect x="158" y="112" width="60" height="38" fill="var(--wall)" stroke="var(--roof)" stroke-width="1.5"/><path d="M152 114 L188 94 L224 114z" fill="var(--roof)"/><rect x="182" y="132" width="12" height="18" fill="var(--roof)"/>
+    <rect class="lab-bg" x="160" y="152" width="58" height="13" rx="4"/><text class="zlabel" x="164" y="162">Kitchen</text>
+  </g>
+  <g class="zone ${on('repair')}" data-z="repair" tabindex="0" role="button" aria-label="Repair bench">
+    <rect class="hl" x="14" y="166" width="104" height="80" rx="10"/>
+    <rect x="28" y="186" width="74" height="36" fill="var(--wall)" stroke="var(--roof)" stroke-width="1.5"/><path d="M22 188 L65 172 L108 188z" fill="var(--roof)"/><rect x="40" y="198" width="22" height="10" rx="2" fill="var(--panel)"/>
+    <rect class="lab-bg" x="26" y="228" width="72" height="13" rx="4"/><text class="zlabel" x="30" y="238">Repair bench</text>
+  </g>
+  <g class="zone ${on('solar')}" data-z="solar" tabindex="0" role="button" aria-label="Solar array">
+    <rect class="hl" x="200" y="176" width="128" height="90" rx="10"/>
+    ${[0,1,2].map(c=>[0,1].map(r=>`<rect x="${212+c*36}" y="${188+r*28}" width="32" height="22" rx="2" fill="var(--panel)" stroke="var(--surface)" stroke-width="1"/>`).join('')).join('')}
+    <rect class="lab-bg" x="214" y="246" width="76" height="13" rx="4"/><text class="zlabel" x="218" y="256">Solar · 82%</text>
+  </g>
+  <g transform="translate(98 84)"><g class="mossbob">${MOSS.replace('class="moss"','width="30" height="30"')}</g></g>
+  </svg>`;
+}
+function renderB(){
+  const z=Z[B.z];
+  $('#pB').innerHTML=`<div class="screen">${statusbar()}
+  <div class="apphead"><div class="row"><div><div class="place">Wild Seeds Ranch</div><div class="small">Tue 24 Nov · 14°C, clear · sunset 16:52</div></div><span class="av">LZ</span></div></div>
+  <div class="hello">${MOSS}<p class="bubble">${esc(z.say)}</p></div>
+  <div class="map">${mapSVG()}</div>
+  <div class="small" style="padding:6px 16px 0;display:flex;gap:12px;flex-wrap:wrap"><span><b style="color:var(--bed-wet)">■</b> wet</span><span><b style="color:var(--bed-ok)">■</b> ok</span><span><b style="color:var(--bed-dry)">■</b> needs water</span><span>Tap a place</span></div>
+  <section class="zpanel" aria-live="polite">
+    <div class="row" style="display:flex;justify-content:space-between;align-items:baseline"><h3>${z.name}</h3>${z.moss?'<span class="pill run">Moss is here</span>':''}</div>
+    <div class="readings">${z.read.map(([v,l,age,st])=>`<div class="reading"><b>${v}</b><span>${l}</span>${age.trim()?`<span class="mono ${st?'stale':''}">${st?'⚠ ':''}${age}</span>`:''}</div>`).join('')}</div>
+    ${z.ppl.length?`<div class="people">${z.ppl.map(p=>`<span class="av">${p}</span>`).join('')}<span>${z.ppl.length} here now (shared location)</span></div>`:'<div class="people">Nobody here right now</div>'}
+    <div><div class="lbl" style="margin-bottom:0">Things to do here</div>
+    ${z.quests.map(([t,s,v],i)=>{const k=B.z+i,j=B.joined[k];return `<div class="quest"><strong>${t}</strong><span class="small">${s}</span><button class="btn ${j?'ghost':'primary'}" data-q="${k}">${j?'✓ You’re in':v}</button></div>`}).join('')}</div>
+  </section></div>${tabs('map',2)}`;
+}
+$('#pB').addEventListener('click',e=>{
+  const z=e.target.closest('[data-z]');if(z){B.z=z.dataset.z;renderB();$('#pB [data-z="'+B.z+'"]').focus();return}
+  const q=e.target.closest('[data-q]');if(q){B.joined[q.dataset.q]=!B.joined[q.dataset.q];renderB()}
+});
+$('#pB').addEventListener('keydown',e=>{const z=e.target.closest('[data-z]');if(z&&(e.key==='Enter'||e.key===' ')){e.preventDefault();z.dispatchEvent(new MouseEvent('click',{bubbles:true}))}});
+
+/* ---------- C: Decisions ---------- */
+const C={state:{},editing:null,decs:[
+ {id:'seed',cls:'t-spend',type:'Spending',title:'Order seed for the companion-planting trial',reason:'Soil records for bed 4 support a bean/squash/marigold trial. Donated seed covers beans only.',
+  rows:[['Amount','$38.50',true],['From','Garden fund (balance $212.00)'],['Items','Squash ×2 packets, marigold ×1',true],['Supplier','Valley seed co-op']],
+  facts:['Expires Fri 27 Nov','Can cancel for 24 h','Garden stewards approve'],can:true},
+ {id:'invite',cls:'t-out',type:'Outreach',title:'Invite people to the ESP32 solar workshop',reason:'Thursday’s bench has 6 open seats. Moss only messages people who opted in to workshop invites.',
+  rows:[['To','9 people who opted in'],['Skipped','2 not opted in, never contacted'],['Message','“Low-voltage ESP32 build, Thu 6pm at the repair bench. Reply to grab a seat.”',true],['Channel','Mesh message, no email']],
+  facts:['Expires Wed 25 Nov','Can’t unsend','Any member approves'],can:true},
+ {id:'water',cls:'t-phys',type:'Physical action',title:'Run drip line B for 20 minutes',reason:'Bed 4 moisture is 31%, below the 35% target.',
+  rows:[['Valve','Drip line B (beds 4–5)'],['Duration','20 min'],['When','Today 16:00']],
+  facts:['Re-checks moisture before opening','Water stewards approve'],can:false,who:'Rosa or Tomás'},
+]};
+function decCard(d){
+  const s=C.state[d.id];
+  if(s==='yes'||s==='no')return `<article class="dec"><div class="resolved"><span class="kind ${s==='yes'?'offer':'need'}">${s==='yes'?'APPROVED':'DECLINED'}</span><span>${esc(d.title)}<br><span class="small">by you · 10:42 · in the action log</span></span><button class="btn ghost" data-undo="${d.id}">Undo</button></div></article>`;
+  const ed=C.editing===d.id, changed=s==='changed';
+  return `<article class="dec ${d.cls}"><div class="top"><div class="type"><i>${d.type}</i><span class="small" style="text-transform:none;letter-spacing:0;font-family:var(--f-body)">asked 08:05 by Little Moss</span></div>
+   <h4>${esc(d.title)}</h4><p class="reason">${esc(d.reason)}</p></div>
+   <dl class="payload">${d.rows.map(([k,v,editable],i)=>`<dt>${k}</dt><dd>${ed&&editable?`<input type="text" id="c-${d.id}-${i}" value="${esc(v)}" aria-label="${k}">`:esc(v)}</dd>`).join('')}</dl>
+   <div class="foot2"><div class="facts">${d.facts.map(f=>`<span>${f}</span>`).join('')}</div>
+   ${changed?`<div class="notice">You changed the order. That makes it a new request, so it needs a fresh approval from another garden steward. Moss has re-posted it.</div>`:''}
+   ${!d.can?`<div class="notice lock">Only water stewards can approve this. Moss asked ${d.who}. You can nudge them or leave a note.</div><div class="act"><button class="btn ghost">Nudge</button><button class="btn ghost">Add a note</button></div>`
+   :ed?`<div class="act"><button class="btn primary" data-save="${d.id}">Save changes</button><button class="btn ghost" data-cancel>Cancel</button></div>`
+   :changed?'':`<div class="act"><button class="btn primary" data-yes="${d.id}">Approve</button>${d.rows.some(r=>r[2])?`<button class="btn ghost" data-edit="${d.id}">Change</button>`:''}<button class="btn warn" data-no="${d.id}">Decline</button></div>`}
+   </div></article>`;
+}
+function renderC(){
+  const open=C.decs.filter(d=>!['yes','no'].includes(C.state[d.id])&&d.can&&C.state[d.id]!=='changed').length;
+  const seed=C.state.seed;
+  const stepState=seed==='yes'?['s-run','ordering']:seed==='no'?['s-no','declined']:['s-wait','needs you'];
+  $('#pC').innerHTML=`<div class="screen">${statusbar()}
+  <div class="apphead"><div class="row"><div style="display:flex;gap:10px;align-items:center">${MOSS}<div><div class="place">Little Moss</div><div class="small">Community familiar · working</div></div></div><button class="btn ghost" style="padding:6px 10px;font-size:12.5px">Pause</button></div></div>
+  <div class="dhead"><h3>${open?`${open} decision${open>1?'s':''} for you`:'You’re all caught up'}</h3>
+   <div class="work"><span class="pill wait">${open} waiting on you</span><span class="pill wait">1 waiting on others</span><span class="pill run">4 running</span><span class="pill">12 done this week</span></div></div>
+  <div class="decs">${C.decs.map(decCard).join('')}</div>
+  <section class="plan"><h4>Plan: companion-planting trial</h4><div class="small">Moss keeps going on anything that doesn’t need a decision.</div>
+   <ol class="steps">
+    <li class="s-done"><span class="n"></span><span>Read soil records for beds 3–5</span><span class="st">done 08:00</span></li>
+    <li class="s-done"><span class="n"></span><span>Find donated seed<small>Bean seed from Kit’s shelf</small></span><span class="st">done 08:40</span></li>
+    <li class="${stepState[0]}"><span class="n"></span><span>Order squash and marigold seed<small>${seed==='no'?'Moss will look for a swap on the mesh instead':'Spending approval above'}</small></span><span class="st">${stepState[1]}</span></li>
+    <li class="s-run"><span class="n"></span><span>Draft the planting guide<small>Doesn’t depend on the order</small></span><span class="st">running</span></li>
+    <li><span class="n"></span><span>Plant the trial row<small>After seed arrives</small></span><span class="st">queued</span></li>
+   </ol></section>
+  </div>${tabs('inbox',open)}`;
+}
+$('#pC').addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t)return;const d=t.dataset;
+  if(d.yes)C.state[d.yes]='yes';
+  else if(d.no)C.state[d.no]='no';
+  else if(d.undo)delete C.state[d.undo];
+  else if(d.edit)C.editing=d.edit;
+  else if(t.hasAttribute('data-cancel'))C.editing=null;
+  else if(d.save){const dec=C.decs.find(x=>x.id===d.save);let ch=false;dec.rows.forEach((r,i)=>{const el=$('#c-'+dec.id+'-'+i);if(el&&el.value!==r[1]){r[1]=el.value;ch=true}});C.editing=null;if(ch)C.state[dec.id]='changed'}
+  else return;
+  renderC();
+});
+
+renderA();renderB();renderC();
+</script>
