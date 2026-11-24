@@ -8,4 +8,8 @@ Context: PR lizTheDeveloper/solarpunk_utopia#5 (`frontend/public/familiar-protot
 - [x] Prototype B: "Site map" illustrated place view (replaces emoji tile grid)
 - [x] Prototype C: "Decisions" familiar approval inbox with exact payloads and plan progress
 - [x] Save as `frontend/prototypes/ui-directions.html` and publish as an artifact
-- [ ] Liz picks a direction (or a mix) and we port it into the React app
+- [x] Liz picks a direction: all three, as tabs (Nearby, Site, Inbox, You)
+- [x] Combine into one prototype with working tabs: `frontend/prototypes/commons-app.html`
+- [x] Draft OpenSpec proposal `openspec/changes/redesign-commons-four-tab-app/`
+- [ ] Architect review of the proposal
+- [ ] Port to React (see proposal tasks.md)
